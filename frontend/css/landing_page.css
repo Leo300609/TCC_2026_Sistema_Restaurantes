@@ -1,0 +1,118 @@
+/* Variáveis para controlar os tons do brilho */
+:root {
+  --cor-brilho: #661b22ad;
+  --sombra-brilho: rgba(209, 108, 105, 0.322);
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Helvetica;
+  scroll-behavior: smooth;
+}
+
+/* Fundo da página e cor geral do texto */
+body {
+  background-color: #541118;
+  color: #ffffff;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Bolas vermelhas desfocadas lá no fundo */
+.esfera-fundo-1, .esfera-fundo-2 {
+  position: fixed;
+  border-radius: 50%;
+  z-index: 0;
+  background: radial-gradient(circle at 35% 35%, #610e0e7e 0%, var(--cor-brilho) 40%, #64161dbd 85%);
+  filter: drop-shadow(0 0 25px var(--sombra-brilho));
+  pointer-events: none;
+}
+
+.esfera-fundo-1 {
+  width: 450px;
+  height: 450px;
+  bottom: -100px;
+  left: -100px;
+}
+
+.esfera-fundo-2 {
+  width: 500px;
+  height: 500px;
+  top: -150px;
+  right: -150px;
+}
+
+/* Cabeçalho que fica no topo */
+.topo-site {
+  position: relative;
+  z-index: 10;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.caixa-icone {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #f2e3c6;
+  font-size: 16px;
+}
+
+.nome-sistema {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.menu-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.menu-links a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.menu-links a:hover {
+  color: #f2e3c6;
+}
+
+.botao-login-topo {
+  background: rgba(242, 227, 198, 0.1);
+  border: 1px solid rgba(242, 227, 198, 0.25);
+  padding: 8px 18px;
+  border-radius: 10px;
+  color: #f2e3c6;
+}
+
+/* Texto lá do fim da página */
+.rodape-fim {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
