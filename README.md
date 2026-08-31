@@ -58,4 +58,4 @@ Este projeto consiste em uma plataforma web focada em automação comercial para
 
 1. **Clone o repositório:**
    ```bash
-   git clone [https://github.com/seu-usuario/TCC_2026_Sistema_Restaurantes.git](https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes.git)
+   git clone https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes.git
