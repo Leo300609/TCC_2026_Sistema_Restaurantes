@@ -1,0 +1,179 @@
+:root {
+  --rosa-queimado: #d16c69;
+  --creme: #f2e3c6;
+  --branco: #fffdfa;
+  --neon-color: #661b22;
+  --neon-glow: rgba(209, 108, 105, 0.35);
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #160407;
+  color: #fffdfa;
+}
+
+/* Fundo padronizado */
+.fundo {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 10% 90%, rgba(177, 46, 47, 0.25), transparent 35%),
+    radial-gradient(circle at 90% 10%, rgba(171, 101, 80, 0.20), transparent 35%),
+    linear-gradient(135deg, #160407 0%, #25080d 50%, #3b0b12 100%);
+}
+
+/* Container do Dashboard */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Barra lateral */
+.sidebar {
+  width: 260px;
+  background: rgba(37, 8, 13, 0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(242, 227, 198, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+/* Para colocar o cabeçalho da barra lateral */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.icone-caixa {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--creme);
+  font-size: 16px;
+}
+
+.nome-empresa {
+  color: var(--branco);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 18px;
+  width: 20px;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: rgba(171, 101, 80, 0.25);
+}
+
+.nav-item.active {
+  box-shadow: 0 0 15px var(--neon-glow);
+}
+
+.sidebar-footer {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-sair {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--rosa-queimado);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.btn-sair:hover {
+  background: rgba(209, 108, 105, 0.15);
+}
+
+/* Conteúdo Principal */
+.main-content {
+  flex: 1;
+  padding: 32px 40px;
+  overflow-y: auto;
+}
+
+/* Barra de Topo, alinha a classe boas-vindas e o icone de perfil */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.boas-vindas h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.boas-vindas p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.usuario-perfil {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  background: var(--vermelho-claro);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--branco);
+  border: 2px solid var(--creme);
+}

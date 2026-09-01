@@ -6,7 +6,7 @@
     <title>XTEC - Restaurante</title>
 
     <link rel="icon" type="image/png" href="../assets/favicon.svg" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/login.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -18,13 +18,19 @@
     <div class="bola2"></div>
 
     <main class="container">
-      <!-- Lado Esquerdo-->
+      <!-- Lado Esquerdo -->
       <section class="caixa-bemvindo">
         <div class="cabecalho-marca">
-          <div class="icone-caixa">
-            <i class="fa-solid fa-utensils"></i>
+          <div class="marca-info">
+            <div class="icone-caixa">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <span class="nome-empresa">XTEC</span>
           </div>
-          <span class="nome-empresa">XTEC</span>
+
+          <a href="index.html" class="btn-voltar" title="Voltar ao início">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+          </a>
         </div>
 
         <div class="conteudo-principal">
@@ -45,11 +51,12 @@
           <input type="email" placeholder="E-mail" id="email" name="email" required />
           <input type="password" placeholder="Senha" id="senha" name="senha" required />
 
-          <a href="#" class="esqueci-senha">Esqueceu a senha?</a>
-
           <button type="submit">
             <i class="fa-solid fa-right-to-bracket"></i> Entrar no sistema
           </button>
+          <p class="link-login">
+            Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
+          </p>
 
           <div class="nota_rodapé">
             <i class="fa-solid fa-lock"></i> Senhas protegidas com hash seguro e sessão no servidor.

@@ -340,3 +340,67 @@ button:hover {
   gap: 6px;
   line-height: 1.3;
 }
+
+.meu-forms {
+  max-width: 440px;
+  padding: 32px 28px;
+}
+
+/* Organização em 2 colunas lado a lado */
+.dupla-input {
+  display: flex;
+  gap: 12px;
+}
+
+.dupla-input input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Link para ir para a tela de Login */
+.link-login {
+  text-align: center;
+  font-size: 13px;
+  color: #8c9ba5;
+  margin-bottom: 18px;
+}
+
+.link-login a {
+  color: #AB6550;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-login a:hover {
+  text-decoration: underline;
+}
+
+.cabecalho-marca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.marca-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #fffdfa;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-voltar:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-3px);
+}

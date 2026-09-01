@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XTEC - Cadastro de Cliente</title>
+
+    <link rel="icon" type="image/png" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../css/login.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="fundo"></div>
+    <div class="bola1"></div>
+    <div class="bola2"></div>
+
+    <main class="container">
+      <!-- Lado Esquerdo -->
+      <section class="caixa-bemvindo">
+        <div class="cabecalho-marca">
+          <div class="marca-info">
+            <div class="icone-caixa">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <span class="nome-empresa">XTEC</span>
+          </div>
+
+          <a href="index.html" class="btn-voltar" title="Voltar ao início">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+          </a>
+        </div>
+
+        <div class="conteudo-principal">
+          <span class="slogan">Sistema de Gestão</span>
+          <h1>Crie sua conta no restaurante.</h1>
+          <p class="descricao">
+            Faça seu cadastro para realizar pedidos mais rápidos, acompanhar entregas e aproveitar vantagens exclusivas.
+          </p>
+        </div>
+      </section>
+
+      <!-- Lado Direito -->
+      <section class="caixa-formulario">
+        <form class="meu-forms">
+          <h2>Criar Conta</h2>
+          <small>Preencha os dados abaixo para se cadastrar</small>
+
+          <div class="grupo-input">
+            <input type="text" placeholder="Nome completo" id="nome" name="nome" required />
+          </div>
+
+          <div class="grupo-input">
+            <input type="email" placeholder="E-mail" id="email" name="email" required />
+          </div>
+
+          <div class="dupla-input">
+            <input type="text" placeholder="CPF" id="cpf" name="cpf" maxlength="14" required />
+            <input type="tel" placeholder="Telefone / WhatsApp" id="telefone" name="telefone" required />
+          </div>
+
+          <div class="dupla-input">
+            <input type="password" placeholder="Senha" id="senha" name="senha" required />
+            <input type="password" placeholder="Confirmar senha" id="confirmar_senha" name="confirmar_senha" required />
+          </div>
+
+          <button type="submit">
+            <i class="fa-solid fa-user-plus"></i> Finalizar Cadastro
+          </button>
+
+          <p class="link-login">
+            Já possui uma conta? <a href="login.html">Faça login</a>
+          </p>
+
+          <div class="nota_rodapé">
+            <i class="fa-solid fa-shield-halved"></i> Seus dados estão seguros e protegidos.
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const cpfInput = document.getElementById('cpf');
+      cpfInput?.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+      });
+
+      const telInput = document.getElementById('telefone');
+      telInput?.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+        value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+        e.target.value = value;
+      });
+    </script>
+  </body>
+</html>
