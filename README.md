@@ -1,4 +1,4 @@
-﻿# 🍽️ Sistema de Gestão e Automação Comercial - Restaurante Santa Helena
+﻿# 🍽️ Sistema de Gestão e Automação Comercial
 
 ![Status do Projeto](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow)
 ![Licença](https://img.shields.io/badge/Licença-MIT-blue)
