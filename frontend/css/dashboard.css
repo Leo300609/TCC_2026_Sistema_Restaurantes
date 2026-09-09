@@ -233,10 +233,6 @@ body {
   gap: 24px;
 }
 
-@media (max-width: 1024px) {
-  .dashboard-secoes { grid-template-columns: 1fr; }
-}
-
 .painel-card {
   background: var(--bg-card);
   border: 1px solid var(--border-cor);
