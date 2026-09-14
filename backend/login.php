@@ -1,49 +1,69 @@
 <?php
-require_once('conexao.php');
-	//criando o objeto mysql e conectando ao banco de dados
-	$mysql = new BancodeDados();
-	$mysql -> conecta();
+session_start();
 
-//declarando variaveis no php para receber o valor dos input do forms da pagina index.html
-$pemail=$_POST["email"] ?? '';
-$psenha=$_POST["senha"] ?? '';
- 
+class BancodeDados {
+    // Definida a porta 3307 onde o seu banco de dados 'tcc' está rodando
+    private $host = "127.0.0.1:3307"; 
+    private $user = "root";
+    private $senha = "";
+    private $banco = "tcc";
+    public $con;
 
-//criando condiçoes para aparacer um prompt ao o admin ou funcionario ser logado e mostrar q a senha ou o login estão inválidos 
-echo"<center>";
-if ($pemail=="admin@tcc.com" && $psenha=="Admin@2026") {
-  echo"<script language='javascript' type='text/javascript'>
-          alert('Bem Vindo Administrador Master. Você está logado');window.location.href='principal.php';
-          </script>";
-}else if ($pemail=="func1@tcc.com" && $psenha=="123456"){
- echo"<script language='javascript' type='text/javascript'>
-          alert('Bem vindo Vendedor João ao Sistema');window.location.href='principal.php';
-          </script>"; 
-}else if ($pemail=="func2@tcc.com" && $psenha=="123456"){
- echo"<script language='javascript' type='text/javascript'>
-          alert('Bem vinda Vendedora Maria ao Sistema');window.location.href='principal.php';
-          </script>";
-}else if ($pemail=="func3@tcc.com" && $psenha=="123456"){
- echo"<script language='javascript' type='text/javascript'>
-          alert('Bem vindo Comprador Carlos ao Sistema');window.location.href='principal.php';
-          </script>";
-}else if ($pemail=="func4@tcc.com" && $psenha=="123456"){
- echo"<script language='javascript' type='text/javascript'>
-          alert('Bem vinda Compradora Ana ao Sistema');window.location.href='principal.php';
-          </script>";
-}else if ($pemail=="func5@tcc.com" && $psenha=="123456"){
- echo"<script language='javascript' type='text/javascript'>
-          alert('Bem vindo Gestor de Estoque Pedro ao Sistema');window.location.href='principal.php';
-          </script>";
-}else{
+    function conecta(){
+        $this->con = mysqli_connect($this->host, $this->user, $this->senha, $this->banco);
+        if(!$this->con){
+            die("Problemas com a conexão: " . mysqli_connect_error());
+        }
+        mysqli_set_charset($this->con, "utf8mb4");
+    }
 
-echo"<script language='javascript' type='text/javascript'>
-            alert('Seu Login ou sua Senha estão inválidos');window.location.href
-            ='http://localhost/tcc_2026/frontend/html/index.html';</script>";
+    function fechar(){
+        if($this->con){
+            mysqli_close($this->con);
+        }
+    }
 }
 
-//fechando o objeto mysql
+$mysql = new BancodeDados();
+$mysql->conecta();
+
+$pemail = $_POST["email"] ?? '';
+$psenha = $_POST["senha"] ?? '';
+
+if (!empty($pemail) && !empty($psenha)) {
+    $emailEscapado = mysqli_real_escape_string($mysql->con, $pemail);
+
+    $sql = "SELECT * FROM usuarios WHERE EMAIL = '$emailEscapado' AND ATIVO = 'ATIVO' LIMIT 1";
+    $result = mysqli_query($mysql->con, $sql);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $usuario = mysqli_fetch_assoc($result);
+
+        $senhaValida = false;
+        if (password_verify($psenha, $usuario['SENHA'])) {
+            $senhaValida = true;
+        } elseif ($psenha === $usuario['SENHA']) {
+            $senhaValida = true;
+        }
+
+        if ($senhaValida) {
+            $_SESSION['usuario_id'] = $usuario['ID'];
+            $_SESSION['usuario_nome'] = $usuario['NOME'];
+            $_SESSION['usuario_nivel'] = $usuario['NIVEL'];
+            $_SESSION['id_empresa'] = 1;
+
+            $mysql->fechar();
+            
+            // Redireciona para a página principal
+            header("Location: ../frontend/html/dashboard.html");
+            exit;
+        }
+    }
+}
+
 $mysql->fechar();
- 
-echo"</center>";
+
+// Se o login falhar
+header("Location: ../frontend/html/login.html?erro=1");
+exit;
 ?>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>XTEC - Cadastro de Cliente</title>
+    <title>XTEC - Cadastro de Funcionário</title>
 
     <link rel="icon" type="image/png" href="../assets/favicon.svg" />
     <link rel="stylesheet" href="../css/login.css" />
@@ -27,26 +27,33 @@
             </div>
             <span class="nome-empresa">XTEC</span>
           </div>
-
-          <a href="index.html" class="btn-voltar" title="Voltar ao início">
-            <i class="fa-solid fa-arrow-left"></i> Voltar
-          </a>
         </div>
 
         <div class="conteudo-principal">
           <span class="slogan">Sistema de Gestão</span>
-          <h1>Crie sua conta no restaurante.</h1>
+          <h1>Junte-se à equipe do restaurante.</h1>
           <p class="descricao">
-            Faça seu cadastro para realizar pedidos mais rápidos, acompanhar entregas e aproveitar vantagens exclusivas.
+            Faça seu cadastro utilizando o código de acesso fornecido pelo seu gestor para acessar o sistema operacional.
           </p>
         </div>
       </section>
 
       <!-- Lado Direito -->
       <section class="caixa-formulario">
-        <form class="meu-forms">
+        <form action="../../backend/cadastrar_funcionario.php" method="POST" class="meu-forms">
           <h2>Criar Conta</h2>
           <small>Preencha os dados abaixo para se cadastrar</small>
+
+          <div class="grupo-input">
+            <input 
+              type="text" 
+              placeholder="Código da Empresa (ex: XTEC-88F2A)" 
+              id="codigo_equipe" 
+              name="codigo_equipe" 
+              style="text-transform: uppercase; font-weight: 700; border-color: #AB6550; background-color: #fff6f0;" 
+              required 
+            />
+          </div>
 
           <div class="grupo-input">
             <input type="text" placeholder="Nome completo" id="nome" name="nome" required />
@@ -54,11 +61,6 @@
 
           <div class="grupo-input">
             <input type="email" placeholder="E-mail" id="email" name="email" required />
-          </div>
-
-          <div class="dupla-input">
-            <input type="text" placeholder="CPF" id="cpf" name="cpf" maxlength="14" required />
-            <input type="tel" placeholder="Telefone / WhatsApp" id="telefone" name="telefone" required />
           </div>
 
           <div class="dupla-input">
@@ -80,6 +82,10 @@
         </form>
       </section>
     </main>
+    
+    <a href="index.html" class="btn-voltar" title="Voltar ao início">
+      <i class="fa-solid fa-arrow-left"></i> Voltar
+    </a>
 
     <script>
       const cpfInput = document.getElementById('cpf');

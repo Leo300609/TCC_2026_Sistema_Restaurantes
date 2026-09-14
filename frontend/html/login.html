@@ -27,10 +27,6 @@
             </div>
             <span class="nome-empresa">XTEC</span>
           </div>
-
-          <a href="index.html" class="btn-voltar" title="Voltar ao início">
-            <i class="fa-solid fa-arrow-left"></i> Voltar
-          </a>
         </div>
 
         <div class="conteudo-principal">
@@ -44,7 +40,7 @@
 
       <!-- Lado Direito-->
       <section class="caixa-formulario">
-        <form class="meu-forms">
+        <form action="../../backend/login.php" method="POST" class="meu-forms">
           <h2>Bem-vindo de volta</h2>
           <small>Acesse o sistema para continuar</small>
 
@@ -54,6 +50,7 @@
           <button type="submit">
             <i class="fa-solid fa-right-to-bracket"></i> Entrar no sistema
           </button>
+
           <p class="link-login">
             Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
           </p>
@@ -64,5 +61,17 @@
         </form>
       </section>
     </main>
+
+    <a href="index.html" class="btn-voltar" title="Voltar ao início">
+      <i class="fa-solid fa-arrow-left"></i> Voltar
+    </a>
+
+    <script>
+      // Alerta simples caso volte com erro na URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('erro') === '1') {
+        alert('E-mail ou senha inválidos!');
+      }
+    </script>
   </body>
 </html>

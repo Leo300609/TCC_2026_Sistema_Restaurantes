@@ -9,13 +9,11 @@
   --creme: #f2e3c6;
   --branco: #fffdfa;
   
-  /* Backgrounds integrados ao tom avermelhado do login */
   --bg-sidebar: rgba(59, 11, 18, 0.65);
   --bg-card: rgba(59, 11, 18, 0.75);
   --border-cor: rgba(242, 227, 198, 0.15);
 }
 
-/* Reset básico */
 * {
   margin: 0;
   padding: 0;
@@ -23,10 +21,12 @@
   font-family: Helvetica, Arial, sans-serif;
 }
 
-body {
+/* Trava a altura da página e remove a rolagem global */
+html, body {
   width: 100%;
-  min-height: 100vh;
-  /* Fundo com o gradiente idêntico ao login.html */
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
   background: linear-gradient(
     135deg,
     #160407 0%,
@@ -39,15 +39,19 @@ body {
   color: var(--branco);
 }
 
-/* Layout principal */
+/* Container flex da aplicação */
 .dashboard-layout {
   display: flex;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Sidebar (ASIDE) - Agora integrada ao tom bordô claro */
+/* Sidebar estática/fixa */
 .sidebar {
   width: 240px;
+  height: 100vh;
+  flex-shrink: 0;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border-cor);
   backdrop-filter: blur(12px);
@@ -126,14 +130,14 @@ body {
   color: var(--rosa-queimado);
 }
 
-/* Conteúdo Principal */
+/* Área principal com rolagem individual */
 .main-content {
   flex: 1;
+  height: 100vh;
+  overflow-y: auto !important;
   padding: 32px 40px;
-  overflow-y: auto;
 }
 
-/* Topbar */
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -179,7 +183,6 @@ body {
   color: var(--branco);
 }
 
-/* Cards de Métricas em Tom Bordô Sólido/Translúcido */
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -226,7 +229,6 @@ body {
 .card-detalhe.neutro { color: rgba(255, 253, 250, 0.6); }
 .card-detalhe.alerta { color: #facc15; }
 
-/* Seções e Painéis */
 .dashboard-secoes {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -303,7 +305,6 @@ body {
 .cliente-nome { font-weight: 600; }
 .valor-pedido { font-weight: 600; }
 
-/* Status de Pedido */
 .status {
   display: inline-block;
   padding: 4px 10px;
@@ -327,7 +328,6 @@ body {
   color: #4ade80;
 }
 
-/* Lista de Mais Vendidos */
 .lista-mais-vendidos {
   display: flex;
   flex-direction: column;
@@ -362,4 +362,120 @@ body {
   font-weight: 700;
   color: var(--creme);
   font-size: 14px;
+}
+
+.gestao-equipe {
+  margin-bottom: 32px;
+}
+
+.form-gerar-codigo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.grupo-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grupo-input label {
+  font-size: 12px;
+  color: var(--creme);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-dash {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(22, 4, 7, 0.6);
+  border: 1px solid var(--border-cor);
+  border-radius: 10px;
+  color: var(--branco);
+  font-size: 14px;
+  outline: none;
+}
+
+.input-dash option {
+  background: var(--vinho-escuro);
+  color: var(--branco);
+}
+
+.btn-gerar {
+  padding: 12px 20px;
+  background: linear-gradient(90deg, var(--vermelho-claro), var(--vermelho-destaque));
+  border: none;
+  border-radius: 10px;
+  color: var(--branco);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 45px;
+  transition: all 0.2s ease;
+}
+
+.btn-gerar:hover {
+  box-shadow: 0 4px 14px rgba(177, 46, 47, 0.4);
+  transform: translateY(-1px);
+}
+
+.resultado-codigo {
+  background: rgba(22, 4, 7, 0.4);
+  border: 1px dashed var(--rosa-queimado);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+
+.resultado-codigo.hidden {
+  display: none;
+}
+
+.resultado-codigo p {
+  font-size: 13px;
+  color: var(--creme);
+  margin-bottom: 8px;
+}
+
+.box-codigo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--vinho-escuro);
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--vermelho-claro);
+  margin-bottom: 8px;
+}
+
+.box-codigo strong {
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #4ade80;
+  font-family: monospace;
+}
+
+.box-codigo button {
+  background: transparent;
+  border: none;
+  color: var(--creme);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.box-codigo button:hover {
+  color: var(--branco);
+}
+
+.resultado-codigo small {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 253, 250, 0.6);
 }
