@@ -55,7 +55,7 @@ if (!empty($pemail) && !empty($psenha)) {
             $mysql->fechar();
             
             // Redireciona para a página principal
-            header("Location: ../frontend/html/dashboard.html");
+            header("Location: ../frontend/dashboard.php");
             exit;
         }
     }

@@ -72,12 +72,13 @@ CREATE TABLE PRODUTO (
     DESCRICAO VARCHAR(255) NOT NULL,
     PRECO_UNITARIO DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     ESTOQUE INT NOT NULL DEFAULT 0,
+    ESTOQUE_MINIMO INT NOT NULL DEFAULT 0,
+    DATA_VALIDADE DATE NULL,
     STATUS ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
     DATA_CADASTRO DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CODIGO_BARRAS VARCHAR(14) UNIQUE,
     NCM VARCHAR(8) NULL,
     UNIDADE_MEDIDA VARCHAR(6) NOT NULL DEFAULT 'UN',
-    ESTOQUE_MINIMO INT NOT NULL DEFAULT 0,
     CATEGORIA_ID INT NOT NULL,
     CONSTRAINT PK_PRODUTO PRIMARY KEY (ID),
     CONSTRAINT FK_PROD_CAT FOREIGN KEY (CATEGORIA_ID) REFERENCES PRODUTO_CATEGORIA (ID)
@@ -94,15 +95,16 @@ CREATE TABLE FORNECEDOR_PRODUTO (
     CONSTRAINT FK_FP_PRODUTO FOREIGN KEY (PRODUTO_ID) REFERENCES PRODUTO (ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
 CREATE TABLE USUARIOS (
     ID INT NOT NULL AUTO_INCREMENT,
+    NOME VARCHAR(255) NOT NULL,
     EMAIL VARCHAR(255) NOT NULL UNIQUE,
     SENHA VARCHAR(255) NOT NULL,
-    NOME VARCHAR(255) NOT NULL,
-    DATA_CADASTRO DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ATIVO ENUM('ATIVO', 'INATIVO') DEFAULT 'ATIVO',  
     NIVEL ENUM('ADMIN', 'FUNCIONARIO') NOT NULL DEFAULT 'FUNCIONARIO',
+    CARGO VARCHAR(50) DEFAULT 'FUNCIONARIO',
+    DATA_CADASTRO DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ULTIMO_LOGIN DATETIME NULL,
+    ATIVO ENUM('ATIVO', 'INATIVO') DEFAULT 'ATIVO',  
     CONSTRAINT PK_USUARIOS PRIMARY KEY (ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -228,21 +230,25 @@ CREATE TABLE CONTA_PAGAR (
 -- ==========================================
 
 INSERT INTO ESTADO (NOME, SIGLA) VALUES 
-('São Paulo', 'SP'), ('Rio de Janeiro', 'RJ'), ('Minas Gerais', 'MG'), ('Bahia', 'BA'), ('Paraná', 'PR');
+('São Paulo', 'SP'), 
+('Rio de Janeiro', 'RJ'), 
+('Minas Gerais', 'MG');
 
 INSERT INTO CIDADE (NOME, ESTADO_ID) VALUES 
-('São Paulo', 1), ('Campinas', 1), ('Rio de Janeiro', 2), ('Niterói', 2), ('Belo Horizonte', 3), 
-('Uberlândia', 3), ('Salvador', 4), ('Feira de Santana', 4), ('Curitiba', 5), ('Londrina', 5);
+('São Paulo', 1), 
+('Campinas', 1), 
+('Guarulhos', 1),
+('Rio de Janeiro', 2), 
+('Niterói', 2),
+('Belo Horizonte', 3);
 
 INSERT INTO PRODUTO_CATEGORIA (NOME, DESCRICAO) VALUES 
-('Informática', 'Produtos de tecnologia e computação'),
-('Papelaria', 'Materiais de escritório e escolar'),
-('Alimentos', 'Produtos alimentícios em geral'),
-('Bebidas', 'Bebidas alcoólicas e não alcoólicas'),
-('Limpeza', 'Produtos de limpeza e higiene'),
-('Eletrônicos', 'Aparelhos eletrônicos diversos'),
-('Vestuário', 'Roupas e acessórios'),
-('Ferramentas', 'Ferramentas manuais e elétricas');
+('Lanches', 'Hambúrgueres, sandwiches e combos'),
+('Bebidas', 'Refrigerantes, sucos e águas'),
+('Sobremesas', 'Doces, sorvetes e sobremesas'),
+('Ingredientes', 'Insumos para preparo dos pratos'),
+('Embalagens', 'Caixas, copos e descartáveis'),
+('Limpeza', 'Produtos de higiene e limpeza da cozinha');
 
 INSERT INTO USUARIOS (EMAIL, SENHA, NOME, NIVEL) VALUES 
 ('admin@tcc.com', 'Admin@2026', 'Administrador Master', 'ADMIN'),
@@ -255,144 +261,112 @@ INSERT INTO USUARIOS (EMAIL, SENHA, NOME, NIVEL) VALUES
 -- ==========================================
 -- 3. CLIENTES E FORNECEDORES (65 REGISTROS)
 -- ==========================================
+
 INSERT INTO CLIENTE (NOME, DOCUMENTO, ENDERECO, ENDERECO_NUMERO, TELEFONE, CIDADE_ID) VALUES 
 ('João Silva', '11111111111', 'Rua das Flores', '100', '11999990001', 1),
 ('Maria Oliveira', '22222222222', 'Av. Brasil', '200', '11999990002', 1),
-('Pedro Santos', '33333333333', 'Rua Augusta', '300', '11999990003', 2),
-('Ana Costa', '44444444444', 'Av. Paulista', '400', '11999990004', 2),
-('Carlos Souza', '55555555555', 'Rua da Consolação', '500', '21999990005', 3),
-('Julia Lima', '66666666666', 'Rua Copacabana', '600', '21999990006', 3),
-('Lucas Pereira', '77777777777', 'Av. Atlântica', '700', '21999990007', 4),
-('Fernanda Alves', '88888888888', 'Rua Ipanema', '800', '21999990008', 4),
-('Ricardo Mendes', '99999999999', 'Av. Afonso Pena', '900', '31999990009', 5),
-('Camila Rocha', '10101010101', 'Rua Savassi', '1000', '31999990010', 5),
-('Bruno Dias', '12121212121', 'Av. Brasil', '1100', '34999990011', 6),
-('Patrícia Gomes', '13131313131', 'Rua do Comércio', '1200', '34999990012', 6),
-('Thiago Martins', '14141414141', 'Av. Paralela', '1300', '71999990013', 7),
-('Larissa Ribeiro', '15151515151', 'Rua Chile', '1400', '71999990014', 7),
-('Gustavo Nunes', '16161616161', 'Av. Getúlio Vargas', '1500', '75999990015', 8),
-('Amanda Carvalho', '17171717171', 'Rua da Feira', '1600', '75999990016', 8),
-('Felipe Barbosa', '18181818181', 'Av. Silva Jardim', '1700', '41999990017', 9),
-('Beatriz Correia', '19191919191', 'Rua XV de Novembro', '1800', '41999990018', 9),
-('Rodrigo Azevedo', '20202020202', 'Av. Higienópolis', '1900', '43999990019', 10),
-('Vanessa Pinto', '21212121212', 'Rua Londrina', '2000', '43999990020', 10),
-('Empresa Alpha LTDA', '11222333000181', 'Av. Industrial', '5000', '1133330001', 1),
-('Beta Comércio SA', '22333444000192', 'Rua dos Fornecedores', '5100', '1133330002', 2),
-('Gama Distribuidora', '33444555000103', 'Av. Logística', '5200', '2133330003', 3),
-('Delta Materiais', '44555666000114', 'Rua do Estoque', '5300', '3133330004', 5),
-('Epsilon Tech', '55666777000125', 'Av. Tecnologia', '5400', '4133330005', 9),
-('Cliente Fictício 26', '26262626262', 'Rua Teste', '26', '11926262626', 1),
-('Cliente Fictício 27', '27272727272', 'Rua Teste', '27', '11927272727', 2),
-('Cliente Fictício 28', '28282828282', 'Rua Teste', '28', '11928282828', 3),
-('Cliente Fictício 29', '29292929292', 'Rua Teste', '29', '11929292929', 4),
-('Cliente Fictício 30', '30303030303', 'Rua Teste', '30', '11930303030', 5),
-('Cliente Fictício 31', '31313131313', 'Rua Teste', '31', '11931313131', 6),
-('Cliente Fictício 32', '32323232323', 'Rua Teste', '32', '11932323232', 7),
-('Cliente Fictício 33', '33333333334', 'Rua Teste', '33', '11933333333', 8),
-('Cliente Fictício 34', '34343434343', 'Rua Teste', '34', '11934343434', 9),
-('Cliente Fictício 35', '35353535353', 'Rua Teste', '35', '11935353535', 10),
-('Cliente Fictício 36', '36363636363', 'Rua Teste', '36', '11936363636', 1),
-('Cliente Fictício 37', '37373737373', 'Rua Teste', '37', '11937373737', 2),
-('Cliente Fictício 38', '38383838383', 'Rua Teste', '38', '11938383838', 3),
-('Cliente Fictício 39', '39393939393', 'Rua Teste', '39', '11939393939', 4),
-('Cliente Fictício 40', '40404040404', 'Rua Teste', '40', '11940404040', 5),
-('Cliente Fictício 41', '41414141414', 'Rua Teste', '41', '11941414141', 6),
-('Cliente Fictício 42', '42424242424', 'Rua Teste', '42', '11942424242', 7),
-('Cliente Fictício 43', '43434343434', 'Rua Teste', '43', '11943434343', 8),
-('Cliente Fictício 44', '44444444445', 'Rua Teste', '44', '11944444444', 9),
-('Cliente Fictício 45', '45454545454', 'Rua Teste', '45', '11945454545', 10),
-('Cliente Fictício 46', '46464646464', 'Rua Teste', '46', '11946464646', 1),
-('Cliente Fictício 47', '47474747474', 'Rua Teste', '47', '11947474747', 2),
-('Cliente Fictício 48', '48484848484', 'Rua Teste', '48', '11948484848', 3),
-('Cliente Fictício 49', '49494949494', 'Rua Teste', '49', '11949494949', 4),
-('Cliente Fictício 50', '50505050505', 'Rua Teste', '50', '11950505050', 5);
+('Pedro Santos', '33333333333', 'Rua Augusta', '300', '11999990003', 1),
+('Ana Costa', '44444444444', 'Av. Paulista', '400', '11999990004', 1),
+('Carlos Souza', '55555555555', 'Rua da Consolação', '500', '21999990005', 4),
+('Julia Lima', '66666666666', 'Rua Copacabana', '600', '21999990006', 4),
+('Lucas Pereira', '77777777777', 'Av. Atlântica', '700', '21999990007', 5),
+('Fernanda Alves', '88888888888', 'Rua Ipanema', '800', '21999990008', 5),
+('Ricardo Mendes', '99999999999', 'Av. Afonso Pena', '900', '31999990009', 6),
+('Camila Rocha', '10101010101', 'Rua Savassi', '1000', '31999990010', 6),
+('Bruno Dias', '12121212121', 'Av. Brasil', '1100', '11999990011', 2),
+('Patrícia Gomes', '13131313131', 'Rua do Comércio', '1200', '11999990012', 2),
+('Thiago Martins', '14141414141', 'Av. Paralela', '1300', '11999990013', 3),
+('Larissa Ribeiro', '15151515151', 'Rua Chile', '1400', '11999990014', 3),
+('Gustavo Nunes', '16161616161', 'Av. Getúlio Vargas', '1500', '11999990015', 1);
 
 INSERT INTO FORNECEDOR (NOME, DOCUMENTO, ENDERECO, ENDERECO_NUMERO, TELEFONE, CIDADE_ID) VALUES 
-('Zeta Atacadista', '66777888000136', 'Av. Atacadão', '5500', '1144440006', 1),
-('Eta Logística', '77888999000147', 'Rua Transportes', '5600', '2144440007', 3),
-('Teta Alimentos', '88999000000158', 'Av. Fazenda', '5700', '3144440008', 5),
-('Iota Bebidas', '99000111000169', 'Rua Cervejeiros', '5800', '4144440009', 9),
-('Kappa Limpeza', '10111213000170', 'Av. Higiene', '5900', '1144440010', 2),
-('Forn. Teste 06', '60606060000160', 'Rua Teste', '60', '11406060606', 3),
-('Forn. Teste 07', '70707070000170', 'Rua Teste', '70', '11407070707', 4),
-('Forn. Teste 08', '80808080000180', 'Rua Teste', '80', '11408080808', 5),
-('Forn. Teste 09', '90909090000190', 'Rua Teste', '90', '11409090909', 6),
-('Forn. Teste 10', '10010010000100', 'Rua Teste', '10', '11410101010', 7),
-('Forn. Teste 11', '11011011000111', 'Rua Teste', '11', '11411111111', 8),
-('Forn. Teste 12', '12012012000122', 'Rua Teste', '12', '11412121212', 9),
-('Forn. Teste 13', '13013013000133', 'Rua Teste', '13', '11413131313', 10),
-('Forn. Teste 14', '14014014000144', 'Rua Teste', '14', '11414141414', 1),
-('Forn. Teste 15', '15015015000155', 'Rua Teste', '15', '11415151515', 2);
+('Frigorífico Boi Gordo LTDA', '11222333000181', 'Av. Industrial', '5000', '1133330001', 1),
+('Distribuidora de Bebidas Sul', '22333444000192', 'Rua dos Fornecedores', '5100', '1133330002', 1),
+('Hortifruti Campo Verde', '33444555000103', 'Av. Logística', '5200', '1133330003', 2),
+('Embalagens PackFast', '44555666000114', 'Rua do Estoque', '5300', '1133330004', 1),
+('Laticínios Vale do Leite', '55666777000125', 'Av. Tecnologia', '5400', '1133330005', 3);
 
 -- ==========================================
 -- 4. PRODUTOS (50 REGISTROS)
 -- ==========================================
-INSERT INTO PRODUTO (NOME, DESCRICAO, PRECO_UNITARIO, ESTOQUE, CODIGO_BARRAS, NCM, CATEGORIA_ID) VALUES 
-('Notebook Dell i5', 'Notebook Dell Core i5 8GB RAM', 3500.00, 20, '7891234560001', '84713012', 1),
-('Mouse Logitech', 'Mouse sem fio Logitech', 150.00, 100, '7891234560002', '84716052', 1),
-('Teclado Mecânico', 'Teclado mecânico RGB', 300.00, 50, '7891234560003', '84716052', 1),
-('Monitor LG 24', 'Monitor LED 24 polegadas', 900.00, 30, '7891234560004', '85285212', 1),
-('Resma Papel A4', 'Resma de papel A4 500 folhas', 25.00, 200, '7891234560005', '48025500', 2),
-('Caneta Azul', 'Caixa com 50 canetas azuis', 40.00, 150, '7891234560006', '96081000', 2),
-('Café 500g', 'Pacote de café torrado 500g', 18.00, 300, '7891234560007', '09012100', 3),
-('Arroz 5kg', 'Saco de arroz tipo 1 5kg', 30.00, 100, '7891234560008', '10063021', 3),
-('Feijão 1kg', 'Pacote de feijão carioca 1kg', 8.00, 120, '7891234560009', '07133100', 3),
-('Refrigerante 2L', 'Garrafa PET 2 Litros', 10.00, 200, '7891234560010', '22021000', 4),
-('Cerveja Lata', 'Lata de cerveja 350ml', 5.00, 500, '7891234560011', '22030000', 4),
-('Detergente 500ml', 'Frasco de detergente neutro', 3.00, 400, '7891234560012', '34022090', 5),
-('Sabão em Pó 1kg', 'Caixa de sabão em pó 1kg', 15.00, 150, '7891234560013', '34022011', 5),
-('Fone Bluetooth', 'Fone de ouvido sem fio', 80.00, 60, '7891234560014', '85183000', 6),
-('Carregador USB', 'Carregador rápido USB-C', 45.00, 80, '7891234560015', '85044021', 6),
-('Camiseta Básica', 'Camiseta 100% algodão', 35.00, 100, '7891234560016', '61091000', 7),
-('Calça Jeans', 'Calça jeans masculina', 90.00, 50, '7891234560017', '62034200', 7),
-('Chave Philips', 'Chave philips 1/4', 12.00, 40, '7891234560018', '82054000', 8),
-('Martelo', 'Martelo unhas 27mm', 35.00, 25, '7891234560019', '82052000', 8),
-('Parafusadeira', 'Parafusadeira elétrica 12V', 250.00, 15, '7891234560020', '84672100', 8),
-('Webcam HD', 'Webcam 1080p com microfone', 180.00, 40, NULL, '85258011', 1),
-('HD Externo 1TB', 'HD externo USB 3.0', 350.00, 25, NULL, '84717010', 1),
-('Pasta Catalogo', 'Pasta catálogo 40 divisórias', 20.00, 60, NULL, '42021900', 2),
-('Grampeador', 'Grampeador de mesa', 15.00, 30, NULL, '83052000', 2),
-('Açúcar 1kg', 'Pacote de açúcar cristal 1kg', 6.00, 200, NULL, '17019900', 3),
-('Óleo de Soja 900ml', 'Garrafa de óleo 900ml', 8.00, 150, NULL, '15079011', 3),
-('Macarrão 500g', 'Pacote de espaguete 500g', 5.00, 180, NULL, '19021100', 3),
-('Água Mineral 500ml', 'Garrafa de água sem gás', 3.00, 300, NULL, '22011000', 4),
-('Suco de Laranja 1L', 'Caixa de suco integral 1L', 12.00, 80, NULL, '20091100', 4),
-('Desinfetante 2L', 'Frasco de desinfetante floral', 10.00, 100, NULL, '38089429', 5),
-('Água Sanitária 1L', 'Frasco de água sanitária', 5.00, 120, NULL, '28281100', 5),
-('Papel Toalha', 'Fardo com 4 rolos', 18.00, 90, NULL, '48030000', 5),
-('Smartwatch', 'Relógio inteligente Bluetooth', 250.00, 20, NULL, '91021100', 6),
-('Caixa de Som', 'Caixa de som portátil', 120.00, 35, NULL, '85182100', 6),
-('Boné', 'Boné de algodão ajustável', 25.00, 70, NULL, '65050010', 7),
-('Meia 3 pares', 'Kit com 3 pares de meias', 20.00, 100, NULL, '61159500', 7),
-('Alicate Universal', 'Alicate universal 8 polegadas', 30.00, 20, NULL, '82032000', 8),
-('Serra Mármore', 'Serra mármore 1200W', 350.00, 10, NULL, '84672900', 8),
-('Fita Isolante', 'Rolo de fita isolante 10m', 8.00, 200, NULL, '39191011', 8),
-('Tinta Acrílica 18L', 'Balde de tinta acrílica branca', 250.00, 15, NULL, '32091010', 8),
-('Produto Teste 41', 'Descrição teste 41', 10.00, 10, NULL, '00000000', 1),
-('Produto Teste 42', 'Descrição teste 42', 20.00, 20, NULL, '00000000', 2),
-('Produto Teste 43', 'Descrição teste 43', 30.00, 30, NULL, '00000000', 3),
-('Produto Teste 44', 'Descrição teste 44', 40.00, 40, NULL, '00000000', 4),
-('Produto Teste 45', 'Descrição teste 45', 50.00, 50, NULL, '00000000', 5),
-('Produto Teste 46', 'Descrição teste 46', 60.00, 60, NULL, '00000000', 6),
-('Produto Teste 47', 'Descrição teste 47', 70.00, 70, NULL, '00000000', 7),
-('Produto Teste 48', 'Descrição teste 48', 80.00, 80, NULL, '00000000', 8),
-('Produto Teste 49', 'Descrição teste 49', 90.00, 90, NULL, '00000000', 1),
-('Produto Teste 50', 'Descrição teste 50', 100.00, 100, NULL, '00000000', 2);
+
+INSERT INTO PRODUTO (NOME, DESCRICAO, PRECO_UNITARIO, ESTOQUE, ESTOQUE_MINIMO, DATA_VALIDADE, STATUS, CODIGO_BARRAS, NCM, CATEGORIA_ID) VALUES 
+-- Lanches prontos
+('X-Burguer Clássico', 'Pão, carne 150g, queijo, alface, tomate', 28.00, 50, 10, NULL, 'ATIVO', '7891000000001', '16025000', 1),
+('X-Burguer Duplo', 'Pão, 2 carnes 150g, queijo cheddar, bacon', 38.00, 40, 10, NULL, 'ATIVO', '7891000000002', '16025000', 1),
+('Combo XTEC Especial', 'X-Burguer + Batata GG + Refrigerante', 45.00, 30, 5, NULL, 'ATIVO', '7891000000003', '16025000', 1),
+('Batata Frita GG', 'Porção grande de batata frita crocante', 22.00, 60, 15, NULL, 'ATIVO', '7891000000004', '20041000', 1),
+('Batata Frita P', 'Porção pequena de batata frita', 14.00, 80, 20, NULL, 'ATIVO', '7891000000005', '20041000', 1),
+('Misto Quente', 'Pão de forma, presunto e queijo', 12.00, 45, 10, NULL, 'ATIVO', '7891000000006', '16025000', 1),
+('X-Salada', 'Pão, carne, queijo, alface, tomate, maionese', 25.00, 35, 10, NULL, 'ATIVO', '7891000000007', '16025000', 1),
+
+-- Bebidas
+('Coca-Cola Lata 350ml', 'Refrigerante Coca-Cola lata', 6.00, 200, 50, '2026-12-31', 'ATIVO', '7891000050001', '22021000', 2),
+('Coca-Cola 2L', 'Refrigerante Coca-Cola garrafa 2L', 12.00, 100, 30, '2026-11-30', 'ATIVO', '7891000050002', '22021000', 2),
+('Guaraná Antarctica Lata', 'Refrigerante Guaraná lata 350ml', 5.50, 150, 40, '2026-12-15', 'ATIVO', '7891000050003', '22021000', 2),
+('Suco de Laranja 500ml', 'Suco natural de laranja', 8.00, 80, 20, '2026-09-25', 'ATIVO', '7891000050004', '20091100', 2),
+('Água Mineral 500ml', 'Água mineral sem gás', 3.50, 300, 100, '2027-06-30', 'ATIVO', '7891000050005', '22011000', 2),
+('Cerveja Heineken Long Neck', 'Cerveja Heineken 330ml', 9.00, 120, 30, '2026-10-20', 'ATIVO', '7891000050006', '22030000', 2),
+
+-- Sobremesas
+('Petit Gateau', 'Bolinho de chocolate com sorvete', 18.00, 25, 5, '2026-09-22', 'ATIVO', '7891000060001', '18063210', 3),
+('Açaí 500ml', 'Açaí na tigela com granola e banana', 16.00, 40, 10, '2026-09-21', 'ATIVO', '7891000060002', '08109090', 3),
+('Milk Shake Ovomaltine', 'Milk shake de ovomaltine 400ml', 14.00, 35, 8, '2026-09-28', 'ATIVO', '7891000060003', '22029900', 3),
+
+-- Ingredientes (para controle de estoque e validade)
+('Pão de Hambúrguer', 'Pão tipo brioche para hambúrguer', 2.50, 500, 100, '2026-09-20', 'ATIVO', '7891000070001', '19059090', 4),
+('Carne Bovina Blend 150g', 'Blend de carne bovina para hambúrguer', 8.00, 400, 100, '2026-09-22', 'ATIVO', '7891000070002', '02013000', 4),
+('Queijo Cheddar Fatia', 'Fatia de queijo cheddar', 1.80, 600, 150, '2026-10-05', 'ATIVO', '7891000070003', '04061090', 4),
+('Alface Americana', 'Folhas de alface americana higienizada', 1.20, 200, 50, '2026-09-19', 'ATIVO', '7891000070004', '07051100', 4),
+('Tomate', 'Tomate caqui fatiado', 1.50, 180, 40, '2026-09-21', 'ATIVO', '7891000070005', '07020000', 4),
+('Bacon em Tiras', 'Bacon defumado em tiras', 3.50, 150, 30, '2026-10-10', 'ATIVO', '7891000070006', '02101200', 4),
+('Batata Congelada 1kg', 'Batata pré-frita congelada', 12.00, 80, 20, '2027-03-15', 'ATIVO', '7891000070007', '20041000', 4),
+('Óleo de Soja 900ml', 'Óleo para fritura', 7.50, 60, 15, '2027-01-20', 'ATIVO', '7891000070008', '15079011', 4),
+('Molho Especial XTEC', 'Molho secreto da casa', 0.80, 400, 100, '2026-11-30', 'ATIVO', '7891000070009', '21069090', 4),
+('Presunto Fatia', 'Fatia de presunto', 1.20, 300, 80, '2026-09-23', 'ATIVO', '7891000070010', '16024110', 4),
+('Queijo Mussarela Fatia', 'Fatia de queijo mussarela', 1.50, 350, 100, '2026-10-08', 'ATIVO', '7891000070011', '04061090', 4),
+('Pão de Forma', 'Pão de forma para misto quente', 6.00, 100, 25, '2026-09-24', 'ATIVO', '7891000070012', '19059090', 4),
+
+-- Embalagens
+('Caixa Hambúrguer Média', 'Caixa de papelão para lanche', 0.35, 1000, 200, NULL, 'ATIVO', '7891000080001', '48191000', 5),
+('Caixa Batata Frita', 'Caixa de papelão para batata', 0.25, 800, 150, NULL, 'ATIVO', '7891000080002', '48191000', 5),
+('Copo Descartável 300ml', 'Copo plástico com tampa', 0.15, 2000, 500, NULL, 'ATIVO', '7891000080003', '39233000', 5),
+('Guardanapo de Papel', 'Pacote com 50 guardanapos', 2.00, 500, 100, NULL, 'ATIVO', '7891000080004', '48182000', 5),
+('Sacola Plástica', 'Sacola para delivery', 0.20, 1500, 300, NULL, 'ATIVO', '7891000080005', '39232100', 5),
+
+-- Limpeza
+('Detergente Neutro 5L', 'Detergente para limpeza da cozinha', 18.00, 40, 10, '2027-05-30', 'ATIVO', '7891000090001', '34022090', 6),
+('Água Sanitária 1L', 'Água sanitária para desinfecção', 4.50, 60, 15, '2027-02-28', 'ATIVO', '7891000090002', '28281100', 6),
+('Papel Toalha Interfolhado', 'Fardo com 1000 folhas', 22.00, 30, 8, NULL, 'ATIVO', '7891000090003', '48030000', 6);
 
 -- ==========================================
 -- 5. FORNECEDOR_PRODUTO (50 REGISTROS)
 -- ==========================================
+
 INSERT INTO FORNECEDOR_PRODUTO (FORNECEDOR_ID, PRODUTO_ID, PRECO_FORNECEDOR, PRAZO_ENTREGA_DIAS) VALUES 
-(1, 1, 2800.00, 15), (1, 2, 100.00, 5), (1, 3, 220.00, 5), (1, 4, 700.00, 10), (1, 21, 120.00, 7),
-(2, 5, 18.00, 3), (2, 6, 30.00, 3), (2, 23, 15.00, 4), (2, 24, 10.00, 4), (2, 39, 5.00, 2),
-(3, 7, 12.00, 2), (3, 8, 22.00, 2), (3, 9, 6.00, 2), (3, 25, 4.50, 3), (3, 26, 6.00, 3),
-(4, 10, 7.00, 2), (4, 11, 3.50, 2), (4, 27, 3.50, 3), (4, 28, 2.00, 2), (4, 29, 9.00, 3),
-(5, 12, 2.00, 3), (5, 13, 10.00, 3), (5, 30, 7.00, 4), (5, 31, 3.50, 4), (5, 32, 12.00, 5),
-(6, 14, 60.00, 10), (6, 15, 30.00, 10), (6, 33, 180.00, 15), (6, 34, 90.00, 12), (7, 16, 25.00, 5),
-(7, 17, 65.00, 5), (7, 35, 18.00, 7), (7, 36, 15.00, 7), (8, 18, 8.00, 4), (8, 19, 25.00, 4),
-(8, 37, 20.00, 5), (8, 38, 280.00, 15), (9, 20, 180.00, 20), (9, 40, 180.00, 10), (10, 41, 7.00, 2),
-(10, 42, 14.00, 2), (11, 43, 21.00, 3), (11, 44, 28.00, 3), (12, 45, 35.00, 4), (12, 46, 42.00, 4),
-(13, 47, 49.00, 5), (13, 48, 56.00, 5), (14, 49, 63.00, 6), (14, 50, 70.00, 6), (15, 1, 2850.00, 12);
+(1, 18, 6.50, 2),
+(1, 26, 1.00, 2),
+(1, 22, 2.80, 2),
+(2, 8, 4.50, 1),
+(2, 9, 9.00, 1),
+(2, 10, 4.00, 1),
+(2, 11, 6.00, 1),
+(2, 12, 2.50, 1),
+(2, 13, 7.00, 1),
+(3, 17, 1.80, 1),
+(3, 20, 0.90, 1),
+(3, 21, 1.10, 1),
+(3, 23, 10.00, 1),
+(3, 24, 6.00, 1),
+(3, 28, 5.00, 1),
+(4, 29, 0.25, 3),
+(4, 30, 0.18, 3),
+(4, 31, 0.10, 3),
+(4, 32, 1.50, 3),
+(4, 33, 0.15, 3),
+(5, 19, 1.30, 2),
+(5, 27, 1.10, 2),
+(5, 25, 0.60, 2);
 
 -- ==========================================
 -- 6. MOVIMENTAÇÕES, VENDAS E COMPRAS (RESUMO EM MASSA)
@@ -400,146 +374,312 @@ INSERT INTO FORNECEDOR_PRODUTO (FORNECEDOR_ID, PRODUTO_ID, PRECO_FORNECEDOR, PRA
 -- Para não estourar o limite de caracteres, vou gerar blocos lógicos de transações.
 
 -- MOVIMENTACAO_ESTOQUE (40 registros - Entradas iniciais de compra)
-INSERT INTO MOVIMENTACAO_ESTOQUE (PRODUTO_ID, USUARIO_ID, TIPO, QUANTIDADE, OBSERVACAO) VALUES 
-(1, 3, 'ENTRADA', 20, 'Compra 1'), (2, 3, 'ENTRADA', 100, 'Compra 1'), (3, 3, 'ENTRADA', 50, 'Compra 1'),
-(4, 3, 'ENTRADA', 30, 'Compra 1'), (5, 3, 'ENTRADA', 200, 'Compra 2'), (6, 3, 'ENTRADA', 150, 'Compra 2'),
-(7, 4, 'ENTRADA', 300, 'Compra 3'), (8, 4, 'ENTRADA', 100, 'Compra 3'), (9, 4, 'ENTRADA', 120, 'Compra 3'),
-(10, 4, 'ENTRADA', 200, 'Compra 4'), (11, 4, 'ENTRADA', 500, 'Compra 4'), (12, 5, 'ENTRADA', 400, 'Compra 5'),
-(13, 5, 'ENTRADA', 150, 'Compra 5'), (14, 5, 'ENTRADA', 60, 'Compra 6'), (15, 5, 'ENTRADA', 80, 'Compra 6'),
-(16, 5, 'ENTRADA', 100, 'Compra 7'), (17, 5, 'ENTRADA', 50, 'Compra 7'), (18, 5, 'ENTRADA', 40, 'Compra 8'),
-(19, 5, 'ENTRADA', 25, 'Compra 8'), (20, 5, 'ENTRADA', 15, 'Compra 9'), (21, 3, 'ENTRADA', 40, 'Compra 10'),
-(22, 3, 'ENTRADA', 25, 'Compra 10'), (23, 3, 'ENTRADA', 60, 'Compra 11'), (24, 3, 'ENTRADA', 30, 'Compra 11'),
-(25, 4, 'ENTRADA', 200, 'Compra 12'), (26, 4, 'ENTRADA', 150, 'Compra 12'), (27, 4, 'ENTRADA', 180, 'Compra 13'),
-(28, 4, 'ENTRADA', 300, 'Compra 13'), (29, 4, 'ENTRADA', 80, 'Compra 14'), (30, 5, 'ENTRADA', 100, 'Compra 15'),
-(31, 5, 'ENTRADA', 120, 'Compra 15'), (32, 5, 'ENTRADA', 90, 'Compra 16'), (33, 5, 'ENTRADA', 20, 'Compra 17'),
-(34, 5, 'ENTRADA', 35, 'Compra 17'), (35, 5, 'ENTRADA', 70, 'Compra 18'), (36, 5, 'ENTRADA', 100, 'Compra 18'),
-(37, 5, 'ENTRADA', 20, 'Compra 19'), (38, 5, 'ENTRADA', 10, 'Compra 19'), (39, 5, 'ENTRADA', 200, 'Compra 20'),
-(40, 5, 'ENTRADA', 15, 'Compra 20');
 
+INSERT INTO MOVIMENTACAO_ESTOQUE (PRODUTO_ID, USUARIO_ID, TIPO, QUANTIDADE, OBSERVACAO) VALUES 
+(18, 3, 'ENTRADA', 400, 'Compra Frigorífico Boi Gordo - Lote 001'),
+(17, 3, 'ENTRADA', 500, 'Compra Hortifruti - Pães frescos'),
+(20, 3, 'ENTRADA', 200, 'Compra Hortifruti - Alface'),
+(21, 3, 'ENTRADA', 180, 'Compra Hortifruti - Tomates'),
+(19, 5, 'ENTRADA', 600, 'Compra Laticínios - Queijo Cheddar'),
+(23, 4, 'ENTRADA', 80, 'Compra Hortifruti - Batata congelada'),
+(24, 4, 'ENTRADA', 60, 'Compra Hortifruti - Óleo de soja'),
+(8, 4, 'ENTRADA', 200, 'Compra Distribuidora - Coca lata'),
+(9, 4, 'ENTRADA', 100, 'Compra Distribuidora - Coca 2L'),
+(10, 4, 'ENTRADA', 150, 'Compra Distribuidora - Guaraná'),
+(29, 5, 'ENTRADA', 1000, 'Compra Embalagens - Caixas hambúrguer'),
+(30, 5, 'ENTRADA', 800, 'Compra Embalagens - Caixas batata'),
+(31, 5, 'ENTRADA', 2000, 'Compra Embalagens - Copos'),
+(32, 5, 'ENTRADA', 500, 'Compra Embalagens - Guardanapos'),
+(33, 5, 'ENTRADA', 1500, 'Compra Embalagens - Sacolas'),
+(22, 5, 'ENTRADA', 150, 'Compra Laticínios - Bacon'),
+(28, 3, 'ENTRADA', 100, 'Compra Hortifruti - Pão de forma'),
+(27, 5, 'ENTRADA', 350, 'Compra Laticínios - Mussarela'),
+(25, 5, 'ENTRADA', 400, 'Compra Laticínios - Molho especial'),
+(34, 5, 'ENTRADA', 40, 'Compra Limpeza - Detergente'),
+(35, 5, 'ENTRADA', 60, 'Compra Limpeza - Água sanitária'),
+(36, 5, 'ENTRADA', 30, 'Compra Limpeza - Papel toalha'),
+(18, 4, 'SAIDA', 50, 'Consumo cozinha - preparo de hambúrgueres'),
+(17, 4, 'SAIDA', 80, 'Consumo cozinha - pães utilizados'),
+(20, 4, 'SAIDA', 40, 'Consumo cozinha - alface'),
+(21, 4, 'SAIDA', 35, 'Consumo cozinha - tomates'),
+(19, 4, 'SAIDA', 100, 'Consumo cozinha - queijo cheddar'),
+(23, 4, 'SAIDA', 20, 'Consumo cozinha - batata para fritura'),
+(8, 4, 'SAIDA', 30, 'Vendas - Coca lata'),
+(9, 4, 'SAIDA', 15, 'Vendas - Coca 2L'),
+(29, 4, 'SAIDA', 150, 'Consumo - caixas utilizadas'),
+(30, 4, 'SAIDA', 120, 'Consumo - caixas batata'),
+(31, 4, 'SAIDA', 200, 'Consumo - copos'),
+(32, 4, 'SAIDA', 80, 'Consumo - guardanapos'),
+(33, 4, 'SAIDA', 180, 'Consumo - sacolas delivery'),
+(27, 4, 'SAIDA', 60, 'Consumo cozinha - mussarela'),
+(25, 4, 'SAIDA', 100, 'Consumo cozinha - molho especial'),
+(24, 4, 'SAIDA', 8, 'Consumo cozinha - óleo de fritura'),
+(22, 4, 'SAIDA', 30, 'Consumo cozinha - bacon'),
+(28, 4, 'SAIDA', 25, 'Consumo cozinha - pão de forma'),
+(11, 4, 'SAIDA', 20, 'Vendas - suco de laranja'),
+(12, 4, 'SAIDA', 40, 'Vendas - água mineral'),
+(13, 4, 'SAIDA', 15, 'Vendas - cerveja');
 -- VENDAS (30 registros)
+
 INSERT INTO VENDA (VALOR, DESCONTO, TOTAL, CLIENTE_ID, FUNCIONARIO_ID, FORMA_PAGAMENTO, STATUS) VALUES 
-(3500.00, 0.00, 3500.00, 1, 2, 'CREDITO', 'FINALIZADA'), (150.00, 0.00, 150.00, 2, 2, 'DEBITO', 'FINALIZADA'),
-(450.00, 50.00, 400.00, 3, 2, 'PIX', 'FINALIZADA'), (1200.00, 0.00, 1200.00, 4, 2, 'BOLETO', 'FINALIZADA'),
-(25.00, 0.00, 25.00, 5, 2, 'DINHEIRO', 'FINALIZADA'), (80.00, 0.00, 80.00, 6, 2, 'CREDITO', 'FINALIZADA'),
-(30.00, 0.00, 30.00, 7, 2, 'DEBITO', 'FINALIZADA'), (18.00, 0.00, 18.00, 8, 2, 'DINHEIRO', 'FINALIZADA'),
-(10.00, 0.00, 10.00, 9, 2, 'PIX', 'FINALIZADA'), (5.00, 0.00, 5.00, 10, 2, 'DINHEIRO', 'FINALIZADA'),
-(3500.00, 100.00, 3400.00, 11, 2, 'CREDITO', 'FINALIZADA'), (150.00, 0.00, 150.00, 12, 2, 'DEBITO', 'FINALIZADA'),
-(450.00, 0.00, 450.00, 13, 2, 'PIX', 'FINALIZADA'), (1200.00, 0.00, 1200.00, 14, 2, 'BOLETO', 'FINALIZADA'),
-(25.00, 0.00, 25.00, 15, 2, 'DINHEIRO', 'FINALIZADA'), (80.00, 0.00, 80.00, 16, 2, 'CREDITO', 'FINALIZADA'),
-(30.00, 0.00, 30.00, 17, 2, 'DEBITO', 'FINALIZADA'), (18.00, 0.00, 18.00, 18, 2, 'DINHEIRO', 'FINALIZADA'),
-(10.00, 0.00, 10.00, 19, 2, 'PIX', 'FINALIZADA'), (5.00, 0.00, 5.00, 20, 2, 'DINHEIRO', 'FINALIZADA'),
-(350.00, 0.00, 350.00, 21, 2, 'CREDITO', 'FINALIZADA'), (300.00, 0.00, 300.00, 22, 2, 'DEBITO', 'FINALIZADA'),
-(250.00, 0.00, 250.00, 23, 2, 'PIX', 'FINALIZADA'), (180.00, 0.00, 180.00, 24, 2, 'BOLETO', 'FINALIZADA'),
-(90.00, 0.00, 90.00, 25, 2, 'DINHEIRO', 'FINALIZADA'), (120.00, 0.00, 120.00, 26, 2, 'CREDITO', 'FINALIZADA'),
-(35.00, 0.00, 35.00, 27, 2, 'DEBITO', 'FINALIZADA'), (25.00, 0.00, 25.00, 28, 2, 'DINHEIRO', 'FINALIZADA'),
-(15.00, 0.00, 15.00, 29, 2, 'PIX', 'FINALIZADA'), (8.00, 0.00, 8.00, 30, 2, 'DINHEIRO', 'FINALIZADA');
+-- Vendas de hoje e recentes
+(45.00, 0.00, 45.00, 1, 2, 'PIX', 'FINALIZADA'),           -- Combo XTEC
+(28.00, 0.00, 28.00, 2, 2, 'CREDITO', 'FINALIZADA'),       -- X-Burguer Clássico
+(38.00, 5.00, 33.00, 3, 2, 'DEBITO', 'FINALIZADA'),        -- X-Burguer Duplo com desconto
+(68.00, 0.00, 68.00, 4, 2, 'PIX', 'FINALIZADA'),           -- 2 Combos
+(22.00, 0.00, 22.00, 5, 2, 'DINHEIRO', 'FINALIZADA'),      -- Batata GG
+(56.00, 0.00, 56.00, 6, 2, 'CREDITO', 'FINALIZADA'),       -- 2 X-Burguer Duplo
+(14.00, 0.00, 14.00, 7, 2, 'PIX', 'FINALIZADA'),           -- Batata P
+(12.00, 0.00, 12.00, 8, 2, 'DINHEIRO', 'FINALIZADA'),      -- Misto Quente
+(51.00, 0.00, 51.00, 9, 2, 'DEBITO', 'FINALIZADA'),        -- X-Burguer + Batata + Bebida
+(25.00, 0.00, 25.00, 10, 2, 'PIX', 'FINALIZADA'),          -- X-Salada
+(90.00, 10.00, 80.00, 11, 2, 'CREDITO', 'FINALIZADA'),     -- 2 Combos com desconto
+(18.00, 0.00, 18.00, 12, 2, 'PIX', 'FINALIZADA'),          -- Petit Gateau
+(32.00, 0.00, 32.00, 13, 2, 'DEBITO', 'FINALIZADA'),       -- X-Burguer + Coca
+(45.00, 0.00, 45.00, 14, 2, 'PIX', 'FINALIZADA'),          -- Combo XTEC
+(16.00, 0.00, 16.00, 15, 2, 'DINHEIRO', 'FINALIZADA'),     -- Açaí
+(76.00, 0.00, 76.00, 1, 2, 'CREDITO', 'FINALIZADA'),       -- 2 Combos + Bebida extra
+(28.00, 0.00, 28.00, 2, 2, 'PIX', 'FINALIZADA'),           -- X-Burguer Clássico
+(14.00, 0.00, 14.00, 3, 2, 'DEBITO', 'FINALIZADA'),        -- Milk Shake
+(38.00, 0.00, 38.00, 4, 2, 'PIX', 'FINALIZADA'),           -- X-Burguer Duplo
+(22.00, 0.00, 22.00, 5, 2, 'DINHEIRO', 'FINALIZADA'),      -- Batata GG
+(54.00, 0.00, 54.00, 6, 2, 'CREDITO', 'FINALIZADA'),       -- X-Burguer Duplo + Batata + 2 Bebidas
+(12.00, 0.00, 12.00, 7, 2, 'PIX', 'FINALIZADA'),           -- Misto Quente
+(45.00, 0.00, 45.00, 8, 2, 'DEBITO', 'FINALIZADA'),        -- Combo XTEC
+(25.00, 0.00, 25.00, 9, 2, 'PIX', 'FINALIZADA'),           -- X-Salada
+(34.00, 0.00, 34.00, 10, 2, 'CREDITO', 'FINALIZADA'),      -- X-Burguer Clássico + Batata P
+(18.00, 0.00, 18.00, 11, 2, 'PIX', 'FINALIZADA'),          -- Petit Gateau
+(56.00, 0.00, 56.00, 12, 2, 'DEBITO', 'FINALIZADA'),       -- 2 X-Burguer Clássico
+(16.00, 0.00, 16.00, 13, 2, 'DINHEIRO', 'FINALIZADA'),     -- Açaí
+(28.00, 0.00, 28.00, 14, 2, 'PIX', 'FINALIZADA'),          -- X-Burguer Clássico
+(45.00, 0.00, 45.00, 15, 2, 'CREDITO', 'FINALIZADA');      -- Combo XTEC
 
 -- VENDA_ITEM (60 registros - 2 itens por venda em média)
+
 INSERT INTO VENDA_ITEM (VENDA_ID, PRODUTO_ID, QUANTIDADE, PRECO_UNITARIO, VALOR, DESCONTO, TOTAL, STATUS) VALUES 
-(1, 1, 1, 3500.00, 3500.00, 0.00, 3500.00, 'FINALIZADA'), (1, 2, 1, 150.00, 150.00, 0.00, 150.00, 'FINALIZADA'),
-(2, 2, 1, 150.00, 150.00, 0.00, 150.00, 'FINALIZADA'), (3, 3, 1, 300.00, 300.00, 0.00, 300.00, 'FINALIZADA'),
-(3, 4, 1, 900.00, 900.00, 50.00, 850.00, 'FINALIZADA'), (4, 1, 1, 3500.00, 3500.00, 0.00, 3500.00, 'FINALIZADA'),
-(5, 5, 1, 25.00, 25.00, 0.00, 25.00, 'FINALIZADA'), (6, 14, 1, 80.00, 80.00, 0.00, 80.00, 'FINALIZADA'),
-(7, 8, 1, 30.00, 30.00, 0.00, 30.00, 'FINALIZADA'), (8, 7, 1, 18.00, 18.00, 0.00, 18.00, 'FINALIZADA'),
-(9, 10, 1, 10.00, 10.00, 0.00, 10.00, 'FINALIZADA'), (10, 11, 1, 5.00, 5.00, 0.00, 5.00, 'FINALIZADA'),
-(11, 1, 1, 3500.00, 3500.00, 100.00, 3400.00, 'FINALIZADA'), (12, 2, 1, 150.00, 150.00, 0.00, 150.00, 'FINALIZADA'),
-(13, 3, 1, 300.00, 300.00, 0.00, 300.00, 'FINALIZADA'), (14, 4, 1, 900.00, 900.00, 0.00, 900.00, 'FINALIZADA'),
-(15, 5, 1, 25.00, 25.00, 0.00, 25.00, 'FINALIZADA'), (16, 14, 1, 80.00, 80.00, 0.00, 80.00, 'FINALIZADA'),
-(17, 8, 1, 30.00, 30.00, 0.00, 30.00, 'FINALIZADA'), (18, 7, 1, 18.00, 18.00, 0.00, 18.00, 'FINALIZADA'),
-(19, 10, 1, 10.00, 10.00, 0.00, 10.00, 'FINALIZADA'), (20, 11, 1, 5.00, 5.00, 0.00, 5.00, 'FINALIZADA'),
-(21, 22, 1, 350.00, 350.00, 0.00, 350.00, 'FINALIZADA'), (22, 21, 1, 300.00, 300.00, 0.00, 300.00, 'FINALIZADA'),
-(23, 20, 1, 250.00, 250.00, 0.00, 250.00, 'FINALIZADA'), (24, 33, 1, 180.00, 180.00, 0.00, 180.00, 'FINALIZADA'),
-(25, 4, 1, 900.00, 900.00, 0.00, 900.00, 'FINALIZADA'), (26, 34, 1, 120.00, 120.00, 0.00, 120.00, 'FINALIZADA'),
-(27, 16, 1, 35.00, 35.00, 0.00, 35.00, 'FINALIZADA'), (28, 35, 1, 25.00, 25.00, 0.00, 25.00, 'FINALIZADA'),
-(29, 24, 1, 15.00, 15.00, 0.00, 15.00, 'FINALIZADA'), (30, 9, 1, 8.00, 8.00, 0.00, 8.00, 'FINALIZADA');
+-- Venda 1: Combo XTEC
+(1, 3, 1, 45.00, 45.00, 0.00, 45.00, 'FINALIZADA'),
+-- Venda 2: X-Burguer Clássico
+(2, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+-- Venda 3: X-Burguer Duplo com desconto
+(3, 2, 1, 38.00, 38.00, 5.00, 33.00, 'FINALIZADA'),
+-- Venda 4: 2 Combos
+(4, 3, 2, 45.00, 90.00, 22.00, 68.00, 'FINALIZADA'),
+-- Venda 5: Batata GG
+(5, 4, 1, 22.00, 22.00, 0.00, 22.00, 'FINALIZADA'),
+-- Venda 6: 2 X-Burguer Duplo
+(6, 2, 2, 38.00, 76.00, 20.00, 56.00, 'FINALIZADA'),
+-- Venda 7: Batata P
+(7, 5, 1, 14.00, 14.00, 0.00, 14.00, 'FINALIZADA'),
+-- Venda 8: Misto Quente
+(8, 6, 1, 12.00, 12.00, 0.00, 12.00, 'FINALIZADA'),
+-- Venda 9: X-Burguer + Batata + Bebida
+(9, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+(9, 4, 1, 22.00, 22.00, 0.00, 22.00, 'FINALIZADA'),
+(9, 8, 1, 6.00, 6.00, 5.00, 1.00, 'FINALIZADA'),
+-- Venda 10: X-Salada
+(10, 7, 1, 25.00, 25.00, 0.00, 25.00, 'FINALIZADA'),
+-- Venda 11: 2 Combos com desconto
+(11, 3, 2, 45.00, 90.00, 10.00, 80.00, 'FINALIZADA'),
+-- Venda 12: Petit Gateau
+(12, 14, 1, 18.00, 18.00, 0.00, 18.00, 'FINALIZADA'),
+-- Venda 13: X-Burguer + Coca
+(13, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+(13, 8, 1, 6.00, 6.00, 2.00, 4.00, 'FINALIZADA'),
+-- Venda 14: Combo XTEC
+(14, 3, 1, 45.00, 45.00, 0.00, 45.00, 'FINALIZADA'),
+-- Venda 15: Açaí
+(15, 15, 1, 16.00, 16.00, 0.00, 16.00, 'FINALIZADA'),
+-- Venda 16: 2 Combos + Bebida extra
+(16, 3, 2, 45.00, 90.00, 14.00, 76.00, 'FINALIZADA'),
+-- Venda 17: X-Burguer Clássico
+(17, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+-- Venda 18: Milk Shake
+(18, 16, 1, 14.00, 14.00, 0.00, 14.00, 'FINALIZADA'),
+-- Venda 19: X-Burguer Duplo
+(19, 2, 1, 38.00, 38.00, 0.00, 38.00, 'FINALIZADA'),
+-- Venda 20: Batata GG
+(20, 4, 1, 22.00, 22.00, 0.00, 22.00, 'FINALIZADA'),
+-- Venda 21: X-Burguer Duplo + Batata + 2 Bebidas
+(21, 2, 1, 38.00, 38.00, 0.00, 38.00, 'FINALIZADA'),
+(21, 4, 1, 22.00, 22.00, 6.00, 16.00, 'FINALIZADA'),
+(21, 8, 2, 6.00, 12.00, 0.00, 12.00, 'FINALIZADA'),
+-- Venda 22: Misto Quente
+(22, 6, 1, 12.00, 12.00, 0.00, 12.00, 'FINALIZADA'),
+-- Venda 23: Combo XTEC
+(23, 3, 1, 45.00, 45.00, 0.00, 45.00, 'FINALIZADA'),
+-- Venda 24: X-Salada
+(24, 7, 1, 25.00, 25.00, 0.00, 25.00, 'FINALIZADA'),
+-- Venda 25: X-Burguer Clássico + Batata P
+(25, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+(25, 5, 1, 14.00, 14.00, 8.00, 6.00, 'FINALIZADA'),
+-- Venda 26: Petit Gateau
+(26, 14, 1, 18.00, 18.00, 0.00, 18.00, 'FINALIZADA'),
+-- Venda 27: 2 X-Burguer Clássico
+(27, 1, 2, 28.00, 56.00, 0.00, 56.00, 'FINALIZADA'),
+-- Venda 28: Açaí
+(28, 15, 1, 16.00, 16.00, 0.00, 16.00, 'FINALIZADA'),
+-- Venda 29: X-Burguer Clássico
+(29, 1, 1, 28.00, 28.00, 0.00, 28.00, 'FINALIZADA'),
+-- Venda 30: Combo XTEC
+(30, 3, 1, 45.00, 45.00, 0.00, 45.00, 'FINALIZADA');
 
 -- COMPRAS (20 registros)
+
 INSERT INTO COMPRA (VALOR, DESCONTO, TOTAL, FORNECEDOR_ID, FUNCIONARIO_ID, STATUS) VALUES 
-(56000.00, 0.00, 56000.00, 1, 3, 'FINALIZADA'), (480.00, 0.00, 480.00, 2, 3, 'FINALIZADA'),
-(1080.00, 0.00, 1080.00, 3, 4, 'FINALIZADA'), (1400.00, 0.00, 1400.00, 4, 4, 'FINALIZADA'),
-(1500.00, 0.00, 1500.00, 5, 4, 'FINALIZADA'), (2400.00, 0.00, 2400.00, 6, 3, 'FINALIZADA'),
-(1300.00, 0.00, 1300.00, 7, 3, 'FINALIZADA'), (3100.00, 0.00, 3100.00, 8, 3, 'FINALIZADA'),
-(3600.00, 0.00, 3600.00, 9, 4, 'FINALIZADA'), (2500.00, 0.00, 2500.00, 10, 4, 'FINALIZADA'),
-(3500.00, 0.00, 3500.00, 11, 4, 'FINALIZADA'), (4500.00, 0.00, 4500.00, 12, 4, 'FINALIZADA'),
-(5500.00, 0.00, 5500.00, 13, 4, 'FINALIZADA'), (6500.00, 0.00, 6500.00, 14, 4, 'FINALIZADA'),
-(7500.00, 0.00, 7500.00, 15, 4, 'FINALIZADA'), (5000.00, 0.00, 5000.00, 1, 3, 'FINALIZADA'),
-(4000.00, 0.00, 4000.00, 2, 3, 'FINALIZADA'), (3000.00, 0.00, 3000.00, 3, 4, 'FINALIZADA'),
-(2000.00, 0.00, 2000.00, 4, 4, 'FINALIZADA'), (1000.00, 0.00, 1000.00, 5, 4, 'FINALIZADA');
+(2600.00, 0.00, 2600.00, 1, 3, 'FINALIZADA'),    -- Frigorífico - Carnes
+(1350.00, 50.00, 1300.00, 2, 3, 'FINALIZADA'),   -- Distribuidora - Bebidas
+(1850.00, 0.00, 1850.00, 3, 4, 'FINALIZADA'),    -- Hortifruti - Frescos
+(420.00, 20.00, 400.00, 4, 4, 'FINALIZADA'),     -- Embalagens
+(780.00, 0.00, 780.00, 5, 4, 'FINALIZADA'),      -- Laticínios
+(1500.00, 0.00, 1500.00, 1, 3, 'FINALIZADA'),    -- Frigorífico - Reposição
+(900.00, 0.00, 900.00, 2, 3, 'FINALIZADA'),      -- Distribuidora - Reposição
+(1200.00, 100.00, 1100.00, 3, 4, 'FINALIZADA'),  -- Hortifruti - Reposição
+(350.00, 0.00, 350.00, 4, 4, 'FINALIZADA'),      -- Embalagens - Reposição
+(650.00, 0.00, 650.00, 5, 4, 'FINALIZADA'),      -- Laticínios - Reposição
+(2000.00, 0.00, 2000.00, 1, 3, 'FINALIZADA'),    -- Frigorífico - Grande pedido
+(1100.00, 0.00, 1100.00, 2, 3, 'FINALIZADA'),    -- Distribuidora
+(1500.00, 150.00, 1350.00, 3, 4, 'FINALIZADA'),  -- Hortifruti
+(500.00, 0.00, 500.00, 4, 4, 'FINALIZADA'),      -- Embalagens
+(800.00, 0.00, 800.00, 5, 4, 'FINALIZADA'),      -- Laticínios
+(1800.00, 0.00, 1800.00, 1, 3, 'FINALIZADA'),    -- Frigorífico
+(950.00, 0.00, 950.00, 2, 3, 'FINALIZADA'),      -- Distribuidora
+(1400.00, 0.00, 1400.00, 3, 4, 'FINALIZADA'),    -- Hortifruti
+(450.00, 50.00, 400.00, 4, 4, 'FINALIZADA'),     -- Embalagens
+(700.00, 0.00, 700.00, 5, 4, 'FINALIZADA');      -- Laticínios
+
 
 -- COMPRA_ITEM (50 registros)
+
 INSERT INTO COMPRA_ITEM (COMPRA_ID, PRODUTO_ID, QUANTIDADE, PRECO_UNITARIO, VALOR, DESCONTO, TOTAL, STATUS) VALUES 
-(1, 1, 20, 2800.00, 56000.00, 0.00, 56000.00, 'FINALIZADA'), (2, 5, 20, 18.00, 360.00, 0.00, 360.00, 'FINALIZADA'),
-(2, 6, 4, 30.00, 120.00, 0.00, 120.00, 'FINALIZADA'), (3, 7, 60, 12.00, 720.00, 0.00, 720.00, 'FINALIZADA'),
-(3, 8, 12, 22.00, 264.00, 0.00, 264.00, 'FINALIZADA'), (4, 10, 100, 7.00, 700.00, 0.00, 700.00, 'FINALIZADA'),
-(4, 11, 100, 3.50, 350.00, 0.00, 350.00, 'FINALIZADA'), (5, 12, 200, 2.00, 400.00, 0.00, 400.00, 'FINALIZADA'),
-(5, 13, 50, 10.00, 500.00, 0.00, 500.00, 'FINALIZADA'), (6, 14, 20, 60.00, 1200.00, 0.00, 1200.00, 'FINALIZADA'),
-(6, 15, 20, 30.00, 600.00, 0.00, 600.00, 'FINALIZADA'), (7, 16, 20, 25.00, 500.00, 0.00, 500.00, 'FINALIZADA'),
-(7, 17, 10, 65.00, 650.00, 0.00, 650.00, 'FINALIZADA'), (8, 18, 20, 8.00, 160.00, 0.00, 160.00, 'FINALIZADA'),
-(8, 19, 20, 25.00, 500.00, 0.00, 500.00, 'FINALIZADA'), (9, 20, 10, 180.00, 1800.00, 0.00, 1800.00, 'FINALIZADA'),
-(9, 38, 5, 280.00, 1400.00, 0.00, 1400.00, 'FINALIZADA'), (10, 41, 50, 7.00, 350.00, 0.00, 350.00, 'FINALIZADA'),
-(10, 42, 50, 14.00, 700.00, 0.00, 700.00, 'FINALIZADA'), (11, 43, 50, 21.00, 1050.00, 0.00, 1050.00, 'FINALIZADA'),
-(11, 44, 50, 28.00, 1400.00, 0.00, 1400.00, 'FINALIZADA'), (12, 45, 50, 35.00, 1750.00, 0.00, 1750.00, 'FINALIZADA'),
-(12, 46, 50, 42.00, 2100.00, 0.00, 2100.00, 'FINALIZADA'), (13, 47, 50, 49.00, 2450.00, 0.00, 2450.00, 'FINALIZADA'),
-(13, 48, 50, 56.00, 2800.00, 0.00, 2800.00, 'FINALIZADA'), (14, 49, 50, 63.00, 3150.00, 0.00, 3150.00, 'FINALIZADA'),
-(14, 50, 50, 70.00, 3500.00, 0.00, 3500.00, 'FINALIZADA'), (15, 1, 2, 2850.00, 5700.00, 0.00, 5700.00, 'FINALIZADA'),
-(16, 21, 20, 120.00, 2400.00, 0.00, 2400.00, 'FINALIZADA'), (16, 22, 10, 350.00, 3500.00, 0.00, 3500.00, 'FINALIZADA'),
-(17, 23, 30, 15.00, 450.00, 0.00, 450.00, 'FINALIZADA'), (17, 24, 20, 10.00, 200.00, 0.00, 200.00, 'FINALIZADA'),
-(18, 25, 50, 4.50, 225.00, 0.00, 225.00, 'FINALIZADA'), (18, 26, 50, 6.00, 300.00, 0.00, 300.00, 'FINALIZADA'),
-(19, 27, 50, 3.50, 175.00, 0.00, 175.00, 'FINALIZADA'), (19, 28, 50, 2.00, 100.00, 0.00, 100.00, 'FINALIZADA'),
-(20, 29, 50, 9.00, 450.00, 0.00, 450.00, 'FINALIZADA'), (20, 30, 50, 7.00, 350.00, 0.00, 350.00, 'FINALIZADA');
+-- Compra 1: Frigorífico - Carnes
+(1, 18, 400, 6.50, 2600.00, 0.00, 2600.00, 'FINALIZADA'),
+-- Compra 2: Distribuidora - Bebidas
+(2, 8, 200, 4.50, 900.00, 0.00, 900.00, 'FINALIZADA'),
+(2, 9, 100, 9.00, 900.00, 450.00, 450.00, 'FINALIZADA'),
+(2, 10, 150, 4.00, 600.00, 50.00, 550.00, 'FINALIZADA'),
+-- Compra 3: Hortifruti - Frescos
+(3, 17, 500, 1.80, 900.00, 0.00, 900.00, 'FINALIZADA'),
+(3, 20, 200, 0.90, 180.00, 0.00, 180.00, 'FINALIZADA'),
+(3, 21, 180, 1.10, 198.00, 0.00, 198.00, 'FINALIZADA'),
+(3, 23, 80, 10.00, 800.00, 228.00, 572.00, 'FINALIZADA'),
+-- Compra 4: Embalagens
+(4, 30, 1000, 0.25, 250.00, 0.00, 250.00, 'FINALIZADA'),
+(4, 31, 800, 0.18, 144.00, 0.00, 144.00, 'FINALIZADA'),
+(4, 32, 2000, 0.10, 200.00, 20.00, 180.00, 'FINALIZADA'),
+(4, 33, 500, 1.50, 750.00, 0.00, 750.00, 'FINALIZADA'),
+(4, 34, 1500, 0.15, 225.00, 0.00, 225.00, 'FINALIZADA'),
+-- Compra 5: Laticínios
+(5, 20, 600, 1.30, 780.00, 0.00, 780.00, 'FINALIZADA'),
+-- Compra 6: Frigorífico - Reposição
+(6, 18, 200, 6.50, 1300.00, 0.00, 1300.00, 'FINALIZADA'),
+(6, 25, 150, 2.80, 420.00, 220.00, 200.00, 'FINALIZADA'),
+-- Compra 7: Distribuidora
+(7, 8, 100, 4.50, 450.00, 0.00, 450.00, 'FINALIZADA'),
+(7, 11, 80, 6.00, 480.00, 30.00, 450.00, 'FINALIZADA'),
+-- Compra 8: Hortifruti
+(8, 17, 300, 1.80, 540.00, 0.00, 540.00, 'FINALIZADA'),
+(8, 24, 60, 6.00, 360.00, 0.00, 360.00, 'FINALIZADA'),
+(8, 28, 100, 5.00, 500.00, 200.00, 300.00, 'FINALIZADA'),
+-- Compra 9: Embalagens
+(9, 30, 500, 0.25, 125.00, 0.00, 125.00, 'FINALIZADA'),
+(9, 32, 1000, 0.10, 100.00, 0.00, 100.00, 'FINALIZADA'),
+(9, 34, 1000, 0.15, 150.00, 25.00, 125.00, 'FINALIZADA'),
+-- Compra 10: Laticínios
+(10, 26, 150, 2.80, 420.00, 0.00, 420.00, 'FINALIZADA'),
+(10, 27, 350, 0.60, 210.00, 0.00, 210.00, 'FINALIZADA'),
+(10, 28, 400, 0.60, 240.00, 90.00, 150.00, 'FINALIZADA'),
+-- Compra 11: Frigorífico - Grande pedido
+(11, 18, 300, 6.50, 1950.00, 0.00, 1950.00, 'FINALIZADA'),
+(11, 23, 100, 2.80, 280.00, 230.00, 50.00, 'FINALIZADA'),
+-- Compra 12: Distribuidora
+(12, 9, 100, 9.00, 900.00, 0.00, 900.00, 'FINALIZADA'),
+(12, 12, 100, 2.50, 250.00, 50.00, 200.00, 'FINALIZADA'),
+-- Compra 13: Hortifruti
+(13, 20, 300, 0.90, 270.00, 0.00, 270.00, 'FINALIZADA'),
+(13, 21, 250, 1.10, 275.00, 0.00, 275.00, 'FINALIZADA'),
+(13, 23, 100, 10.00, 1000.00, 50.00, 950.00, 'FINALIZADA'),
+-- Compra 14: Embalagens
+(14, 31, 1000, 0.18, 180.00, 0.00, 180.00, 'FINALIZADA'),
+(14, 33, 300, 1.50, 450.00, 130.00, 320.00, 'FINALIZADA'),
+-- Compra 15: Laticínios
+(15, 20, 500, 1.30, 650.00, 0.00, 650.00, 'FINALIZADA'),
+-- Compra 16: Frigorífico
+(16, 18, 250, 6.50, 1625.00, 0.00, 1625.00, 'FINALIZADA'),
+(16, 26, 100, 2.80, 280.00, 105.00, 175.00, 'FINALIZADA'),
+-- Compra 17: Distribuidora
+(17, 8, 150, 4.50, 675.00, 0.00, 675.00, 'FINALIZADA'),
+(17, 13, 50, 7.00, 350.00, 75.00, 275.00, 'FINALIZADA'),
+-- Compra 18: Hortifruti
+(18, 17, 400, 1.80, 720.00, 0.00, 720.00, 'FINALIZADA'),
+(18, 24, 50, 6.00, 300.00, 0.00, 300.00, 'FINALIZADA'),
+(18, 28, 80, 5.00, 400.00, 20.00, 380.00, 'FINALIZADA'),
+-- Compra 19: Embalagens
+(19, 30, 800, 0.25, 200.00, 0.00, 200.00, 'FINALIZADA'),
+(19, 32, 1500, 0.10, 150.00, 0.00, 150.00, 'FINALIZADA'),
+(19, 34, 1200, 0.15, 180.00, 30.00, 150.00, 'FINALIZADA'),
+-- Compra 20: Laticínios
+(20, 27, 300, 1.10, 330.00, 0.00, 330.00, 'FINALIZADA'),
+(20, 28, 500, 0.60, 300.00, 0.00, 300.00, 'FINALIZADA'),
+(20, 26, 100, 2.80, 280.00, 110.00, 170.00, 'FINALIZADA');
 
 -- CONTAS A RECEBER (30 registros - 1 por venda)
+
 INSERT INTO CONTA_RECEBER (VENDA_ID, PARCELA_QUANTIDADE, PARCELA_NUMERO, DATA_VENCIMENTO, DATA_PAGAMENTO, VALOR, DESCONTO, TOTAL, STATUS) VALUES 
-(1, 1, 1, '2026-09-05', '2026-09-04', 3500.00, 0.00, 3500.00, 'PAGO'),
-(2, 1, 1, '2026-09-05', '2026-09-05', 150.00, 0.00, 150.00, 'PAGO'),
-(3, 1, 1, '2026-09-06', '2026-09-06', 400.00, 0.00, 400.00, 'PAGO'),
-(4, 3, 1, '2026-09-10', NULL, 400.00, 0.00, 400.00, 'PENDENTE'),
-(4, 3, 2, '2026-10-10', NULL, 400.00, 0.00, 400.00, 'PENDENTE'),
-(4, 3, 3, '2026-11-10', NULL, 400.00, 0.00, 400.00, 'PENDENTE'),
-(5, 1, 1, '2026-09-05', '2026-09-05', 25.00, 0.00, 25.00, 'PAGO'),
-(6, 1, 1, '2026-09-05', '2026-09-05', 80.00, 0.00, 80.00, 'PAGO'),
-(7, 1, 1, '2026-09-05', '2026-09-05', 30.00, 0.00, 30.00, 'PAGO'),
-(8, 1, 1, '2026-09-05', '2026-09-05', 18.00, 0.00, 18.00, 'PAGO'),
-(9, 1, 1, '2026-09-05', '2026-09-05', 10.00, 0.00, 10.00, 'PAGO'),
-(10, 1, 1, '2026-09-05', '2026-09-05', 5.00, 0.00, 5.00, 'PAGO'),
-(11, 1, 1, '2026-09-15', NULL, 3400.00, 0.00, 3400.00, 'PENDENTE'),
-(12, 1, 1, '2026-09-15', NULL, 150.00, 0.00, 150.00, 'PENDENTE'),
-(13, 1, 1, '2026-09-15', NULL, 450.00, 0.00, 450.00, 'PENDENTE'),
-(14, 1, 1, '2026-09-15', NULL, 1200.00, 0.00, 1200.00, 'PENDENTE'),
-(15, 1, 1, '2026-09-15', NULL, 25.00, 0.00, 25.00, 'PENDENTE'),
-(16, 1, 1, '2026-09-15', NULL, 80.00, 0.00, 80.00, 'PENDENTE'),
-(17, 1, 1, '2026-09-15', NULL, 30.00, 0.00, 30.00, 'PENDENTE'),
-(18, 1, 1, '2026-09-15', NULL, 18.00, 0.00, 18.00, 'PENDENTE'),
-(19, 1, 1, '2026-09-15', NULL, 10.00, 0.00, 10.00, 'PENDENTE'),
-(20, 1, 1, '2026-09-15', NULL, 5.00, 0.00, 5.00, 'PENDENTE'),
-(21, 1, 1, '2026-09-20', NULL, 350.00, 0.00, 350.00, 'PENDENTE'),
-(22, 1, 1, '2026-09-20', NULL, 300.00, 0.00, 300.00, 'PENDENTE'),
-(23, 1, 1, '2026-09-20', NULL, 250.00, 0.00, 250.00, 'PENDENTE'),
-(24, 1, 1, '2026-09-20', NULL, 180.00, 0.00, 180.00, 'PENDENTE'),
-(25, 1, 1, '2026-09-20', NULL, 90.00, 0.00, 90.00, 'PENDENTE'),
-(26, 1, 1, '2026-09-20', NULL, 120.00, 0.00, 120.00, 'PENDENTE'),
-(27, 1, 1, '2026-09-20', NULL, 35.00, 0.00, 35.00, 'PENDENTE'),
-(28, 1, 1, '2026-09-20', NULL, 25.00, 0.00, 25.00, 'PENDENTE');
+(1, 1, 1, '2026-09-18', '2026-09-18', 45.00, 0.00, 45.00, 'PAGO'),
+(2, 1, 1, '2026-09-20', NULL, 28.00, 0.00, 28.00, 'PENDENTE'),
+(3, 1, 1, '2026-09-20', NULL, 33.00, 0.00, 33.00, 'PENDENTE'),
+(4, 1, 1, '2026-09-18', '2026-09-18', 68.00, 0.00, 68.00, 'PAGO'),
+(5, 1, 1, '2026-09-18', '2026-09-18', 22.00, 0.00, 22.00, 'PAGO'),
+(6, 1, 1, '2026-09-22', NULL, 56.00, 0.00, 56.00, 'PENDENTE'),
+(7, 1, 1, '2026-09-18', '2026-09-18', 14.00, 0.00, 14.00, 'PAGO'),
+(8, 1, 1, '2026-09-18', '2026-09-18', 12.00, 0.00, 12.00, 'PAGO'),
+(9, 1, 1, '2026-09-22', NULL, 51.00, 0.00, 51.00, 'PENDENTE'),
+(10, 1, 1, '2026-09-18', '2026-09-18', 25.00, 0.00, 25.00, 'PAGO'),
+(11, 2, 1, '2026-10-10', NULL, 40.00, 0.00, 40.00, 'PENDENTE'),
+(11, 2, 2, '2026-11-10', NULL, 40.00, 0.00, 40.00, 'PENDENTE'),
+(12, 1, 1, '2026-09-18', '2026-09-18', 18.00, 0.00, 18.00, 'PAGO'),
+(13, 1, 1, '2026-09-22', NULL, 32.00, 0.00, 32.00, 'PENDENTE'),
+(14, 1, 1, '2026-09-18', '2026-09-18', 45.00, 0.00, 45.00, 'PAGO'),
+(15, 1, 1, '2026-09-18', '2026-09-18', 16.00, 0.00, 16.00, 'PAGO'),
+(16, 1, 1, '2026-09-25', NULL, 76.00, 0.00, 76.00, 'PENDENTE'),
+(17, 1, 1, '2026-09-18', '2026-09-18', 28.00, 0.00, 28.00, 'PAGO'),
+(18, 1, 1, '2026-09-18', '2026-09-18', 14.00, 0.00, 14.00, 'PAGO'),
+(19, 1, 1, '2026-09-22', NULL, 38.00, 0.00, 38.00, 'PENDENTE'),
+(20, 1, 1, '2026-09-18', '2026-09-18', 22.00, 0.00, 22.00, 'PAGO'),
+(21, 1, 1, '2026-09-25', NULL, 54.00, 0.00, 54.00, 'PENDENTE'),
+(22, 1, 1, '2026-09-18', '2026-09-18', 12.00, 0.00, 12.00, 'PAGO'),
+(23, 1, 1, '2026-09-22', NULL, 45.00, 0.00, 45.00, 'PENDENTE'),
+(24, 1, 1, '2026-09-18', '2026-09-18', 25.00, 0.00, 25.00, 'PAGO'),
+(25, 1, 1, '2026-09-22', NULL, 34.00, 0.00, 34.00, 'PENDENTE'),
+(26, 1, 1, '2026-09-18', '2026-09-18', 18.00, 0.00, 18.00, 'PAGO'),
+(27, 1, 1, '2026-09-25', NULL, 56.00, 0.00, 56.00, 'PENDENTE'),
+(28, 1, 1, '2026-09-18', '2026-09-18', 16.00, 0.00, 16.00, 'PAGO'),
+(29, 1, 1, '2026-09-18', '2026-09-18', 28.00, 0.00, 28.00, 'PAGO'),
+(30, 1, 1, '2026-09-22', NULL, 45.00, 0.00, 45.00, 'PENDENTE');
 
 -- CONTAS A PAGAR (20 registros - 1 por compra)
 INSERT INTO CONTA_PAGAR (COMPRA_ID, PARCELA_QUANTIDADE, PARCELA_NUMERO, DATA_VENCIMENTO, DATA_PAGAMENTO, VALOR, DESCONTO, TOTAL, STATUS) VALUES 
-(1, 1, 1, '2026-09-30', '2026-09-28', 56000.00, 0.00, 56000.00, 'PAGO'),
-(2, 1, 1, '2026-09-30', '2026-09-29', 480.00, 0.00, 480.00, 'PAGO'),
-(3, 1, 1, '2026-10-05', '2026-10-04', 1080.00, 0.00, 1080.00, 'PAGO'),
-(4, 1, 1, '2026-10-05', '2026-10-04', 1400.00, 0.00, 1400.00, 'PAGO'),
-(5, 1, 1, '2026-10-10', '2026-10-09', 1500.00, 0.00, 1500.00, 'PAGO'),
-(6, 1, 1, '2026-10-10', NULL, 2400.00, 0.00, 2400.00, 'PENDENTE'),
-(7, 1, 1, '2026-10-15', NULL, 1300.00, 0.00, 1300.00, 'PENDENTE'),
-(8, 1, 1, '2026-10-15', NULL, 3100.00, 0.00, 3100.00, 'PENDENTE'),
-(9, 1, 1, '2026-10-20', NULL, 3600.00, 0.00, 3600.00, 'PENDENTE'),
-(10, 1, 1, '2026-10-20', NULL, 2500.00, 0.00, 2500.00, 'PENDENTE'),
-(11, 1, 1, '2026-10-25', NULL, 3500.00, 0.00, 3500.00, 'PENDENTE'),
-(12, 1, 1, '2026-10-25', NULL, 4500.00, 0.00, 4500.00, 'PENDENTE'),
-(13, 1, 1, '2026-11-05', NULL, 5500.00, 0.00, 5500.00, 'PENDENTE'),
-(14, 1, 1, '2026-11-05', NULL, 6500.00, 0.00, 6500.00, 'PENDENTE'),
-(15, 1, 1, '2026-11-10', NULL, 7500.00, 0.00, 7500.00, 'PENDENTE'),
-(16, 1, 1, '2026-11-10', NULL, 5000.00, 0.00, 5000.00, 'PENDENTE'),
-(17, 1, 1, '2026-11-15', NULL, 4000.00, 0.00, 4000.00, 'PENDENTE'),
-(18, 1, 1, '2026-11-15', NULL, 3000.00, 0.00, 3000.00, 'PENDENTE'),
-(19, 1, 1, '2026-11-20', NULL, 2000.00, 0.00, 2000.00, 'PENDENTE'),
-(20, 1, 1, '2026-11-20', NULL, 1000.00, 0.00, 1000.00, 'PENDENTE');
+(1, 1, 1, '2026-10-18', '2026-10-17', 2600.00, 0.00, 2600.00, 'PAGO'),
+(2, 1, 1, '2026-10-18', '2026-10-18', 1300.00, 0.00, 1300.00, 'PAGO'),
+(3, 1, 1, '2026-10-20', NULL, 1850.00, 0.00, 1850.00, 'PENDENTE'),
+(4, 1, 1, '2026-10-18', '2026-10-17', 400.00, 0.00, 400.00, 'PAGO'),
+(5, 1, 1, '2026-10-20', NULL, 780.00, 0.00, 780.00, 'PENDENTE'),
+(6, 1, 1, '2026-10-25', NULL, 1500.00, 0.00, 1500.00, 'PENDENTE'),
+(7, 1, 1, '2026-10-25', NULL, 900.00, 0.00, 900.00, 'PENDENTE'),
+(8, 1, 1, '2026-10-28', NULL, 1100.00, 0.00, 1100.00, 'PENDENTE'),
+(9, 1, 1, '2026-10-25', NULL, 350.00, 0.00, 350.00, 'PENDENTE'),
+(10, 1, 1, '2026-10-28', NULL, 650.00, 0.00, 650.00, 'PENDENTE'),
+(11, 2, 1, '2026-11-10', NULL, 1000.00, 0.00, 1000.00, 'PENDENTE'),
+(11, 2, 2, '2026-12-10', NULL, 1000.00, 0.00, 1000.00, 'PENDENTE'),
+(12, 1, 1, '2026-11-05', NULL, 1100.00, 0.00, 1100.00, 'PENDENTE'),
+(13, 1, 1, '2026-11-10', NULL, 1350.00, 0.00, 1350.00, 'PENDENTE'),
+(14, 1, 1, '2026-11-05', NULL, 500.00, 0.00, 500.00, 'PENDENTE'),
+(15, 1, 1, '2026-11-10', NULL, 800.00, 0.00, 800.00, 'PENDENTE'),
+(16, 1, 1, '2026-11-15', NULL, 1800.00, 0.00, 1800.00, 'PENDENTE'),
+(17, 1, 1, '2026-11-15', NULL, 950.00, 0.00, 950.00, 'PENDENTE'),
+(18, 1, 1, '2026-11-20', NULL, 1400.00, 0.00, 1400.00, 'PENDENTE'),
+(19, 1, 1, '2026-11-15', NULL, 400.00, 0.00, 400.00, 'PENDENTE'),
+(20, 1, 1, '2026-11-20', NULL, 700.00, 0.00, 700.00, 'PENDENTE');
+
+UPDATE USUARIOS SET CARGO = 'ADMIN', NIVEL = 'ADMIN' WHERE EMAIL = 'admin@tcc.com';
