@@ -57,17 +57,23 @@
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 18px;
   margin-bottom: 32px;
+  
 }
 
 .card-metrica {
-  background: var(--bg-card);
+  background-color: rgb(24, 26, 54);
   border: 1px solid var(--border-cor);
   border-radius: 12px;
   padding: 20px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  transition: 2s;
 }
 
+.card-metrica:hover {
+width: 120%;
+
+}
 .card-metrica.alerta-box {
   border-left: 4px solid #f0b84b;
 }
@@ -379,7 +385,7 @@
   border-radius: 10px;
   border: 1px solid var(--border-cor);
   background: rgba(255, 255, 255, 0.06);
-  color: var(--text-soft);
+  color: #b6bfcc;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -387,8 +393,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 1s;
+  transition: all 0.2s;
   font-family: "Montserrat", sans-serif;
+  background-color: rgb(24, 26, 54);
 }
 
 .btn-export:hover {
@@ -404,7 +411,7 @@
 }
 
 .btn-export.word:hover {
-  background: blue;
+  background: rgb(54, 54, 216);
   transform: translateY(-2px);
 }
 

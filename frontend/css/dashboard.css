@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap"); 
+
 
 :root {
   --cor-brilho: #661b22ad;
@@ -6,10 +7,9 @@
   --font-family: "Manrope", sans-serif;
   --font-family2: "Inter Tight", sans-serif;
   --efeito: rgba(27, 199, 27, 0.795);
-
   --bg-base: #090b0f;
   --bg-deep: #030305;
-  --bg-sidebar: rgba(18, 19, 27, 0.84);
+  --bg-sidebar: rgba(10, 11, 15, 0.84);
   --bg-card: rgba(22, 24, 34, 0.78);
   --bg-input: rgba(3, 3, 5, 0.46);
   --text-main: #ffffff;
@@ -24,7 +24,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: var(--font-family2);
+  font-family: "Montserrat", sans-serif;
 }
 
 /* Trava a altura da página e remove a rolagem global */
@@ -35,13 +35,13 @@ body {
   max-height: 100vh !important;
   overflow: hidden !important;
   background:
-    radial-gradient(circle at 8% 92%, rgba(250, 68, 68, 0.12), transparent 30%),
-    radial-gradient(circle at 92% 8%, rgba(250, 68, 68, 0.1), transparent 30%),
+    radial-gradient(circle at 8% 92%, rgba(180, 30, 30, 0.55), transparent 35%),
+    radial-gradient(circle at 92% 8%, rgba(180, 30, 30, 0.55), transparent 35%),
     linear-gradient(
       160deg,
-      rgba(18, 19, 27, 0.98) 0%,
-      rgba(22, 24, 34, 0.98) 50%,
-      rgb(3, 3, 5) 100%
+      rgb(130, 22, 22) 0%,
+      rgb(85, 12, 12) 50%,
+      rgb(40, 6, 6) 100%
     );
   background-attachment: fixed;
   color: var(--text-main);
@@ -69,6 +69,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   padding: 24px 20px;
+
 }
 
 .sidebar-header {
@@ -80,12 +81,15 @@ body {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 1.5px;
+  border-bottom: 1px solid rgba(184, 181, 181, 0.185);
+  padding-bottom: 7px;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  
 }
 
 .nav-item {
@@ -110,6 +114,7 @@ body {
 .nav-item:hover {
   background: rgba(250, 68, 68, 0.12);
   color: var(--text-soft);
+  transform: translateX(5px);
 }
 
 .nav-item.active {
