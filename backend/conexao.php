@@ -1,7 +1,7 @@
 <?php
 class BancodeDados {
     // Nas linhas abaixo voce podera colocar as informaçoes do Banco de Dados.
-    private $host = "localhost:3307";
+    private $host = "localhost:3308";
    // private $host = "localhost"; 	// Nome ou IP do Servidor
     private $user = "root"; 		// Usuario do Servidor MySQL
     private $senha = ""; 		// Senha do Usuario MySQL

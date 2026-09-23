@@ -3,7 +3,7 @@ session_start();
 
 class BancodeDados {
     // Definida a porta 3307 onde o seu banco de dados 'tcc' está rodando
-    private $host = "127.0.0.1:3307"; 
+    private $host = "127.0.0.1:3308"; 
     private $user = "root";
     private $senha = "";
     private $banco = "tcc";

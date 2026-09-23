@@ -3,7 +3,7 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 $host = '127.0.0.1';
-$port = '3307'; // Porta MariaDB do WampServer
+$port = '3308'; // Porta MariaDB do WampServer
 $db   = 'tcc';
 $user = 'root';
 $pass = '';

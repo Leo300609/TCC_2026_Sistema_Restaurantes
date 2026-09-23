@@ -64,15 +64,15 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <i class="fa-solid fa-receipt"></i>
             <span>Pedidos</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="cardapios.php" class="nav-item">
             <i class="fa-solid fa-utensils"></i>
             <span>Cardápio</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="clientes.php" class="nav-item">
             <i class="fa-solid fa-users"></i>
             <span>Clientes</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="configuracoes.php" class="nav-item">
             <i class="fa-solid fa-gear"></i>
             <span>Configurações</span>
           </a>

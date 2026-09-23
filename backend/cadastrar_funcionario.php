@@ -7,7 +7,7 @@ if (file_exists(__DIR__ . '/conexao/conexao.php')) {
 
 if (!isset($pdo)) {
     $host = '127.0.0.1';
-    $port = '3307';
+    $port = '3308';
     $db   = 'tcc';
     $user = 'root';
     $pass = '';

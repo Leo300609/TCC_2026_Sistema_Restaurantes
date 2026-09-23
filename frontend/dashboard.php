@@ -45,32 +45,32 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           </a>
           <!-- NOVO: Menu condicional -->
           <?php if ($verFinanceiro): ?>
-            <a href="#" class="nav-item">
+            <a href="fluxo_de_caixa.php" class="nav-item">
               <i class="fa-solid fa-wallet"></i>
               <span>Fluxo de Caixa</span>
             </a>
           <?php endif; ?>
 
           <?php if ($verEstoque): ?>
-            <a href="#" class="nav-item">
+            <a href="estoque.php" class="nav-item">
               <i class="fa-solid fa-boxes-stacked"></i>
               <span>Estoque</span>
             </a>
           <?php endif; ?>
 
-          <a href="#" class="nav-item">
+          <a href="pedidos.php" class="nav-item">
             <i class="fa-solid fa-receipt"></i>
             <span>Pedidos</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="cardapios.php" class="nav-item">
             <i class="fa-solid fa-utensils"></i>
             <span>Cardápio</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="clientes.php" class="nav-item">
             <i class="fa-solid fa-users"></i>
             <span>Clientes</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="configuracoes.php" class="nav-item">
             <i class="fa-solid fa-gear"></i>
             <span>Configurações</span>
           </a>
