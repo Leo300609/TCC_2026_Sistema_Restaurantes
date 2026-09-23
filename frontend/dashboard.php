@@ -1,7 +1,4 @@
 <?php
-// ==========================================
-// 1. LÓGICA DE SESSÃO E PERMISSÃO (NOVO)
-// ==========================================
 session_start();
 if (!isset($_SESSION['usuario_id'])) {
   header("Location: login.html");
@@ -356,7 +353,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
                 labels: ['Lucro', 'Despesas'],
                 datasets: [{
                   data: [data.financeiro.lucro, data.financeiro.despesas],
-                  backgroundColor: ['#4ade80', '#ef4444'],
+                  backgroundColor: ['rgba(27, 199, 27, 0.795)', '#fa4444'],
                   borderWidth: 0
                 }]
               },
@@ -381,7 +378,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
                 labels: ['Capital Inicial', 'Capital Atual'],
                 datasets: [{
                   data: [data.financeiro.capital_inicial, data.financeiro.capital_atual],
-                  backgroundColor: ['#ab6550', '#4ade80'],
+                  backgroundColor: ['#fa4444', 'rgba(27, 199, 27, 0.795)'],
                   borderRadius: 6
                 }]
               },
