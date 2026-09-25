@@ -47,14 +47,14 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <span>Visão Geral</span>
           </a>
           <!-- NOVO: Menu condicional -->
-          <?php if ($verFinanceiro): ?>
+          <?php if ($verFinanceiro || $nivel === 'ADMIN'): ?>
             <a href="fluxo_de_caixa.php" class="nav-item">
               <i class="fa-solid fa-wallet"></i>
               <span>Fluxo de Caixa</span>
             </a>
           <?php endif; ?>
 
-          <?php if ($verEstoque): ?>
+          <?php if ($verEstoque || $nivel === 'ADMIN'): ?>
             <a href="estoque.php" class="nav-item">
               <i class="fa-solid fa-boxes-stacked"></i>
               <span>Estoque</span>
@@ -65,7 +65,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <i class="fa-solid fa-receipt"></i>
             <span>Pedidos</span>
           </a>
-          <a href="cardapio.php" class="nav-item active">
+          <a href="cardapios.php" class="nav-item">
             <i class="fa-solid fa-utensils"></i>
             <span>Cardápio</span>
           </a>
@@ -74,7 +74,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <span>Clientes</span>
           </a>
           
-          <a href="empresa.php" class="nav-item">
+          <a href="empresa.php" class="nav-item active">
             <i class="fa-solid fa-city"></i>
             <span>Empresa</span>
           </a>
@@ -114,7 +114,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
       </header>
 
       <!-- NOVO: BOTÕES DE EXPORTAÇÃO (Apenas Admin/Gerente) -->
-      <?php if ($verFinanceiro): ?>
+      <?php if ($verFinanceiro || $nivel === 'ADMIN'): ?>
         <section class="export-actions">
           <a href="../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
           <a href="../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word"></i> Exportar Word</a>
@@ -122,25 +122,28 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
         </section>
       <?php endif; ?>
 
-      <!-- METRICAS (MANTIDO ORIGINAL) -->
+     <?php if ($verFinanceiro || $nivel === 'ADMIN'): ?>
       <section class="grid-cards">
         <div class="card-metrica">
           <span class="card-titulo">Faturamento Hoje</span>
           <div class="card-valor" id="fat-hoje">R$ 1.840,50</div>
           <span class="card-detalhe positivo">+12% em relação a ontem</span>
         </div>
+        <?php endif; ?>
+
         <div class="card-metrica">
           <span class="card-titulo">Pedidos Realizados</span>
           <div class="card-valor" id="pedidos-hoje">48</div>
           <span class="card-detalhe positivo">+5 na última hora</span>
         </div>
-        <div class="card-metrica">
-          <span class="card-titulo">Ticket Médio</span>
-          <div class="card-valor">R$ 38,34</div>
-          <span class="card-detalhe neutro">Dentro da média</span>
-        </div>
+        <?php if ($verFinanceiro || $nivel === 'ADMIN'): ?>
+          <div class="card-metrica">
+            <span class="card-titulo">Ticket Médio</span>
+            <div class="card-valor">R$ 38,34</div>
+            <span class="card-detalhe neutro">Dentro da média</span>
+          </div>
+        <?php endif; ?> 
 
-        <!-- NOVO: Card de Alerta Condicional -->
         <?php if ($verEstoque): ?>
           <div class="card-metrica alerta-box">
             <span class="card-titulo">Alertas de Estoque</span>
@@ -156,10 +159,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
         <?php endif; ?>
       </section>
 
-      <!-- ========================================== -->
-      <!-- NOVO: SEÇÃO DE RELATÓRIOS E GRÁFICOS       -->
-      <!-- ========================================== -->
-      <?php if ($verFinanceiro || $verEstoque): ?>
+   
+      <?php if ($verFinanceiro || $verEstoque || $nivel === 'ADMIN'): ?>
         <div class="dashboard-secoes" style="margin-bottom: 32px;">
 
           <?php if ($verFinanceiro): ?>
@@ -177,7 +178,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             </section>
           <?php endif; ?>
 
-          <?php if ($verEstoque): ?>
+          <?php if ($verEstoque || $nivel === 'ADMIN'): ?>
             <section class="painel-card">
               <div class="painel-header">
                 <h2><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Validade</h2>
@@ -201,11 +202,12 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
       <!-- FIM DA SEÇÃO NOVA -->
 
 
-      <!-- GERAR CÓDIGO DA EQUIPE (MANTIDO ORIGINAL) -->
-      <section class="painel-card gestao-equipe">
-        <div class="painel-header">
-          <h2><i class="fa-solid fa-user-plus"></i> Convidar Novo Funcionário</h2>
-        </div>
+      
+      <?php if ($nivel === 'ADMIN'): ?>
+        <section class="painel-card gestao-equipe">
+          <div class="painel-header">
+            <h2><i class="fa-solid fa-user-plus"></i> Convidar Novo Funcionário</h2>
+          </div>
 
         <div class="form-gerar-codigo">
           <div class="grupo-input">
@@ -241,8 +243,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           <small>Forneça este código ao funcionário para que ele se registre na tela de cadastro.</small>
         </div>
       </section>
+      <?php endif; ?>
 
-      <!-- TABELAS E DETALHES (MANTIDO ORIGINAL) -->
       <div class="dashboard-secoes">
         <section class="painel-card">
           <div class="painel-header">
@@ -286,8 +288,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             </table>
           </div>
         </section>
-
-        <!-- NOVO: Gráfico de Linha de Pedidos (Substituindo ou complementando o Mais Vendidos) -->
+      
+      <?php if ($verFinanceiro || $nivel === 'ADMIN'): ?>
         <section class="painel-card">
           <div class="painel-header">
             <h2><i class="fa-solid fa-chart-line"></i> Evolução de Pedidos (7 dias)</h2>
@@ -297,7 +299,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           </div>
         </section>
       </div>
-
+    <?php endif; ?>
+        
     </main>
   </div>
 

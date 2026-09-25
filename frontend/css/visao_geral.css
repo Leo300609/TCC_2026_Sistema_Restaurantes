@@ -12,6 +12,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
+  border-bottom: 1px solid rgba(184, 181, 181, 0.185);
+  padding-bottom: 20px;
 }
 
 .boas-vindas h1 {
@@ -71,7 +73,7 @@
 }
 
 .card-metrica:hover {
-padding: 22px;
+  transform: scale(103%);
 }
 .card-metrica.alerta-box {
   border-left: 4px solid #f0b84b;

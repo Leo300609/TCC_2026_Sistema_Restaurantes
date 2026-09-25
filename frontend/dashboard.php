@@ -70,6 +70,12 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <i class="fa-solid fa-users"></i>
             <span>Clientes</span>
           </a>
+
+          <a href="empresa.php" class="nav-item">
+            <i class="fa-solid fa-city"></i>
+            <span>Empresa</span>
+          </a>
+
           <a href="configuracoes.php" class="nav-item">
             <i class="fa-solid fa-gear"></i>
             <span>Configurações</span>

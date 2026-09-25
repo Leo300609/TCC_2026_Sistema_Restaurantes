@@ -35,13 +35,11 @@ body {
   max-height: 100vh !important;
   overflow: hidden !important;
   background:
-    radial-gradient(circle at 8% 92%, rgba(180, 30, 30, 0.55), transparent 35%),
-    radial-gradient(circle at 92% 8%, rgba(180, 30, 30, 0.55), transparent 35%),
     linear-gradient(
-      160deg,
-      rgb(130, 22, 22) 0%,
-      rgb(85, 12, 12) 50%,
-      rgb(40, 6, 6) 100%
+      180deg,
+      rgba(10, 11, 15, 0.84) 0%,
+      rgba(10, 11, 15, 0.84) 50%,
+      rgb(130, 22, 22) 100%
     );
   background-attachment: fixed;
   color: var(--text-main);

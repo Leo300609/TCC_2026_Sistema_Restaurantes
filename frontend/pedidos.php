@@ -25,6 +25,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
   <title>XTEC - Painel Administrativo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/dashboard.css"> <!-- Mantido seu caminho original -->
+  <link rel="stylesheet" href="css/visao_geral.css">
 
   <!-- NOVO: Biblioteca de Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,6 +73,12 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <i class="fa-solid fa-users"></i>
             <span>Clientes</span>
           </a>
+          
+          <a href="empresa.php" class="nav-item">
+            <i class="fa-solid fa-city"></i>
+            <span>Empresa</span>
+          </a>
+          
           <a href="configuracoes.php" class="nav-item">
             <i class="fa-solid fa-gear"></i>
             <span>Configurações</span>
