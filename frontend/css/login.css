@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap");
 
-
 :root {
   --cor-brilho: #661b22ad;
   --sombra-brilho: rgba(209, 108, 105, 0.322);
@@ -59,7 +58,6 @@ body {
   animation: cimabaixo 15s ease-out infinite;
 }
 
-/* Esferas 3D: volume, luz refletida, sombra interna e brilho externo */
 .esfera-fundo-1::before,
 .esfera-fundo-2::before,
 .bola1::before,
@@ -112,7 +110,6 @@ body {
   }
 }
 
-
 .fundo {
   position: fixed;
   inset: 0;
@@ -121,16 +118,8 @@ body {
   overflow: hidden;
   z-index: 0;
   background:
-    radial-gradient(
-      circle at 10% 90%,
-      rgba(250, 68, 68, 0.16),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 90% 10%,
-      rgba(250, 68, 68, 0.12),
-      transparent 35%
-    ),
+    radial-gradient(circle at 10% 90%, rgba(250, 68, 68, 0.16), transparent 35%),
+    radial-gradient(circle at 90% 10%, rgba(250, 68, 68, 0.12), transparent 35%),
     radial-gradient(circle at 50% 50%, rgba(97, 22, 29, 0.18), transparent 50%),
     linear-gradient(160deg, #12131b 0%, #161822 50%, #030305 100%);
 }
@@ -183,31 +172,31 @@ body {
 }
 
 .btn-voltar {
-      position: absolute;
-      top: 8rem;
-      right: 23%;
-      z-index: 100;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      color: #fffdfa;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      backdrop-filter: blur(8px);
-      transition: all 0.3s ease;
-      width: auto;
-    }
+  position: absolute;
+  top: 8rem;
+  right: 23%;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #fffdfa;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  width: auto;
+}
 
-    .btn-voltar:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
+.btn-voltar:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
 
 .caixa-bemvindo {
   flex: 1.1;
@@ -421,20 +410,11 @@ button:hover {
   text-decoration: underline;
 }
 
-
-
-
-
-/* RESPONSIVIDADE */
-
-
 @media (max-width: 1440px) {
-  
-  .btn-voltar{
+  .btn-voltar {
     top: 16%;
     right: 15%;
   }
-
 }
 
 @media (max-width: 1024px) {
@@ -446,9 +426,14 @@ button:hover {
     overflow-y: auto;
   }
 
-  .btn-voltar{
-    top: 4%;
-    right: 4%;
+  .fundo::after {
+    animation: none;
+  }
+
+  .btn-voltar {
+    position: fixed;
+    top: 18px;
+    right: 18px;
   }
 
   body {
@@ -467,10 +452,13 @@ button:hover {
     width: 100%;
     flex: none;
     padding: 0;
+    justify-content: center;
+    text-align: center;
   }
 
   .cabecalho-marca {
     margin-bottom: 35px;
+    justify-content: center;
   }
 
   .caixa-bemvindo h1 {
@@ -489,6 +477,7 @@ button:hover {
 
   .meu-forms {
     max-width: 500px;
+    max-height: none;
   }
 
   .bola1 {
@@ -504,12 +493,7 @@ button:hover {
     top: -130px;
     right: -130px;
   }
-  .caixa-bemvindo {
-  justify-content: center;
-  text-align:center;
- }
 }
-
 
 @media (max-width: 600px) {
   html,
@@ -532,20 +516,27 @@ button:hover {
     max-width: 100%;
     flex-direction: column;
     gap: 30px;
-    padding: 0 18px;
+    padding: 58px 18px 0;
   }
-  .btn-voltar{
-    top: 2%;
-    right: 2%;
+
+  .btn-voltar {
+    top: 12px;
+    right: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
   }
- 
+
   .caixa-bemvindo {
     width: 100%;
     padding: 0;
+    justify-content: center;
+    text-align: center;
   }
 
   .cabecalho-marca {
     margin-bottom: 28px;
+    justify-content: center;
   }
 
   .marca-info {
@@ -584,7 +575,6 @@ button:hover {
     max-width: 100%;
   }
 
-  
   .caixa-formulario {
     width: 100%;
     justify-content: center;
@@ -663,23 +653,24 @@ button:hover {
     width: 400px;
     height: 400px;
   }
-   .caixa-bemvindo {
-  justify-content: center;
-  text-align:center;
- }
 }
-
 
 @media (max-width: 380px) {
   body {
     padding: 18px 0;
   }
- .caixa-bemvindo {
-  justify-content: center;
- }
+
   .container {
-    padding: 0 14px;
+    padding: 58px 12px 0;
     gap: 25px;
+  }
+
+  .btn-voltar {
+    padding: 7px 10px;
+  }
+
+  .caixa-bemvindo {
+    justify-content: center;
   }
 
   .cabecalho-marca {
@@ -725,5 +716,16 @@ button:hover {
   .bola2 {
     width: 240px;
     height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

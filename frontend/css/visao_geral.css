@@ -1,10 +1,9 @@
-
-/* Área principal com rolagem individual */
 .main-content {
   flex: 1;
   height: 100vh;
   overflow-y: auto !important;
   padding: 32px 40px;
+  min-width: 0;
 }
 
 .topbar {
@@ -20,6 +19,7 @@
   font-size: 26px;
   font-weight: 700;
   color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .boas-vindas p {
@@ -52,6 +52,7 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .grid-cards {
@@ -59,7 +60,6 @@
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 18px;
   margin-bottom: 32px;
-  
 }
 
 .card-metrica {
@@ -73,8 +73,9 @@
 }
 
 .card-metrica:hover {
-  transform: scale(103%);
+  transform: scale(1.03);
 }
+
 .card-metrica.alerta-box {
   border-left: 4px solid #f0b84b;
 }
@@ -95,6 +96,7 @@
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 6px;
+  overflow-wrap: anywhere;
 }
 
 .card-detalhe {
@@ -127,6 +129,7 @@
   padding: 24px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  min-width: 0;
 }
 
 .painel-header {
@@ -142,6 +145,7 @@
   font-size: 17px;
   font-weight: 700;
   color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .btn-link {
@@ -159,6 +163,7 @@
 
 .tabela-container {
   overflow-x: auto;
+  min-width: 0;
 }
 
 .tabela-pedidos {
@@ -243,6 +248,7 @@
   font-weight: 600;
   font-size: 14px;
   color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .item-qtd {
@@ -373,7 +379,6 @@
   color: rgba(182, 191, 204, 0.65);
 }
 
-/* --- NOVAS SEÇÕES DO DASHBOARD --- */
 .export-actions {
   display: flex;
   gap: 12px;
@@ -385,7 +390,7 @@
   padding: 10px 18px;
   border-radius: 10px;
   border: 1px solid var(--border-cor);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(24, 26, 54);
   color: #b6bfcc;
   font-size: 13px;
   font-weight: 600;
@@ -396,7 +401,6 @@
   gap: 8px;
   transition: all 0.2s;
   font-family: "Montserrat", sans-serif;
-  background-color: rgb(24, 26, 54);
 }
 
 .btn-export:hover {
@@ -404,7 +408,6 @@
   color: white;
   border-color: transparent;
 }
-
 
 .btn-export.pdf:hover {
   background: var(--primary);
@@ -426,6 +429,10 @@
   height: 250px;
   width: 100%;
   margin-top: 10px;
+}
+
+.chart-container canvas {
+  max-width: 100%;
 }
 
 .alerta-vencimento {
@@ -456,4 +463,179 @@
 
 .status-offline {
   color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .main-content {
+    padding: 28px;
+  }
+
+  .dashboard-secoes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card-metrica {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 820px) {
+  .topbar {
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .boas-vindas h1 {
+    font-size: 23px;
+  }
+
+  .usuario-perfil {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 12px;
+  }
+
+  .grid-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .dashboard-secoes {
+    gap: 16px;
+  }
+
+  .painel-card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .form-gerar-codigo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-gerar-codigo .btn-gerar {
+    width: 100%;
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .usuario-perfil {
+    justify-content: flex-start;
+  }
+
+  .status-loja,
+  .nome-admin {
+    font-size: 12px;
+  }
+
+  .grid-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-metrica {
+    padding: 16px;
+  }
+
+  .card-valor {
+    font-size: 23px;
+  }
+
+  .export-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .btn-export {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .painel-card {
+    padding: 15px;
+  }
+
+  .painel-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .painel-header h2 {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .btn-link {
+    flex: 0 0 auto;
+    font-size: 12px;
+  }
+
+  .chart-container {
+    height: 220px !important;
+  }
+
+  .form-gerar-codigo {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-gerar-codigo .btn-gerar {
+    grid-column: auto;
+  }
+
+  .box-codigo {
+    max-width: 100%;
+    padding: 8px 12px;
+  }
+
+  .box-codigo strong {
+    font-size: 17px;
+    letter-spacing: 1px;
+  }
+
+  .tabela-pedidos {
+    min-width: 620px;
+  }
+
+  .tabela-pedidos th,
+  .tabela-pedidos td {
+    padding: 10px 8px;
+  }
+
+  .alerta-vencimento {
+    align-items: flex-start;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .main-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .painel-card {
+    padding: 13px;
+  }
+
+  .boas-vindas h1 {
+    font-size: 21px;
+  }
+
+  .chart-container {
+    height: 190px !important;
+  }
 }
