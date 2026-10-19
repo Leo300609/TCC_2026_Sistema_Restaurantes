@@ -48,8 +48,10 @@ if (!empty($pemail) && !empty($psenha)) {
 
         if ($senhaValida) {
             $_SESSION['usuario_id'] = $usuario['ID'];
+            session_regenerate_id(true);
             $_SESSION['usuario_nome'] = $usuario['NOME'];
             $_SESSION['usuario_nivel'] = $usuario['NIVEL'];
+            $_SESSION['usuario_cargo'] = $usuario['CARGO'] ?? 'FUNCIONARIO';
             $_SESSION['id_empresa'] = 1;
 
             $mysql->fechar();
