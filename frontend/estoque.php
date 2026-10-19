@@ -1,0 +1,12 @@
+<?php
+$pageTitle = 'Estoque';
+$pageSubtitle = '';
+$activePage = 'estoque.php';
+
+require __DIR__ . '/includes/page_shell.php';
+?>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
