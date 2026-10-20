@@ -22,472 +22,371 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XTEC - Painel Administrativo</title>
+  <title>Cardápio · XTEC</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/dashboard.css"> <!-- Mantido seu caminho original -->
-  <link rel="stylesheet" href="css/visao_geral.css">
-
-  <!-- NOVO: Biblioteca de Gráficos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/modulos.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
   <div class="dashboard-layout">
 
-    <!-- SIDEBAR FIXA -->
     <aside class="sidebar">
       <div>
         <div class="sidebar-header">
+          <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
           <h2 class="nome-empresa">XTEC</h2>
         </div>
-        <nav class="sidebar-nav">
-          <a href="visao_geral" class="nav-item">
-            <i class="fa-solid fa-chart-line"></i>
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+          <a href="dashboard.php" class="nav-item">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
             <span>Visão Geral</span>
           </a>
-          <!-- NOVO: Menu condicional -->
           <?php if ($verFinanceiro): ?>
             <a href="fluxo_de_caixa.php" class="nav-item">
-              <i class="fa-solid fa-wallet"></i>
+              <i class="fa-solid fa-wallet" aria-hidden="true"></i>
               <span>Fluxo de Caixa</span>
             </a>
           <?php endif; ?>
 
           <?php if ($verEstoque): ?>
             <a href="estoque.php" class="nav-item">
-              <i class="fa-solid fa-boxes-stacked"></i>
+              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
               <span>Estoque</span>
             </a>
           <?php endif; ?>
 
           <a href="pedidos.php" class="nav-item">
-            <i class="fa-solid fa-receipt"></i>
+            <i class="fa-solid fa-receipt" aria-hidden="true"></i>
             <span>Pedidos</span>
           </a>
-          <a href="cardapio.php" class="nav-item active">
-            <i class="fa-solid fa-utensils"></i>
+          <a href="cardapios.php" class="nav-item active" aria-current="page">
+            <i class="fa-solid fa-utensils" aria-hidden="true"></i>
             <span>Cardápio</span>
           </a>
           <a href="clientes.php" class="nav-item">
-            <i class="fa-solid fa-users"></i>
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
             <span>Clientes</span>
           </a>
-          
+
           <a href="empresa.php" class="nav-item">
-            <i class="fa-solid fa-city"></i>
+            <i class="fa-solid fa-city" aria-hidden="true"></i>
             <span>Empresa</span>
           </a>
-          
+
           <a href="configs.php" class="nav-item">
-            <i class="fa-solid fa-gear"></i>
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
             <span>Configurações</span>
           </a>
         </nav>
       </div>
 
       <div class="sidebar-footer">
-        <!-- NOVO: Exibe o nome e cargo de quem está logado -->
-        <span style="font-size:12px; color:var(--creme); opacity:0.7; margin-bottom:8px; display:block; padding: 0 10px;">
-          <?= $nomeUsuario ?> <br> (<?= htmlspecialchars($cargo) ?>)
-        </span>
+        <div class="usuario-chip">
+          <span class="usuario-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+          <span class="usuario-dados">
+            <strong><?= $nomeUsuario ?></strong>
+            <small><?= htmlspecialchars($cargo) ?></small>
+          </span>
+        </div>
         <a href="../backend/logout.php" class="btn-sair">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
           <span>Sair</span>
         </a>
       </div>
     </aside>
 
-    <!-- ÁREA PRINCIPAL COM ROLAGEM INDEPENDENTE -->
-    <main class="main-content">
+    <main class="main-content" id="conteudo" tabindex="-1">
+      <div class="conteudo">
 
-      <header class="topbar">
-        <div class="boas-vindas">
-          <h1>Visão Geral</h1>
-          <p>Operação em tempo real</p>
-        </div>
-        <div class="usuario-perfil">
-          <span class="status-loja online"><i class="fa-solid fa-circle"></i> Loja Aberta</span>
-          <!-- NOVO: Nome dinâmico no topo -->
-          <span class="nome-admin"><?= $nomeUsuario ?></span>
-        </div>
-      </header>
+        <header class="topbar">
+          <div class="boas-vindas">
+            <h1>Cardápio</h1>
+            <p>Pratos, bebidas e adicionais que você vende</p>
+          </div>
+          <div class="usuario-perfil">
+            <span class="status-loja online"><i class="fa-solid fa-circle" aria-hidden="true"></i> Loja aberta</span>
+            <span class="nome-admin"><?= $nomeUsuario ?></span>
+          </div>
+        </header>
 
-      <!-- NOVO: BOTÕES DE EXPORTAÇÃO (Apenas Admin/Gerente) -->
-      <?php if ($verFinanceiro): ?>
-        <section class="export-actions">
-          <a href="../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-          <a href="../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word"></i> Exportar Word</a>
-          <a href="../backend/relatorios/gerar_excel.php" class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
-        </section>
-      <?php endif; ?>
-
-      <!-- METRICAS (MANTIDO ORIGINAL) -->
-      <section class="grid-cards">
-        <div class="card-metrica">
-          <span class="card-titulo">Faturamento Hoje</span>
-          <div class="card-valor" id="fat-hoje">R$ 1.840,50</div>
-          <span class="card-detalhe positivo">+12% em relação a ontem</span>
-        </div>
-        <div class="card-metrica">
-          <span class="card-titulo">Pedidos Realizados</span>
-          <div class="card-valor" id="pedidos-hoje">48</div>
-          <span class="card-detalhe positivo">+5 na última hora</span>
-        </div>
-        <div class="card-metrica">
-          <span class="card-titulo">Ticket Médio</span>
-          <div class="card-valor">R$ 38,34</div>
-          <span class="card-detalhe neutro">Dentro da média</span>
+        <div class="toolbar">
+          <div class="toolbar-grupo">
+            <label class="busca">
+              <span class="sr-only">Buscar item do cardápio</span>
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <input type="search" class="input-dash" name="busca" placeholder="Buscar item do cardápio">
+            </label>
+            <div class="filtros" role="group" aria-label="Categoria">
+              <button type="button" class="filtro ativo" aria-pressed="true">Todos <span>14</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Lanches <span>4</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Pratos <span>3</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Porções <span>2</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Bebidas <span>5</span></button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primario"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo item</button>
         </div>
 
-        <!-- NOVO: Card de Alerta Condicional -->
-        <?php if ($verEstoque): ?>
-          <div class="card-metrica alerta-box">
-            <span class="card-titulo">Alertas de Estoque</span>
-            <div class="card-valor" id="alertas-estoque">0</div>
-            <span class="card-detalhe alerta">Itens críticos ou vencendo</span>
-          </div>
-        <?php else: ?>
-          <div class="card-metrica alerta-box">
-            <span class="card-titulo">Em Entrega</span>
-            <div class="card-valor">6</div>
-            <span class="card-detalhe alerta">Aguardando confirmação</span>
-          </div>
-        <?php endif; ?>
-      </section>
+        <div class="painel-card cardapio">
 
-      <!-- ========================================== -->
-      <!-- NOVO: SEÇÃO DE RELATÓRIOS E GRÁFICOS       -->
-      <!-- ========================================== -->
-      <?php if ($verFinanceiro || $verEstoque): ?>
-        <div class="dashboard-secoes" style="margin-bottom: 32px;">
+          <section class="categoria" aria-labelledby="cat-lanches">
+            <header class="categoria-topo">
+              <h2 id="cat-lanches">Lanches</h2>
+              <span class="painel-meta">4 itens</span>
+            </header>
+            <ul class="itens-cardapio">
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">X-Tudo</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 27,00</span>
+                </div>
+                <p class="item-descricao">Hambúrguer artesanal, bacon, ovo, queijo, alface e tomate no pão brioche.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> X-Tudo</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Combo Artesanal</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 42,50</span>
+                </div>
+                <p class="item-descricao">Hambúrguer de 180 g, batata média e refrigerante em lata.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Combo Artesanal</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Misto Quente</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 10,50</span>
+                </div>
+                <p class="item-descricao">Pão de forma, presunto e queijo na chapa.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Misto Quente</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio indisponivel">
+                <div class="item-linha">
+                  <h3 class="item-nome">X-Salada</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 24,00</span>
+                </div>
+                <p class="item-descricao">Hambúrguer, queijo, alface, tomate e maionese da casa.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]"><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Indisponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> X-Salada</span></button>
+                </div>
+              </li>
+            </ul>
+          </section>
 
-          <?php if ($verFinanceiro): ?>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-chart-pie"></i> Lucro vs Despesas</h2>
-              </div>
-              <div class="chart-container"><canvas id="graficoPizza"></canvas></div>
-            </section>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-chart-column"></i> Capital Inicial vs Atual</h2>
-              </div>
-              <div class="chart-container"><canvas id="graficoBarra"></canvas></div>
-            </section>
-          <?php endif; ?>
+          <section class="categoria" aria-labelledby="cat-pratos">
+            <header class="categoria-topo">
+              <h2 id="cat-pratos">Pratos</h2>
+              <span class="painel-meta">3 itens</span>
+            </header>
+            <ul class="itens-cardapio">
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Parmegiana de frango</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 39,90</span>
+                </div>
+                <p class="item-descricao">Filé empanado com molho e queijo gratinado, arroz, batata frita e salada.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Parmegiana de frango</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Filé à cavalo</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 44,00</span>
+                </div>
+                <p class="item-descricao">Bife acebolado com ovo frito, arroz, feijão e batata frita.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Filé à cavalo</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Feijoada completa</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 38,00</span>
+                </div>
+                <p class="item-descricao">Servida aos sábados, com arroz, couve, farofa e laranja.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Feijoada completa</span></button>
+                </div>
+              </li>
+            </ul>
+          </section>
 
-          <?php if ($verEstoque): ?>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Validade</h2>
-              </div>
-              <div id="lista-vencimento" style="max-height: 250px; overflow-y: auto;">
-                <p style="text-align:center; opacity:0.6; padding: 20px;">Carregando dados...</p>
-              </div>
-            </section>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-users-viewfinder"></i> Equipe Online Agora</h2>
-              </div>
-              <div id="lista-equipe" style="max-height: 250px; overflow-y: auto;">
-                <p style="text-align:center; opacity:0.6; padding: 20px;">Carregando dados...</p>
-              </div>
-            </section>
-          <?php endif; ?>
+          <section class="categoria" aria-labelledby="cat-porcoes">
+            <header class="categoria-topo">
+              <h2 id="cat-porcoes">Porções</h2>
+              <span class="painel-meta">2 itens</span>
+            </header>
+            <ul class="itens-cardapio">
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Batata frita média</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 22,00</span>
+                </div>
+                <p class="item-descricao">Porção de 300 g, crocante, com sal e orégano.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Batata frita média</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Isca de frango</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 36,00</span>
+                </div>
+                <p class="item-descricao">Tiras de frango empanadas com molho barbecue.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Isca de frango</span></button>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <section class="categoria" aria-labelledby="cat-bebidas">
+            <header class="categoria-topo">
+              <h2 id="cat-bebidas">Bebidas</h2>
+              <span class="painel-meta">5 itens</span>
+            </header>
+            <ul class="itens-cardapio">
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Coca-Cola 2L</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 14,00</span>
+                </div>
+                <p class="item-descricao">Garrafa de 2 litros, gelada.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Coca-Cola 2L</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Guaraná 2L</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 14,00</span>
+                </div>
+                <p class="item-descricao">Garrafa de 2 litros, gelada.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Guaraná 2L</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Suco de laranja</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 9,00</span>
+                </div>
+                <p class="item-descricao">Copo de 400 ml, espremido na hora.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Suco de laranja</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Cerveja long neck</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 12,00</span>
+                </div>
+                <p class="item-descricao">Garrafa de 330 ml. Venda somente para maiores de 18 anos.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Cerveja long neck</span></button>
+                </div>
+              </li>
+              <li class="item-cardapio">
+                <div class="item-linha">
+                  <h3 class="item-nome">Água sem gás</h3>
+                  <span class="item-pontos" aria-hidden="true"></span>
+                  <span class="item-preco">R$ 4,50</span>
+                </div>
+                <p class="item-descricao">Garrafa de 500 ml.</p>
+                <div class="item-acoes">
+                  <label class="switch-rotulo">
+                    <span class="switch"><input type="checkbox" role="switch" name="disponivel[]" checked><span class="switch-trilho" aria-hidden="true"></span></span>
+                    <span>Disponível</span>
+                  </label>
+                  <button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Água sem gás</span></button>
+                </div>
+              </li>
+            </ul>
+          </section>
 
         </div>
-      <?php endif; ?>
-      <!-- FIM DA SEÇÃO NOVA -->
 
-
-      <!-- GERAR CÓDIGO DA EQUIPE (MANTIDO ORIGINAL) -->
-      <section class="painel-card gestao-equipe">
-        <div class="painel-header">
-          <h2><i class="fa-solid fa-user-plus"></i> Convidar Novo Funcionário</h2>
-        </div>
-
-        <div class="form-gerar-codigo">
-          <div class="grupo-input">
-            <label for="funcao-funcionario">Função / Cargo</label>
-            <select id="funcao-funcionario" class="input-dash">
-              <option value="Atendente / Caixa">Atendente / Caixa</option>
-              <option value="Cozinheiro">Cozinheiro</option>
-              <option value="Entregador">Entregador</option>
-              <option value="Gerente">Gerente</option>
-            </select>
-          </div>
-
-          <div class="grupo-input">
-            <label for="nivel-acesso">Nível de Acesso no Sistema</label>
-            <select id="nivel-acesso" class="input-dash">
-              <option value="1">Nível 1 (Apenas Pedidos)</option>
-              <option value="2">Nível 2 (Caixa e Cozinha)</option>
-              <option value="3">Nível 3 (Acesso Total / Gerencial)</option>
-            </select>
-          </div>
-
-          <button type="button" onclick="gerarCodigoEquipe()" class="btn-gerar">
-            <i class="fa-solid fa-key"></i> Gerar Código
-          </button>
-        </div>
-
-        <div id="resultado-codigo" class="resultado-codigo hidden">
-          <p>Código de cadastro exclusivo para a equipe:</p>
-          <div class="box-codigo">
-            <strong id="codigo-gerado">XTEC-00000</strong>
-            <button onclick="copiarCodigo()" title="Copiar Código"><i class="fa-regular fa-copy"></i></button>
-          </div>
-          <small>Forneça este código ao funcionário para que ele se registre na tela de cadastro.</small>
-        </div>
-      </section>
-
-      <!-- TABELAS E DETALHES (MANTIDO ORIGINAL) -->
-      <div class="dashboard-secoes">
-        <section class="painel-card">
-          <div class="painel-header">
-            <h2>Últimos Pedidos</h2>
-            <a href="#" class="btn-link">Ver todos</a>
-          </div>
-          <div class="tabela-container">
-            <table class="tabela-pedidos">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>Itens</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="id-pedido">#1048</td>
-                  <td class="cliente-nome">Lucas Andrade</td>
-                  <td>2x X-Tudo, 1x Coca 2L</td>
-                  <td class="valor-pedido">R$ 68,00</td>
-                  <td><span class="status em-preparo">Em preparo</span></td>
-                </tr>
-                <tr>
-                  <td class="id-pedido">#1047</td>
-                  <td class="cliente-nome">Mariana Costa</td>
-                  <td>1x Combo Artesanal</td>
-                  <td class="valor-pedido">R$ 42,50</td>
-                  <td><span class="status a-caminho">A caminho</span></td>
-                </tr>
-                <tr>
-                  <td class="id-pedido">#1046</td>
-                  <td class="cliente-nome">Roberto Silva</td>
-                  <td>3x Misto Quente</td>
-                  <td class="valor-pedido">R$ 31,00</td>
-                  <td><span class="status entregue">Entregue</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- NOVO: Gráfico de Linha de Pedidos (Substituindo ou complementando o Mais Vendidos) -->
-        <section class="painel-card">
-          <div class="painel-header">
-            <h2><i class="fa-solid fa-chart-line"></i> Evolução de Pedidos (7 dias)</h2>
-          </div>
-          <div class="chart-container" style="height: 300px;">
-            <canvas id="graficoLinha"></canvas>
-          </div>
-        </section>
       </div>
-
     </main>
   </div>
-
-  <!-- SCRIPT ORIGINAL MANTIDO -->
-  <script>
-    function gerarCodigoEquipe() {
-      const funcao = document.getElementById('funcao-funcionario').value;
-      const nivel = document.getElementById('nivel-acesso').value;
-      const formData = new FormData();
-      formData.append('funcao', funcao);
-      formData.append('nivel_acesso', nivel);
-
-      fetch('../backend/gerar_codigo_processa.php', { // Corrigido nome do arquivo conforme seu original
-          method: 'POST',
-          body: formData
-        })
-        .then(async response => {
-          const text = await response.text();
-          try {
-            return JSON.parse(text);
-          } catch (err) {
-            throw new Error("O PHP retornou um erro inesperado: " + text);
-          }
-        })
-        .then(data => {
-          if (data.sucesso) {
-            document.getElementById('codigo-gerado').innerText = data.codigo;
-            document.getElementById('resultado-codigo').classList.remove('hidden');
-          } else {
-            alert('Erro do Sistema: ' + data.mensagem);
-          }
-        })
-        .catch(error => {
-          console.error('Erro na requisição:', error);
-          alert(error.message);
-        });
-    }
-
-    function copiarCodigo() {
-      const codigo = document.getElementById('codigo-gerado').innerText;
-      navigator.clipboard.writeText(codigo);
-      alert('Código copiado para a área de transferência!');
-    }
-  </script>
-
-  <!-- NOVO: SCRIPT PARA CARREGAR OS DADOS DO DASHBOARD E GRÁFICOS -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch('../backend/api/dados_dashboard.php')
-        .then(res => res.json())
-        .then(data => {
-          if (data.erro) return;
-
-          // Atualiza cards se os dados vierem da API
-          if (data.financeiro) {
-            document.getElementById('fat-hoje').innerText = `R$ ${data.financeiro.faturamento_hoje}`;
-
-            // Gráfico Pizza
-            new Chart(document.getElementById('graficoPizza'), {
-              type: 'doughnut',
-              data: {
-                labels: ['Lucro', 'Despesas'],
-                datasets: [{
-                  data: [data.financeiro.lucro, data.financeiro.despesas],
-                  backgroundColor: ['#4ade80', '#ef4444'],
-                  borderWidth: 0
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                }
-              }
-            });
-
-            // Gráfico Barra
-            new Chart(document.getElementById('graficoBarra'), {
-              type: 'bar',
-              data: {
-                labels: ['Capital Inicial', 'Capital Atual'],
-                datasets: [{
-                  data: [data.financeiro.capital_inicial, data.financeiro.capital_atual],
-                  backgroundColor: ['#ab6550', '#4ade80'],
-                  borderRadius: 6
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    },
-                    grid: {
-                      color: 'rgba(242, 227, 198, 0.1)'
-                    }
-                  },
-                  x: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    display: false
-                  }
-                }
-              }
-            });
-          }
-
-          document.getElementById('pedidos-hoje').innerText = data.pedidos_hoje;
-          if (data.estoque) document.getElementById('alertas-estoque').innerText = data.estoque.total_alertas;
-
-          // Gráfico Linha (Pedidos - Visível para todos)
-          new Chart(document.getElementById('graficoLinha'), {
-            type: 'line',
-            data: {
-              labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-              datasets: [{
-                label: 'Pedidos',
-                data: data.pedidos_semana,
-                borderColor: '#b12e2f',
-                backgroundColor: 'rgba(177, 46, 47, 0.1)',
-                fill: true,
-                tension: 0.4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  },
-                  grid: {
-                    color: 'rgba(242, 227, 198, 0.1)'
-                  }
-                },
-                x: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  display: false
-                }
-              }
-            }
-          });
-
-          // Lista de Vencimento
-          if (data.estoque && data.estoque.lista.length > 0) {
-            document.getElementById('lista-vencimento').innerHTML = data.estoque.lista.map(item => `
-                        <div class="alerta-vencimento ${item.critico ? 'critico' : ''}">
-                            <i class="fa-solid ${item.critico ? 'fa-circle-exclamation' : 'fa-clock'}"></i>
-                            <div><strong>${item.nome}</strong><br><small>${item.motivo}</small></div>
-                        </div>
-                    `).join('');
-          } else if (data.estoque) {
-            document.getElementById('lista-vencimento').innerHTML = '<p style="text-align:center; color:#4ade80; padding:20px;"><i class="fa-solid fa-check"></i> Estoque em dia</p>';
-          }
-
-          // Lista de Equipe
-          if (data.equipe_online && data.equipe_online.length > 0) {
-            document.getElementById('lista-equipe').innerHTML = data.equipe_online.map(func => `
-                        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(242,227,198,0.15);">
-                            <span>${func.nome}</span>
-                            <span class="status-online" style="color:#4ade80;"><small>${func.cargo}</small></span>
-                        </div>
-                    `).join('');
-          } else {
-            document.getElementById('lista-equipe').innerHTML = '<p style="text-align:center; opacity:0.6; padding:20px;">Nenhum funcionário online no momento.</p>';
-          }
-        })
-        .catch(err => console.error('Erro ao carregar dashboard:', err));
-    });
-  </script>
 </body>
 
 </html>
