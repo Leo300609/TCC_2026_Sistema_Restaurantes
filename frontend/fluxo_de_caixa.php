@@ -22,471 +22,334 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XTEC - Painel Administrativo</title>
+  <title>Fluxo de Caixa · XTEC</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/dashboard.css"> 
-  <link rel="stylesheet" href="css/visao_geral.css">
-
- 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/modulos.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
   <div class="dashboard-layout">
 
-    <!-- SIDEBAR FIXA -->
     <aside class="sidebar">
       <div>
         <div class="sidebar-header">
+          <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
           <h2 class="nome-empresa">XTEC</h2>
         </div>
-        <nav class="sidebar-nav">
-          <a href="visao_geral.php" class="nav-item ">
-            <i class="fa-solid fa-chart-line"></i>
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+          <a href="dashboard.php" class="nav-item">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
             <span>Visão Geral</span>
           </a>
-          <!-- NOVO: Menu condicional -->
           <?php if ($verFinanceiro): ?>
-            <a href="#" class="nav-item active">
-              <i class="fa-solid fa-wallet"></i>
+            <a href="fluxo_de_caixa.php" class="nav-item active" aria-current="page">
+              <i class="fa-solid fa-wallet" aria-hidden="true"></i>
               <span>Fluxo de Caixa</span>
             </a>
           <?php endif; ?>
 
           <?php if ($verEstoque): ?>
             <a href="estoque.php" class="nav-item">
-              <i class="fa-solid fa-boxes-stacked"></i>
+              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
               <span>Estoque</span>
             </a>
           <?php endif; ?>
 
           <a href="pedidos.php" class="nav-item">
-            <i class="fa-solid fa-receipt"></i>
+            <i class="fa-solid fa-receipt" aria-hidden="true"></i>
             <span>Pedidos</span>
           </a>
           <a href="cardapios.php" class="nav-item">
-            <i class="fa-solid fa-utensils"></i>
+            <i class="fa-solid fa-utensils" aria-hidden="true"></i>
             <span>Cardápio</span>
           </a>
           <a href="clientes.php" class="nav-item">
-            <i class="fa-solid fa-users"></i>
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
             <span>Clientes</span>
           </a>
-          
+
           <a href="empresa.php" class="nav-item">
-            <i class="fa-solid fa-city"></i>
+            <i class="fa-solid fa-city" aria-hidden="true"></i>
             <span>Empresa</span>
           </a>
-          
-          <a href="configuracoes.php" class="nav-item">
-            <i class="fa-solid fa-gear"></i>
+
+          <a href="configs.php" class="nav-item">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
             <span>Configurações</span>
           </a>
         </nav>
       </div>
 
       <div class="sidebar-footer">
-        <!-- NOVO: Exibe o nome e cargo de quem está logado -->
-        <span style="font-size:12px; color:var(--creme); opacity:0.7; margin-bottom:8px; display:block; padding: 0 10px;">
-          <?= $nomeUsuario ?> <br> (<?= htmlspecialchars($cargo) ?>)
-        </span>
+        <div class="usuario-chip">
+          <span class="usuario-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+          <span class="usuario-dados">
+            <strong><?= $nomeUsuario ?></strong>
+            <small><?= htmlspecialchars($cargo) ?></small>
+          </span>
+        </div>
         <a href="../backend/logout.php" class="btn-sair">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
           <span>Sair</span>
         </a>
       </div>
     </aside>
 
-    <!-- ÁREA PRINCIPAL COM ROLAGEM INDEPENDENTE -->
-    <main class="main-content">
+    <main class="main-content" id="conteudo" tabindex="-1">
+      <div class="conteudo">
 
-      <header class="topbar">
-        <div class="boas-vindas">
-          <h1>Visão Geral</h1>
-          <p>Operação em tempo real</p>
-        </div>
-        <div class="usuario-perfil">
-          <span class="status-loja online"><i class="fa-solid fa-circle"></i> Loja Aberta</span>
-          <!-- NOVO: Nome dinâmico no topo -->
-          <span class="nome-admin"><?= $nomeUsuario ?></span>
-        </div>
-      </header>
+        <header class="topbar">
+          <div class="boas-vindas">
+            <h1>Fluxo de Caixa</h1>
+            <p>Entradas, saídas e contas em aberto</p>
+          </div>
+          <div class="usuario-perfil">
+            <span class="status-loja online"><i class="fa-solid fa-circle" aria-hidden="true"></i> Loja aberta</span>
+            <span class="nome-admin"><?= $nomeUsuario ?></span>
+          </div>
+        </header>
 
-      <!-- NOVO: BOTÕES DE EXPORTAÇÃO (Apenas Admin/Gerente) -->
-      <?php if ($verFinanceiro): ?>
-        <section class="export-actions">
-          <a href="../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-          <a href="../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word"></i> Exportar Word</a>
-          <a href="../backend/relatorios/gerar_excel.php" class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
-        </section>
-      <?php endif; ?>
-
-      <!-- METRICAS (MANTIDO ORIGINAL) -->
-      <section class="grid-cards">
-        <div class="card-metrica">
-          <span class="card-titulo">Faturamento Hoje</span>
-          <div class="card-valor" id="fat-hoje">R$ 1.840,50</div>
-          <span class="card-detalhe positivo">+12% em relação a ontem</span>
-        </div>
-        <div class="card-metrica">
-          <span class="card-titulo">Pedidos Realizados</span>
-          <div class="card-valor" id="pedidos-hoje">48</div>
-          <span class="card-detalhe positivo">+5 na última hora</span>
-        </div>
-        <div class="card-metrica">
-          <span class="card-titulo">Ticket Médio</span>
-          <div class="card-valor">R$ 38,34</div>
-          <span class="card-detalhe neutro">Dentro da média</span>
-        </div>
-
-        <!-- NOVO: Card de Alerta Condicional -->
-        <?php if ($verEstoque): ?>
+        <section class="grid-cards" aria-label="Resumo do período">
+          <div class="card-metrica">
+            <span class="card-titulo">Saldo do mês</span>
+            <div class="card-valor">R$ 12.480,00</div>
+            <span class="card-detalhe positivo">+8% sobre setembro</span>
+          </div>
+          <div class="card-metrica">
+            <span class="card-titulo">Entradas pagas</span>
+            <div class="card-valor">R$ 38.920,00</div>
+            <span class="card-detalhe neutro">R$ 4.310,00 a receber</span>
+          </div>
+          <div class="card-metrica">
+            <span class="card-titulo">Saídas pagas</span>
+            <div class="card-valor">R$ 26.440,00</div>
+            <span class="card-detalhe neutro">R$ 5.150,00 a pagar</span>
+          </div>
           <div class="card-metrica alerta-box">
-            <span class="card-titulo">Alertas de Estoque</span>
-            <div class="card-valor" id="alertas-estoque">0</div>
-            <span class="card-detalhe alerta">Itens críticos ou vencendo</span>
-          </div>
-        <?php else: ?>
-          <div class="card-metrica alerta-box">
-            <span class="card-titulo">Em Entrega</span>
-            <div class="card-valor">6</div>
-            <span class="card-detalhe alerta">Aguardando confirmação</span>
-          </div>
-        <?php endif; ?>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- NOVO: SEÇÃO DE RELATÓRIOS E GRÁFICOS       -->
-      <!-- ========================================== -->
-      <?php if ($verFinanceiro || $verEstoque): ?>
-        <div class="dashboard-secoes" style="margin-bottom: 32px;">
-
-          <?php if ($verFinanceiro): ?>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-chart-pie"></i> Lucro vs Despesas</h2>
-              </div>
-              <div class="chart-container"><canvas id="graficoPizza"></canvas></div>
-            </section>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-chart-column"></i> Capital Inicial vs Atual</h2>
-              </div>
-              <div class="chart-container"><canvas id="graficoBarra"></canvas></div>
-            </section>
-          <?php endif; ?>
-
-          <?php if ($verEstoque): ?>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Validade</h2>
-              </div>
-              <div id="lista-vencimento" style="max-height: 250px; overflow-y: auto;">
-                <p style="text-align:center; opacity:0.6; padding: 20px;">Carregando dados...</p>
-              </div>
-            </section>
-            <section class="painel-card">
-              <div class="painel-header">
-                <h2><i class="fa-solid fa-users-viewfinder"></i> Equipe Online Agora</h2>
-              </div>
-              <div id="lista-equipe" style="max-height: 250px; overflow-y: auto;">
-                <p style="text-align:center; opacity:0.6; padding: 20px;">Carregando dados...</p>
-              </div>
-            </section>
-          <?php endif; ?>
-
-        </div>
-      <?php endif; ?>
-      <!-- FIM DA SEÇÃO NOVA -->
-
-
-      <!-- GERAR CÓDIGO DA EQUIPE (MANTIDO ORIGINAL) -->
-      <section class="painel-card gestao-equipe">
-        <div class="painel-header">
-          <h2><i class="fa-solid fa-user-plus"></i> Convidar Novo Funcionário</h2>
-        </div>
-
-        <div class="form-gerar-codigo">
-          <div class="grupo-input">
-            <label for="funcao-funcionario">Função / Cargo</label>
-            <select id="funcao-funcionario" class="input-dash">
-              <option value="Atendente / Caixa">Atendente / Caixa</option>
-              <option value="Cozinheiro">Cozinheiro</option>
-              <option value="Entregador">Entregador</option>
-              <option value="Gerente">Gerente</option>
-            </select>
-          </div>
-
-          <div class="grupo-input">
-            <label for="nivel-acesso">Nível de Acesso no Sistema</label>
-            <select id="nivel-acesso" class="input-dash">
-              <option value="1">Nível 1 (Apenas Pedidos)</option>
-              <option value="2">Nível 2 (Caixa e Cozinha)</option>
-              <option value="3">Nível 3 (Acesso Total / Gerencial)</option>
-            </select>
-          </div>
-
-          <button type="button" onclick="gerarCodigoEquipe()" class="btn-gerar">
-            <i class="fa-solid fa-key"></i> Gerar Código
-          </button>
-        </div>
-
-        <div id="resultado-codigo" class="resultado-codigo hidden">
-          <p>Código de cadastro exclusivo para a equipe:</p>
-          <div class="box-codigo">
-            <strong id="codigo-gerado">XTEC-00000</strong>
-            <button onclick="copiarCodigo()" title="Copiar Código"><i class="fa-regular fa-copy"></i></button>
-          </div>
-          <small>Forneça este código ao funcionário para que ele se registre na tela de cadastro.</small>
-        </div>
-      </section>
-
-      <!-- TABELAS E DETALHES (MANTIDO ORIGINAL) -->
-      <div class="dashboard-secoes">
-        <section class="painel-card">
-          <div class="painel-header">
-            <h2>Últimos Pedidos</h2>
-            <a href="#" class="btn-link">Ver todos</a>
-          </div>
-          <div class="tabela-container">
-            <table class="tabela-pedidos">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>Itens</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="id-pedido">#1048</td>
-                  <td class="cliente-nome">Lucas Andrade</td>
-                  <td>2x X-Tudo, 1x Coca 2L</td>
-                  <td class="valor-pedido">R$ 68,00</td>
-                  <td><span class="status em-preparo">Em preparo</span></td>
-                </tr>
-                <tr>
-                  <td class="id-pedido">#1047</td>
-                  <td class="cliente-nome">Mariana Costa</td>
-                  <td>1x Combo Artesanal</td>
-                  <td class="valor-pedido">R$ 42,50</td>
-                  <td><span class="status a-caminho">A caminho</span></td>
-                </tr>
-                <tr>
-                  <td class="id-pedido">#1046</td>
-                  <td class="cliente-nome">Roberto Silva</td>
-                  <td>3x Misto Quente</td>
-                  <td class="valor-pedido">R$ 31,00</td>
-                  <td><span class="status entregue">Entregue</span></td>
-                </tr>
-              </tbody>
-            </table>
+            <span class="card-titulo">Em atraso</span>
+            <div class="card-valor">R$ 1.760,00</div>
+            <span class="card-detalhe alerta">2 lançamentos</span>
           </div>
         </section>
 
-        <!-- NOVO: Gráfico de Linha de Pedidos (Substituindo ou complementando o Mais Vendidos) -->
-        <section class="painel-card">
-          <div class="painel-header">
-            <h2><i class="fa-solid fa-chart-line"></i> Evolução de Pedidos (7 dias)</h2>
+        <div class="toolbar">
+          <div class="toolbar-grupo">
+            <div class="grupo-input seletor">
+              <label class="sr-only" for="periodo">Período</label>
+              <select id="periodo" class="input-dash" name="periodo">
+                <option>Este mês</option>
+                <option>Mês passado</option>
+                <option>Últimos 30 dias</option>
+                <option>Este ano</option>
+              </select>
+            </div>
+            <div class="filtros" role="group" aria-label="Tipo de lançamento">
+              <button type="button" class="filtro ativo" aria-pressed="true">Todos <span>42</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Entradas <span>27</span></button>
+              <button type="button" class="filtro" aria-pressed="false">Saídas <span>15</span></button>
+            </div>
           </div>
-          <div class="chart-container" style="height: 300px;">
-            <canvas id="graficoLinha"></canvas>
+          <div class="toolbar-grupo">
+            <div class="grupo-input seletor">
+              <label class="sr-only" for="situacao">Situação</label>
+              <select id="situacao" class="input-dash" name="situacao">
+                <option>Todas as situações</option>
+                <option>Pendente</option>
+                <option>Pago</option>
+                <option>Atrasado</option>
+                <option>Cancelado</option>
+              </select>
+            </div>
           </div>
-        </section>
+        </div>
+
+        <div class="fluxo-grid">
+
+          <section class="painel-card painel-tabela" aria-label="Lançamentos">
+            <div class="tabela-container" tabindex="0" role="region" aria-label="Tabela de lançamentos, role para os lados se necessário">
+              <table class="tabela">
+                <thead>
+                  <tr>
+                    <th scope="col">Vencimento</th>
+                    <th scope="col">Lançamento</th>
+                    <th scope="col" class="num">Valor</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col"><span class="sr-only">Ações</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="data">22/10</td>
+                    <td><span class="celula-dupla"><strong>Aluguel do salão</strong><small><span class="origem">Manual</span> Despesas fixas</small></span></td>
+                    <td class="num saida">− R$ 3.200,00</td>
+                    <td><span class="status pendente">Pendente</span></td>
+                    <td class="acoes">
+                      <button type="button" class="btn btn-pequeno btn-fantasma" aria-label="Editar aluguel do salão"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                      <button type="button" class="btn btn-pequeno">Marcar como pago<span class="sr-only">: aluguel do salão</span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="data">20/10</td>
+                    <td><span class="celula-dupla"><strong>Frigorífico Boa Carne</strong><small><span class="origem">Compra</span> Pedido #213</small></span></td>
+                    <td class="num saida">− R$ 1.950,00</td>
+                    <td><span class="status agendado">Agendado</span></td>
+                    <td class="acoes"><button type="button" class="btn btn-pequeno">Marcar como pago<span class="sr-only">: Frigorífico Boa Carne</span></button></td>
+                  </tr>
+                  <tr>
+                    <td class="data">19/10</td>
+                    <td><span class="celula-dupla"><strong>Lucas Andrade</strong><small><span class="origem">Venda</span> Pedido #1048</small></span></td>
+                    <td class="num entrada">+ R$ 68,00</td>
+                    <td><span class="status pago">Pago</span></td>
+                    <td class="acoes"></td>
+                  </tr>
+                  <tr>
+                    <td class="data">19/10</td>
+                    <td><span class="celula-dupla"><strong>Mariana Costa</strong><small><span class="origem">Venda</span> Pedido #1047</small></span></td>
+                    <td class="num entrada">+ R$ 42,50</td>
+                    <td><span class="status pendente">Pendente</span></td>
+                    <td class="acoes"><button type="button" class="btn btn-pequeno">Marcar como pago<span class="sr-only">: Mariana Costa</span></button></td>
+                  </tr>
+                  <tr>
+                    <td class="data">18/10</td>
+                    <td><span class="celula-dupla"><strong>Distribuidora Sul Bebidas</strong><small><span class="origem">Compra</span> Pedido #212</small></span></td>
+                    <td class="num saida">− R$ 1.140,00</td>
+                    <td><span class="status pago">Pago</span></td>
+                    <td class="acoes"></td>
+                  </tr>
+                  <tr>
+                    <td class="data">17/10</td>
+                    <td><span class="celula-dupla"><strong>Gorjetas do salão</strong><small><span class="origem">Manual</span> Receitas extras</small></span></td>
+                    <td class="num entrada">+ R$ 320,00</td>
+                    <td><span class="status pago">Pago</span></td>
+                    <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma" aria-label="Editar gorjetas do salão"><i class="fa-solid fa-pen" aria-hidden="true"></i></button></td>
+                  </tr>
+                  <tr>
+                    <td class="data">15/10</td>
+                    <td><span class="celula-dupla"><strong>Hortifruti Central</strong><small><span class="origem">Compra</span> Pedido #209</small></span></td>
+                    <td class="num saida">− R$ 480,00</td>
+                    <td><span class="status atrasado">Atrasado</span></td>
+                    <td class="acoes"><button type="button" class="btn btn-pequeno">Marcar como pago<span class="sr-only">: Hortifruti Central</span></button></td>
+                  </tr>
+                  <tr>
+                    <td class="data">12/10</td>
+                    <td><span class="celula-dupla"><strong>Padaria Boa Massa Ltda</strong><small><span class="origem">Venda</span> Pedido #1021</small></span></td>
+                    <td class="num entrada">+ R$ 1.280,00</td>
+                    <td><span class="status atrasado">Atrasado</span></td>
+                    <td class="acoes"><button type="button" class="btn btn-pequeno">Marcar como pago<span class="sr-only">: Padaria Boa Massa Ltda</span></button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <nav class="paginacao" aria-label="Paginação">
+              <span class="painel-meta">Mostrando 1 a 8 de 42 lançamentos</span>
+              <div class="paginacao-botoes">
+                <button type="button" class="btn btn-pequeno" disabled><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Anterior</button>
+                <button type="button" class="btn btn-pequeno">Próxima <i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+              </div>
+            </nav>
+          </section>
+
+          <div class="fluxo-lateral">
+
+            <section class="painel-card" aria-labelledby="titulo-novo-lancamento">
+              <div class="painel-header">
+                <h2 id="titulo-novo-lancamento">Novo lançamento</h2>
+              </div>
+              <form class="form-lancamento" action="#" method="post">
+                <fieldset class="segmentado">
+                  <legend class="sr-only">Tipo</legend>
+                  <label>
+                    <input type="radio" name="tipo" value="ENTRADA" checked>
+                    <span><i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Entrada</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="tipo" value="SAIDA">
+                    <span><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Saída</span>
+                  </label>
+                </fieldset>
+
+                <div class="grupo-input">
+                  <label for="descricao">Descrição</label>
+                  <input type="text" id="descricao" name="descricao" class="input-dash" maxlength="255" placeholder="Ex.: Conta de energia" required>
+                </div>
+
+                <div class="grupo-input">
+                  <label for="categoria">Categoria</label>
+                  <input type="text" id="categoria" name="categoria" class="input-dash" maxlength="100" list="categorias-caixa" placeholder="Ex.: Despesas fixas" required>
+                  <datalist id="categorias-caixa">
+                    <option value="Despesas fixas">
+                    <option value="Receitas extras">
+                    <option value="Impostos">
+                    <option value="Manutenção">
+                  </datalist>
+                </div>
+
+                <div class="linha-dupla">
+                  <div class="grupo-input">
+                    <label for="valor">Valor (R$)</label>
+                    <input type="number" id="valor" name="valor" class="input-dash" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required>
+                  </div>
+                  <div class="grupo-input">
+                    <label for="data_movimentacao">Data</label>
+                    <input type="date" id="data_movimentacao" name="data_movimentacao" class="input-dash" required>
+                  </div>
+                </div>
+
+                <div class="grupo-input">
+                  <label for="status">Situação</label>
+                  <select id="status" name="status" class="input-dash">
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="PAGO">Pago</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primario"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar lançamento</button>
+              </form>
+            </section>
+
+            <section class="painel-card" aria-labelledby="titulo-semanas">
+              <div class="painel-header">
+                <h2 id="titulo-semanas">Entradas e saídas</h2>
+                <span class="painel-meta">Por semana</span>
+              </div>
+              <div class="barras" role="img" aria-label="Entradas e saídas por semana em outubro. Semana 1: 8,4 mil e 6,0 mil. Semana 2: 9,1 mil e 5,9 mil. Semana 3: 10,2 mil e 7,1 mil. Semana 4: 11,2 mil e 7,4 mil.">
+                <div class="barras-semana">
+                  <div class="barras-par"><span class="barra entrada" style="--h: 75%"></span><span class="barra saida" style="--h: 54%"></span></div>
+                  <span class="barras-rotulo">Sem 1</span>
+                </div>
+                <div class="barras-semana">
+                  <div class="barras-par"><span class="barra entrada" style="--h: 81%"></span><span class="barra saida" style="--h: 53%"></span></div>
+                  <span class="barras-rotulo">Sem 2</span>
+                </div>
+                <div class="barras-semana">
+                  <div class="barras-par"><span class="barra entrada" style="--h: 91%"></span><span class="barra saida" style="--h: 63%"></span></div>
+                  <span class="barras-rotulo">Sem 3</span>
+                </div>
+                <div class="barras-semana">
+                  <div class="barras-par"><span class="barra entrada" style="--h: 100%"></span><span class="barra saida" style="--h: 66%"></span></div>
+                  <span class="barras-rotulo">Sem 4</span>
+                </div>
+              </div>
+              <ul class="legenda">
+                <li><span class="ponto entrada" aria-hidden="true"></span> Entradas</li>
+                <li><span class="ponto saida" aria-hidden="true"></span> Saídas</li>
+              </ul>
+            </section>
+
+          </div>
+        </div>
+
       </div>
-
     </main>
   </div>
-
-  <script>
-    function gerarCodigoEquipe() {
-      const funcao = document.getElementById('funcao-funcionario').value;
-      const nivel = document.getElementById('nivel-acesso').value;
-      const formData = new FormData();
-      formData.append('funcao', funcao);
-      formData.append('nivel_acesso', nivel);
-
-      fetch('../backend/gerar_codigo_processa.php', { // Corrigido nome do arquivo conforme seu original
-          method: 'POST',
-          body: formData
-        })
-        .then(async response => {
-          const text = await response.text();
-          try {
-            return JSON.parse(text);
-          } catch (err) {
-            throw new Error("O PHP retornou um erro inesperado: " + text);
-          }
-        })
-        .then(data => {
-          if (data.sucesso) {
-            document.getElementById('codigo-gerado').innerText = data.codigo;
-            document.getElementById('resultado-codigo').classList.remove('hidden');
-          } else {
-            alert('Erro do Sistema: ' + data.mensagem);
-          }
-        })
-        .catch(error => {
-          console.error('Erro na requisição:', error);
-          alert(error.message);
-        });
-    }
-
-    function copiarCodigo() {
-      const codigo = document.getElementById('codigo-gerado').innerText;
-      navigator.clipboard.writeText(codigo);
-      alert('Código copiado para a área de transferência!');
-    }
-  </script>
-
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch('../backend/api/dados_dashboard.php')
-        .then(res => res.json())
-        .then(data => {
-          if (data.erro) return;
-
-          // Atualiza cards se os dados vierem da API
-          if (data.financeiro) {
-            document.getElementById('fat-hoje').innerText = `R$ ${data.financeiro.faturamento_hoje}`;
-
-            // Gráfico Pizza
-            new Chart(document.getElementById('graficoPizza'), {
-              type: 'doughnut',
-              data: {
-                labels: ['Lucro', 'Despesas'],
-                datasets: [{
-                  data: [data.financeiro.lucro, data.financeiro.despesas],
-                  backgroundColor: ['#4ade80', '#ef4444'],
-                  borderWidth: 0
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                }
-              }
-            });
-
-            // Gráfico Barra
-            new Chart(document.getElementById('graficoBarra'), {
-              type: 'bar',
-              data: {
-                labels: ['Capital Inicial', 'Capital Atual'],
-                datasets: [{
-                  data: [data.financeiro.capital_inicial, data.financeiro.capital_atual],
-                  backgroundColor: ['#ab6550', '#4ade80'],
-                  borderRadius: 6
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    },
-                    grid: {
-                      color: 'rgba(242, 227, 198, 0.1)'
-                    }
-                  },
-                  x: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    display: false
-                  }
-                }
-              }
-            });
-          }
-
-          document.getElementById('pedidos-hoje').innerText = data.pedidos_hoje;
-          if (data.estoque) document.getElementById('alertas-estoque').innerText = data.estoque.total_alertas;
-
-          // Gráfico Linha (Pedidos - Visível para todos)
-          new Chart(document.getElementById('graficoLinha'), {
-            type: 'line',
-            data: {
-              labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-              datasets: [{
-                label: 'Pedidos',
-                data: data.pedidos_semana,
-                borderColor: '#b12e2f',
-                backgroundColor: 'rgba(177, 46, 47, 0.1)',
-                fill: true,
-                tension: 0.4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  },
-                  grid: {
-                    color: 'rgba(242, 227, 198, 0.1)'
-                  }
-                },
-                x: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  display: false
-                }
-              }
-            }
-          });
-
-          // Lista de Vencimento
-          if (data.estoque && data.estoque.lista.length > 0) {
-            document.getElementById('lista-vencimento').innerHTML = data.estoque.lista.map(item => `
-                        <div class="alerta-vencimento ${item.critico ? 'critico' : ''}">
-                            <i class="fa-solid ${item.critico ? 'fa-circle-exclamation' : 'fa-clock'}"></i>
-                            <div><strong>${item.nome}</strong><br><small>${item.motivo}</small></div>
-                        </div>
-                    `).join('');
-          } else if (data.estoque) {
-            document.getElementById('lista-vencimento').innerHTML = '<p style="text-align:center; color:#4ade80; padding:20px;"><i class="fa-solid fa-check"></i> Estoque em dia</p>';
-          }
-
-          // Lista de Equipe
-          if (data.equipe_online && data.equipe_online.length > 0) {
-            document.getElementById('lista-equipe').innerHTML = data.equipe_online.map(func => `
-                        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(242,227,198,0.15);">
-                            <span>${func.nome}</span>
-                            <span class="status-online" style="color:#4ade80;"><small>${func.cargo}</small></span>
-                        </div>
-                    `).join('');
-          } else {
-            document.getElementById('lista-equipe').innerHTML = '<p style="text-align:center; opacity:0.6; padding:20px;">Nenhum funcionário online no momento.</p>';
-          }
-        })
-        .catch(err => console.error('Erro ao carregar dashboard:', err));
-    });
-  </script>
 </body>
 
 </html>
