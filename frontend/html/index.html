@@ -11,7 +11,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-    <script src="https://kit.fontawesome.com/SEU_KIT.js" crossorigin="anonymous"></script>
   </head>
   <body>
 
@@ -25,11 +24,14 @@
         <span class="nome-sistema">XTEC</span>
       </div>
       <nav class="menu-links">
-        <a href="#recursos" class="links-topo">Recursos</a>
+        <a href="#previa" class="links-topo">Prévia</a>
+        <a href="#seguranca" class="links-topo">Segurança</a>
         <a href="#diferenciais" class="links-topo">Diferenciais</a>
+        <a href="#fluxo" class="links-topo">Fluxo</a>
           </nav>
+          
           <nav class="header-btn">
-        <a href="login.html" class="botao-login-topo">Fazer login</a>
+        <a href="login.html" class="botao-login-topo">Fazer Login</a>
           </nav>
     </header>
 
@@ -50,167 +52,43 @@
      </div>
      <div class="main">
           <h1 class="txt1">
-          Seu parceiro para uma gestão <p class="txt1-efeito">mais eficiente.</p>
+          Seu parceiro para uma gestão <span class="txt1-efeito">mais eficiente.</span>
           </h1>
-             <p class="desc">O XTEC conecta estoque, compras, vendas, validades
+             <p class="desc">O nosso sistema conecta estoque, compras, vendas, validades
              e indicadores para transformar registros operacionais em uma 
-             visão clara do restaurante — com menos retrabalho e mais apoio à decisão.
+             visão clara do seu restaurante com menos retrabalho e mais apoio à decisão.
             </p>
-          <button class="btn-entrar"> <div class="gap"><i class="fa-solid fa-arrow-right"></div></i> Acessar o XTEC</button> 
+          <a href="cadastro.html" class="btn-entrar"> Vamos lá!</a> 
+
+<div class="main-itens-1">
+          <span class="desc2">
+            <i class="fa-solid fa-circle-check" style="margin-right: 0.2dvb; color: rgb(143, 190, 168);"></i>
+          Estoque em destaque
+          </span>
+          <span class="desc2">
+            <i class="fa-solid fa-circle-check" style="margin-right: 0.2dvb; color: rgb(143, 190, 168);"></i>
+          Dados organizados
+          </span>
+          <span class="desc2">
+            <i class="fa-solid fa-circle-check" style="margin-right: 0.2dvb; color: rgb(143, 190, 168);"></i>
+          Lucros garantidos
+       </span>
+</div>
+
+
      </div>
 
 
-<!-- Topo do quadro -->
 
-<div class="quadro">
-   <div>
-       <div class="topo-quadro">
-       <div class="icone">
-         <i class="fa-solid fa-user"></i> 
-      </div>
-         <span class="quadro-usuario">Usuário</span>
-       </div>
-       <div class="topo-quadro2">
-                 <div class="quadro-icones-topo">
-                 <i class="fa-solid fa-bell"></i> 
-                 <i class="fa-solid fa-magnifying-glass"></i> 
-                 </div>
-        </div>
-<div class="linha-quadro"> </div>
-<div class="topo-meio">
-  <p class="topo-meio-texto1"> VENDA REGISTRADA</p>
-   <h1 class="topo-meio-texto2"> R$ ---- </h1>
-   <p class="topo-meio-texto3"> Agora</p>
+ <div class="anuncio1" >
+<img src="../assets/Anuncio 12.png" alt="Pessoa em pose pensativa">
 </div>
-
-   <!-- Meio do quadro -->
-
-<div class="meio">
-      <div class="meio-quadro">
-           <p class="meio-texto1"> Receita do dia</p>
-             <h1 class="meio-texto2"> R$ ---- </h1>
-               <p class="meio-texto3-1"> <i class="fa-solid fa-arrow-trend-up"> </i> Acompanhamento ativo </p>
-      </div>
-           <div class="meio-quadro2">
-               <p class="meio-texto1"> Vendas</p>
-                  <h1 class="meio-texto2"> -- </h1>
-                    <p class="meio-texto3"> <i class="fa-solid fa-file"> </i> Registros concluídos </p>
-           </div>
-                <div class="meio-quadro3">
-                     <p class="meio-texto1"> Estoque </p>
-                       <h1 class="meio-texto2"> --% </h1>
-                         <p class="meio-texto3"><i class="fa-solid fa-boxes-stacked"> </i> Disponibilidade </p>
-                </div>
-</div>
-
-   <!-- Grafico feito com auxilio de IA -->
- 
-<div class="grafico">
-
-
-    <div class="grafico-base">
-<div class="grafico-topo">
-<p class="grafico-texto1">Evolução Operacional</p>
-<p class="grafico-texto2">Ultimos dias</p>
-</div>
-
-
-        <div class="chart">
-            <svg viewBox="0 0 550 180" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-                        <stop 
-                            offset="0%" 
-                            stop-color="#fa4444" 
-                            stop-opacity=".25"
-                        />
-
-                        <stop 
-                            offset="100%" 
-                            stop-color="#fa4444" 
-                            stop-opacity="0"
-                        />
-                    </linearGradient>
-                </defs>
-                <path
-                    class="area"
-                    d="
-                        M 10 150
-
-                        C 70 142, 95 142, 120 130
-
-                        C 145 118, 155 88, 195 88
-
-                        C 230 88, 255 125, 285 125
-
-                        C 315 125, 340 70, 380 72
-
-                        C 405 73, 420 82, 450 68
-
-                        C 485 52, 505 48, 540 50
-
-                        L 540 180
-
-                        L 10 180
-
-                        Z
-                    "
-                />
-                <path
-                    class="line"
-                     pathLength="1"
-                    d="
-                        M 10 150
-
-                        C 70 142, 95 142, 120 130
-
-                        C 145 118, 155 88, 195 88
-
-                        C 230 88, 255 125, 285 125
-
-                        C 315 125, 340 70, 380 72
-
-                        C 405 73, 420 82, 450 68
-
-                        C 485 52, 505 48, 540 50
-                   "
-                />
-                <circle
-                    cx="10"
-                    cy="150"
-                    r="6"
-                    class="dot"
-                />
-            </svg>
-        </div>
-        
-    </div>
-    <div class="grafico-bottom">
-          <p class="grafico-baixo-texto">
-          <i class="fa-solid fa-hourglass-half" style="color:#ff3c3c; padding-right: 8px;">
-          </i> Movimentações registradas
-        </p>
-          <p class="grafico-baixo-texto">
-            <i class="fa-solid fa-circle-check" style="color:#ff3c3c; padding-right: 8px;">
-               </i>Validades Monitoradas
-          </p>
-        </div>
-</div>
-
-<!-- Fim da Div Grafico -->
-
-
-</div>    <!-- Div depois do quadro -->
-
-</div>      <!-- Div do quadro -->
-
-
-
 </div>    <!-- Div Pt1 -->
 
-<p class="main-go">
- Conheça o XTEC <p class="main-go-icon"><i class="fa-solid fa-chevron-down" style="color:#ff3c3c;"></p></i>
-</p>
+<div class="main-go" id="fluxo">
+  Venha nos conhecer
+  <span class="main-go-icon"><i class="fa-solid fa-chevron-down" style="color:#ff3c3c;"></i></span>
+</div>
 
 </div>    <!-- Div Fundo Principal -->
 
@@ -218,63 +96,614 @@
 
 
 <!-- Linha divisoria -->
-<div class="divisoria"> 
+<div class="divisoria" > 
 
     <p class="divisoria-itens">
-      <i class="fa-solid fa-cash-register" style="color:#ff3c3c; padding-right: 10px;"></i> PDV
+      <i class="fa-solid fa-sack-dollar" style="color:#ff3c3c; padding-right: 10px;"></i> + Lucro
     </p>
 
     <p class="divisoria-itens">
-      <i class="fa-solid fa-boxes-stacked" style="color:#ff3c3c; padding-right: 10px;"></i> Estoque
+      <i class="fa-solid fa-boxes-stacked" style="color:#ff3c3c; padding-right: 10px;"></i> + Organização
     </p>
 
     <p class="divisoria-itens">
-      <i class="fa-solid fa-hourglass-half" style="color:#ff3c3c; padding-right: 10px;"></i> Validade
+      <i class="fa-solid fa-universal-access" style="color:#ff3c3c; padding-right: 10px;"></i> + Acessibilidade
     </p>
 
     <p class="divisoria-itens">
-      <i class="fa-solid fa-truck" style="color:#ff3c3c; padding-right: 10px;"></i> Compras
+      <i class="fa-solid fa-truck-fast" style="color:#ff3c3c; padding-right: 10px;"></i> + Agilidade
     </p>
 
   <p class="divisoria-itens">
-    <i class="fa-solid fa-chart-pie" style="color:#ff3c3c; padding-right: 10px;"></i> BI
+    <i class="fa-solid fa-chart-pie" style="color:#ff3c3c; padding-right: 10px;"></i> + Controle
   </p>
 
     <p class="divisoria-itens">
-      <i class="fa-solid fa-users" style="color:#ff3c3c; padding-right: 10px;"></i> Equipe
+      <i class="fa-solid fa-users" style="color:#ff3c3c; padding-right: 10px;"></i> + Equipe
     </p>
 </div>
 
+<div class="fundo-parte2" >
+    <div class="containerp-pt2">
+      <div class="containerp-pt2-pt1">
+       <div class="containerp-pt2-item1">
+          <i class="fa-solid fa-utensils"></i>
+       </div>
+          <span class="containerp-pt2-itens-1">
+              <i class="fa-solid fa-truck" style="color:#fa4444; margin-right: 0.5dvb";></i> Compras
+          </span>
 
+          <span class="containerp-pt2-itens-2">
+              <i class="fa-solid fa-hourglass-half" style="color:#fa4444; margin-right: 0.5dvb";></i> Validade
+          </span>
 
+          <span class="containerp-pt2-itens-3">
+              <i class="fa-solid fa-cash-register" style="color:#fa4444; margin-right: 0.5dvb";></i> Vendas
+          </span>
 
-
-    <!-- Rodapé -->
-    <footer class="rodape-fim">
-      <div class="rodape-conteudo">
-        <div class="rodape-container">
-      <button class="rodape-botoes">
-      Termos de Uso
-      </button>
-      
-      <button class="rodape-botoes">
-      Política de Privacidade
-      </button>
-
-      <button class="rodape-botoes">
-      Diretrizes de Operação
-      </button>
-
-      <button class="rodape-botoes">
-      Segurança & LGPD
-      </button>
-
-      <button class="rodape-botoes">
-      Suporte
-      </button>
-</div>
-      <p class="rodape-text">&copy; 2026 XTEC. Todos os direitos reservados.</p>
+          <span class="containerp-pt2-itens-4">
+              <i class="fa-solid fa-chart-line" style="color:#fa4444; margin-right: 0.5dvb";></i> Lucros
+          </span>
       </div>
-    </footer>
+
+      <div class="containerp-pt2-pt2">
+
+                   <div class="itens-container"> 
+                    
+                     <span class="container-pt2-pt2-item1">
+                      <i class="fa-solid fa-list-check" style="color:#fa4444; margin-right: 0.2dvb;"></i>
+                       Entrada
+                     </span>
+                     <span class="container-pt2-pt2-item2"> compras, lotes e custos </span>
+                    </div>
+                    
+                     <div class="itens-container"> 
+                      
+                     <span class="container-pt2-pt2-item1">
+                      <i class="fa-solid fa-boxes-stacked" style="color:#fa4444; margin-right: 0.2dvb;"></i>
+                       Controle
+                     </span>
+                     <span class="container-pt2-pt2-item2"> estoque, validade e reposição </span>
+                      </div>
+
+                      <div class="itens-container"> 
+                       
+                     <span class="container-pt2-pt2-item1">
+                    <i class="fa-solid fa-cash-register" style="color:#fa4444; margin-right: 0.2dvb;"></i>
+                       Saída
+                     </span>
+                     <span class="container-pt2-pt2-item2"> PDV e movimentações </span>
+                    </div>
+                    
+                    <div class="itens-container"> 
+                      
+                     <span class="container-pt2-pt2-item1">
+                      <i class="fa-solid fa-chart-line" style="color:#fa4444; margin-right: 0.2dvb;"></i>
+                      Análise
+                     </span>
+                     <span class="container-pt2-pt2-item2"> margem, giro e Curva ABC </span>
+                     </div>             
+      </div>
+    </div>
+
+      <div class="container2-pt2">
+           <span class="texto-pt2">
+           Uma operação mais clara começa com informações que <span class="texto-pt2-efeito">conversam entre si.</span>
+           </span>
+           <span class="texto2-pt2" id="previa">
+           O XTEC conecta o recebimento dos insumos, a 
+           disponibilidade para venda e a leitura dos resultados. 
+           Cada registro alimenta a próxima etapa, reduzindo consultas 
+           dispersas e facilitando o acompanhamento da rotina.
+
+           </span>
+      </div>
+</div>
+
+<div class="fundo-parte3">
+
+<div class="container-pt3">
+<span class="texto-pt2">
+           Análise de dados <span class="texto-pt2-efeito">Inteligente</span> para o seu restaurante.
+           </span>
+           <span class="texto2-pt2">
+           Esta é uma demonstração da interface interna do XTEC. Nela, é possível visualizar os principais 
+           indicadores do restaurante, como receitas, vendas, estoque e a evolução operacional, facilitando o 
+           acompanhamento das informações e a tomada de decisões.
+           </span>
+</div>
+
+
+
+  <!-- quadro  -->
+    <div class="quadro">
+
+        <div>
+
+            <div class="topo-quadro">
+
+                <div class="icone">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="quadro-usuario">Usuário</span>
+
+            </div>
+
+            <div class="topo-quadro2">
+
+                <div class="quadro-icones-topo">
+                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+
+            </div>
+
+            <div class="linha-quadro"></div>
+
+            <div class="topo-meio">
+
+                <p class="topo-meio-texto1">
+                    VENDA REGISTRADA
+                </p>
+
+                <h1 class="topo-meio-texto2">
+                    R$ ----
+                </h1>
+
+                <p class="topo-meio-texto3">
+                    Agora
+                </p>
+
+            </div>
+
+
+            <!-- Meio do quadro -->
+
+            <div class="meio">
+
+                <div class="meio-quadro">
+
+                    <p class="meio-texto1">
+                        Receita do dia
+                    </p>
+
+                    <h1 class="meio-texto2">
+                        R$ ----
+                    </h1>
+
+                    <p class="meio-texto3-1">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                        Acompanhamento ativo
+                    </p>
+
+                </div>
+
+
+                <div class="meio-quadro2">
+
+                    <p class="meio-texto1">
+                        Vendas
+                    </p>
+
+                    <h1 class="meio-texto2">
+                        --
+                    </h1>
+
+                    <p class="meio-texto3">
+                        <i class="fa-solid fa-file"></i>
+                        Registros concluídos
+                    </p>
+
+                </div>
+
+
+                <div class="meio-quadro3">
+
+                    <p class="meio-texto1">
+                        Estoque
+                    </p>
+
+                    <h1 class="meio-texto2">
+                        --%
+                    </h1>
+
+                    <p class="meio-texto3">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        Disponibilidade
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Gráfico feito com auxílio de IA -->
+
+            <div class="grafico">
+
+                <div class="grafico-base">
+
+                    <div class="grafico-topo">
+
+                        <p class="grafico-texto1">
+                            Evolução Operacional
+                        </p>
+
+                        <p class="grafico-texto2">
+                            Ultimos dias
+                        </p>
+
+                    </div>
+
+
+                    <div class="chart">
+
+                        <svg
+                            viewBox="0 0 550 180"
+                            preserveAspectRatio="none"
+                        >
+
+                            <defs>
+
+                                <linearGradient
+                                    id="area"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+
+                                    <stop
+                                        offset="0%"
+                                        stop-color="#fa4444"
+                                        stop-opacity=".25"
+                                    />
+
+                                    <stop
+                                        offset="100%"
+                                        stop-color="#fa4444"
+                                        stop-opacity="0"
+                                    />
+
+                                </linearGradient>
+
+                            </defs>
+
+
+                            <path
+                                class="area"
+                                d="
+                                    M 10 150
+
+                                    C 70 142, 95 142, 120 130
+
+                                    C 145 118, 155 88, 195 88
+
+                                    C 230 88, 255 125, 285 125
+
+                                    C 315 125, 340 70, 380 72
+
+                                    C 405 73, 420 82, 450 68
+
+                                    C 485 52, 505 48, 540 50
+
+                                    L 540 180
+
+                                    L 10 180
+
+                                    Z
+                                "
+                            />
+
+
+                            <path
+                                class="line"
+                                pathLength="1"
+                                d="
+                                    M 10 150
+
+                                    C 70 142, 95 142, 120 130
+
+                                    C 145 118, 155 88, 195 88
+
+                                    C 230 88, 255 125, 285 125
+
+                                    C 315 125, 340 70, 380 72
+
+                                    C 405 73, 420 82, 450 68
+
+                                    C 485 52, 505 48, 540 50
+                                "
+                            />
+
+
+                            <circle
+                                cx="10"
+                                cy="150"
+                                r="6"
+                                class="dot"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grafico-bottom">
+
+                    <p class="grafico-baixo-texto">
+
+                        <i
+                            class="fa-solid fa-hourglass-half"
+                            style="color:#ff3c3c; padding-right: 8px;"
+                        ></i>
+
+                        Movimentações registradas
+
+                    </p>
+
+
+                    <p class="grafico-baixo-texto">
+
+                        <i
+                            class="fa-solid fa-circle-check"
+                            style="color:#ff3c3c; padding-right: 8px;"
+                        ></i>
+
+                        Validades Monitoradas
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Fim da Div Gráfico -->
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="parte4">
+<div class="anuncio2">
+<img src="../assets/Anuncio 22.png" alt="Pessoa em pose pensativa">
+</div>
+
+
+<div class="textos">
+<span class="texto-pt2">
+           Organização e agilidade para <span class="texto-pt2-efeito">transformar</span> a sua gestão.
+           </span>
+           <span class="pt-4-desc">
+          O nosso sistema permite o controle das principais 
+          ações do seu restaurante, facilitando a análise das informações e ajudando 
+          na tomada de decisões mais rápidas e eficientes.
+           </span>
+</div>
+</div>
+
+<div class="parte5" id="diferenciais" style="margin-top: -8dvb">
+         <div class="pt5text">
+           <span class="texto-pt2" style="margin: 0dvb;">
+           Controle operacional que ajuda a <span class="texto-pt2-efeito">antecipar</span> suas decisões.
+           </span>
+
+           <p class="pt-4-desc">
+          O nosso sistema permite o controle das principais 
+          ações do seu restaurante, facilitando a análise das informações e ajudando 
+          na tomada de decisões mais rápidas e eficientes.
+           </p>
+        </div>
+
+   <div class="quadrospt5">
+           <div class="pt5q" style="margin: 2dvb">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-eye" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Mais visibilidade </span>
+                        <p class="pt5qdesc">
+                        Centralize saldos, lotes, validades, vendas e movimentações para reduzir a dependência de registros dispersos.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+
+
+
+           <div class="pt5q">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-scale-balanced" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Equilíbrio de estoque </span>
+                        <p class="pt5qdesc">
+                        Use estoque de segurança, ponto de reposição, Curva ABC e giro para acompanhar faltas, excessos e capital imobilizado.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+
+
+
+
+                              
+           <div class="pt5q" style="margin: 2dvb">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-chart-column" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Decisões orientadas por dados </span>
+                        <p class="pt5qdesc">
+                        Relacione vendas, custos e disponibilidade para apoiar escolhas de compra, reposição e acompanhamento de resultado.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+   </div>
+
+</div>
+
+<div class="parte6">
+  
+ <div class="quadrospt5">
+           <div class="pt5q" style="margin: 2dvb">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-clock" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Validade monitorada </span>
+                        <p class="pt5qdesc">
+                        O sistema deixa claro quando um produto está perto ou fora de validade, para maior cuidado e organização dos produtos.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+
+
+
+           <div class="pt5q">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-people-group" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Equipe e perfis </span>
+                        <p class="pt5qdesc">
+                        Separe responsabilidades entre gestão e operação, mantendo cada usuário no contexto adequado ao seu trabalho.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+
+
+
+
+                              
+           <div class="pt5q" style="margin: 2dvb">
+              <div class="pt5qtop">
+                 <div class="pt5icons">  
+                     <i class="fa-solid fa-chart-pie" style="color: rgb(255, 10, 10);"></i>
+                 </div>
+             </div>
+                <span class="pt5qtoptext"> Relatórios </span>
+                        <p class="pt5qdesc">
+                        Analise receita, custo, lucro, ticket médio e giro em gráficos e indicadores de leitura rápida.
+                        </p>
+
+                    <div class="pt5bola"></div>  
+           </div>
+   </div>   
+
+<div class="pt5text">
+           <span class="texto-pt2" style="margin: 0dvb;">
+           Sensibilidade com as <span class="texto-pt2-efeito">necessidades</span> do restaurante.
+           </span>
+
+           <span class="pt-4-desc">
+          Um dos focos da nossa empresa é ajudar o empreendedor a ter maior facilidade em observar as ações de seus funcionários, organizar as validades e controlar os lucros.
+           </span>
+        </div>
+
+
+
+
+</div>
+
+<div class="parte5" id="seguranca">
+
+
+
+<div class="textos" style="margin-left: -60dvb;">
+<span class="texto-pt2" >
+           Segurança sempre em <span class="texto-pt2-efeito">primeiro</span> lugar.
+           </span>
+           <span class="pt-4-desc">
+          Um dos nossos objetivos é fazer com que você se sinta seguro usando nosso site, então para isso seus dados ficam no MariaDb, todas as empresas são isoladas e as senhas usam hash para uma maior prioridade na sua segurança digital.
+           </span>
+</div>
+
+<div class="anuncio3">
+<img src="../assets/Anuncio 33.png" alt="Pessoa em pose pensativa">
+</div>
+
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- Rodapé -->
+    <footer class="rodape-fim">
+  <div class="rodape-conteudo">
+    <div class="rodape-container">
+      <button class="rodape-botoes" data-modal="termos">
+        Termos de Uso
+      </button>
+
+      <button class="rodape-botoes" data-modal="privacidade">
+        Política de Privacidade
+      </button>
+
+      <button class="rodape-botoes" data-modal="diretrizes">
+        Diretrizes de Operação
+      </button>
+
+      <button class="rodape-botoes" data-modal="seguranca">
+        Segurança &amp; LGPD
+      </button>
+
+      <button class="rodape-botoes" data-modal="suporte">
+        Suporte
+      </button>
+    </div>
+
+    <p class="rodape-text">
+      &copy; 2026 XTEC. Todos os direitos reservados.
+    </p>
+  </div>
+</footer>
+
+<!-- Janela modal -->
+<div class="modal-overlay" id="modal-overlay" aria-hidden="true">
+  <section
+    class="modal-caixa"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-titulo"
+    tabindex="-1"
+  >
+    <button class="modal-fechar" aria-label="Fechar janela">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="modal-icone">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+
+    <h2 id="modal-titulo">Título</h2>
+
+    <div class="modal-descricao" id="modal-descricao"></div>
+
+    <button class="modal-confirmar">Entendi</button>
+  </section>
+</div>
+
+<script src="../footer.js"></script>
+
+
+
   </body>
 </html>
