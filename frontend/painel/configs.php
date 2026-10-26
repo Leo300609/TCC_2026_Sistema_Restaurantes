@@ -1,43 +1,92 @@
 <?php
 require __DIR__ . '/_partials/auth.php';
+require_once __DIR__ . '/../../backend/lib/bd.php';
+require_once __DIR__ . '/../../backend/lib/web.php';
+
+$uid = (int) $_SESSION['usuario_id'];
+$podeOperacao = $verFinanceiro; // administrador ou gerente
+$formasPagamento = ['PIX' => ['fa-brands fa-pix', 'Pix'], 'CREDITO' => ['fa-regular fa-credit-card', 'Crédito'], 'DEBITO' => ['fa-solid fa-credit-card', 'Débito'], 'DINHEIRO' => ['fa-solid fa-money-bill-wave', 'Dinheiro'], 'BOLETO' => ['fa-solid fa-barcode', 'Boleto']];
+
+// ---------- ações (POST) ----------
+tratar_post(function () use ($uid, $podeOperacao, $formasPagamento) {
+    $nome = entrada('nome');
+    $email = entrada('email');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new ErroNegocio('Informe um e-mail válido.');
+    }
+
+    // senha: só troca se a nova foi preenchida (a conferência usa o mesmo critério do login)
+    $novoHash = '';
+    $senhaNova = (string) ($_POST['senha_nova'] ?? '');
+    if ($senhaNova !== '') {
+        $atual = (string) ($_POST['senha_atual'] ?? '');
+        $guardada = (string) chamar_valor('sp_config_senha_atual', [$uid]);
+        if ($atual === '' || !(password_verify($atual, $guardada) || hash_equals($guardada, $atual))) {
+            throw new ErroNegocio('A senha atual está incorreta.');
+        }
+        if (mb_strlen($senhaNova) < 8) {
+            throw new ErroNegocio('A nova senha precisa ter ao menos 8 caracteres.');
+        }
+        $novoHash = password_hash($senhaNova, PASSWORD_BCRYPT);
+    }
+
+    $dias = entrada_int('dias_validade', 3);
+    if ($dias < 1 || $dias > 60) {
+        throw new ErroNegocio('Informe de 1 a 60 dias de antecedência para a validade.');
+    }
+
+    $pagamentos = null;
+    if ($podeOperacao) {
+        $formas = array_values(array_unique(array_filter((array) ($_POST['pagamentos'] ?? []), 'is_string')));
+        if (!$formas || array_diff($formas, array_keys($formasPagamento))) {
+            throw new ErroNegocio('Escolha ao menos uma forma de pagamento válida.');
+        }
+        $pagamentos = implode(',', $formas);
+    }
+
+    transacao(function () use ($uid, $nome, $email, $novoHash, $dias, $pagamentos, $podeOperacao) {
+        chamar('sp_config_conta_salvar', [$uid, $nome, $email, $novoHash]);
+        foreach (['notif_pedido', 'notif_minimo', 'notif_validade', 'notif_contas'] as $chave) {
+            chamar('sp_config_definir', [$uid, $chave, isset($_POST[$chave]) ? '1' : '0']);
+        }
+        chamar('sp_config_definir', [$uid, 'dias_validade', (string) $dias]);
+
+        if ($podeOperacao) {
+            chamar('sp_config_operacao_salvar', [isset($_POST['aceita_delivery']) ? 1 : 0, entrada_int('tempo_preparo', 20), $pagamentos]);
+        }
+    });
+
+    $_SESSION['usuario_nome'] = $nome;
+    return $novoHash === '' ? 'Configurações salvas.' : 'Configurações salvas e senha alterada.';
+});
+
+// ---------- dados (GET) ----------
+$conta = ler(fn() => chamar_um('sp_config_conta', [$uid]), null) ?? ['nome' => $_SESSION['usuario_nome'] ?? '', 'email' => ''];
+$cfg = ler(fn() => chamar_um('sp_config_listar', [$uid]), null) ?? [
+    'notif_pedido' => '1', 'notif_minimo' => '1', 'notif_validade' => '1', 'notif_contas' => '0', 'dias_validade' => '3',
+    'aceita_delivery' => '1', 'tempo_preparo' => '20', 'pagamentos' => 'PIX,CREDITO,DEBITO,DINHEIRO',
+];
+$pagamentosAtivos = explode(',', (string) $cfg['pagamentos']);
+
+/** Opções de um <select> que sempre incluem o valor salvo. */
+function opcoes_select(array $padrao, string $atual, string $unidade): string
+{
+    $valores = array_unique(array_merge($padrao, [(int) $atual]));
+    sort($valores);
+    $h = '';
+    foreach ($valores as $v) {
+        $h .= '<option value="' . $v . '"' . ((string) $v === $atual ? ' selected' : '') . '>' . $v . ' ' . ($unidade === 'dia' ? ($v === 1 ? 'dia' : 'dias') : $unidade) . '</option>';
+    }
+    return $h;
+}
+
+$desabilitaOperacao = $podeOperacao ? '' : ' disabled';
+
+$titulo = 'Configurações';
+$subtitulo = 'Sua conta, notificações e a operação da loja';
+$paginaAtual = 'configs';
+include __DIR__ . '/_partials/topo.php';
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-  <title>Configurações · XTEC</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/painel/dashboard.css">
-  <link rel="stylesheet" href="../css/painel/modulos.css">
-</head>
-
-<body>
-  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-
-  <div class="dashboard-layout">
-
-    <?php $paginaAtual = 'configs'; include __DIR__ . '/_partials/sidebar.php'; ?>
-
-    <main class="main-content" id="conteudo" tabindex="-1">
-      <div class="conteudo">
-
-        <header class="topbar">
-          <div class="boas-vindas">
-            <h1>Configurações</h1>
-            <p>Preferências da conta e da operação</p>
-          </div>
-          <div class="usuario-perfil">
-            <span class="status-loja online"><i class="fa-solid fa-circle" aria-hidden="true"></i> Loja aberta</span>
-            <span class="nome-admin"><?= $nomeUsuario ?></span>
-          </div>
-        </header>
 
         <div class="config-grid">
 
@@ -48,7 +97,8 @@ require __DIR__ . '/_partials/auth.php';
             <a href="#seguranca">Segurança</a>
           </nav>
 
-          <form class="config-secoes" id="form-configs" action="#" method="post">
+          <form class="config-secoes" method="post" action="<?= e(url()) ?>">
+            <?= csrf_campo() ?>
 
             <section class="painel-card" id="conta" aria-labelledby="titulo-conta">
               <div class="painel-header">
@@ -57,11 +107,11 @@ require __DIR__ . '/_partials/auth.php';
               <div class="campos">
                 <div class="grupo-input">
                   <label for="nome">Nome</label>
-                  <input type="text" id="nome" name="nome" class="input-dash" maxlength="255" required autocomplete="name">
+                  <input type="text" id="nome" name="nome" class="input-dash" maxlength="255" required autocomplete="name" value="<?= e($conta['nome']) ?>">
                 </div>
                 <div class="grupo-input">
                   <label for="email">E-mail</label>
-                  <input type="email" id="email" name="email" class="input-dash" maxlength="255" required autocomplete="email">
+                  <input type="email" id="email" name="email" class="input-dash" maxlength="255" required autocomplete="email" value="<?= e($conta['email']) ?>">
                 </div>
                 <div class="grupo-input">
                   <label for="senha_atual">Senha atual</label>
@@ -70,7 +120,7 @@ require __DIR__ . '/_partials/auth.php';
                 <div class="grupo-input">
                   <label for="senha_nova">Nova senha</label>
                   <input type="password" id="senha_nova" name="senha_nova" class="input-dash" minlength="8" autocomplete="new-password" aria-describedby="dica-senha">
-                  <small id="dica-senha">Use ao menos 8 caracteres.</small>
+                  <small id="dica-senha">Deixe em branco para manter a atual. Use ao menos 8 caracteres.</small>
                 </div>
               </div>
             </section>
@@ -80,20 +130,15 @@ require __DIR__ . '/_partials/auth.php';
                 <h2 id="titulo-notificacoes">Notificações</h2>
               </div>
               <ul class="config-linhas">
-                <li class="config-linha">
-                  <div class="config-texto">
-                    <strong id="n-pedido">Novo pedido recebido</strong>
-                    <small>Mostra um aviso e toca um som quando chega uma comanda.</small>
-                  </div>
-                  <label class="switch"><input type="checkbox" role="switch" name="notif_pedido" aria-labelledby="n-pedido" checked><span class="switch-trilho" aria-hidden="true"></span></label>
-                </li>
-                <li class="config-linha">
-                  <div class="config-texto">
-                    <strong id="n-minimo">Estoque abaixo do mínimo</strong>
-                    <small>Avisa quando um item chega ao nível mínimo cadastrado.</small>
-                  </div>
-                  <label class="switch"><input type="checkbox" role="switch" name="notif_minimo" aria-labelledby="n-minimo" checked><span class="switch-trilho" aria-hidden="true"></span></label>
-                </li>
+                <?php foreach ([
+                    ['notif_pedido', 'n-pedido', 'Novo pedido recebido', 'Avisa quando um pedido entra no quadro.'],
+                    ['notif_minimo', 'n-minimo', 'Estoque abaixo do mínimo', 'Avisa quando um item chega no nível mínimo.'],
+                ] as [$nomeCampo, $idRotulo, $rotulo, $dica]): ?>
+                  <li class="config-linha">
+                    <div class="config-texto"><strong id="<?= $idRotulo ?>"><?= $rotulo ?></strong><small><?= $dica ?></small></div>
+                    <label class="switch"><input type="checkbox" role="switch" name="<?= $nomeCampo ?>" aria-labelledby="<?= $idRotulo ?>"<?= $cfg[$nomeCampo] === '1' ? ' checked' : '' ?>><span class="switch-trilho" aria-hidden="true"></span></label>
+                  </li>
+                <?php endforeach; ?>
                 <li class="config-linha">
                   <div class="config-texto">
                     <strong id="n-validade">Produtos perto do vencimento</strong>
@@ -101,21 +146,13 @@ require __DIR__ . '/_partials/auth.php';
                   </div>
                   <div class="config-controle">
                     <label class="sr-only" for="dias_validade">Dias de antecedência</label>
-                    <select id="dias_validade" name="dias_validade" class="input-dash">
-                      <option value="1">1 dia</option>
-                      <option value="2">2 dias</option>
-                      <option value="3" selected>3 dias</option>
-                      <option value="7">7 dias</option>
-                    </select>
-                    <label class="switch"><input type="checkbox" role="switch" name="notif_validade" aria-labelledby="n-validade" checked><span class="switch-trilho" aria-hidden="true"></span></label>
+                    <select id="dias_validade" name="dias_validade" class="input-dash"><?= opcoes_select([1, 2, 3, 7], (string) (int) $cfg['dias_validade'], 'dia') ?></select>
+                    <label class="switch"><input type="checkbox" role="switch" name="notif_validade" aria-labelledby="n-validade"<?= $cfg['notif_validade'] === '1' ? ' checked' : '' ?>><span class="switch-trilho" aria-hidden="true"></span></label>
                   </div>
                 </li>
                 <li class="config-linha">
-                  <div class="config-texto">
-                    <strong id="n-contas">Contas a pagar vencendo</strong>
-                    <small>Lembra dos pagamentos do Fluxo de Caixa na véspera.</small>
-                  </div>
-                  <label class="switch"><input type="checkbox" role="switch" name="notif_contas" aria-labelledby="n-contas"><span class="switch-trilho" aria-hidden="true"></span></label>
+                  <div class="config-texto"><strong id="n-contas">Contas a pagar vencendo</strong><small>Avisa sobre contas perto do vencimento.</small></div>
+                  <label class="switch"><input type="checkbox" role="switch" name="notif_contas" aria-labelledby="n-contas"<?= $cfg['notif_contas'] === '1' ? ' checked' : '' ?>><span class="switch-trilho" aria-hidden="true"></span></label>
                 </li>
               </ul>
             </section>
@@ -124,26 +161,21 @@ require __DIR__ . '/_partials/auth.php';
               <div class="painel-header">
                 <h2 id="titulo-operacao">Operação</h2>
               </div>
-              <p class="painel-nota" id="aviso-operacao" hidden>Somente administradores e gerentes podem alterar a operação.</p>
+              <?php if (!$podeOperacao): ?><p class="painel-nota">Somente administradores e gerentes podem alterar a operação.</p><?php endif; ?>
               <ul class="config-linhas">
                 <li class="config-linha">
                   <div class="config-texto">
                     <strong id="o-delivery">Receber pedidos de delivery</strong>
-                    <small>Desligue para pausar novos pedidos de entrega sem fechar a loja.</small>
+                    <small>Desligue para pausar o delivery.</small>
                   </div>
-                  <label class="switch"><input type="checkbox" role="switch" name="aceita_delivery" aria-labelledby="o-delivery" checked><span class="switch-trilho" aria-hidden="true"></span></label>
+                  <label class="switch"><input type="checkbox" role="switch" name="aceita_delivery" aria-labelledby="o-delivery"<?= $cfg['aceita_delivery'] === '1' ? ' checked' : '' ?><?= $desabilitaOperacao ?>><span class="switch-trilho" aria-hidden="true"></span></label>
                 </li>
                 <li class="config-linha">
                   <div class="config-texto">
                     <strong><label for="tempo_preparo">Tempo médio de preparo</label></strong>
                     <small>Pedidos acima disso aparecem como atrasados no quadro.</small>
                   </div>
-                  <select id="tempo_preparo" name="tempo_preparo" class="input-dash config-select">
-                    <option value="15">15 minutos</option>
-                    <option value="20" selected>20 minutos</option>
-                    <option value="30">30 minutos</option>
-                    <option value="45">45 minutos</option>
-                  </select>
+                  <select id="tempo_preparo" name="tempo_preparo" class="input-dash config-select"<?= $desabilitaOperacao ?>><?= opcoes_select([15, 20, 30, 45], (string) (int) $cfg['tempo_preparo'], 'minutos') ?></select>
                 </li>
                 <li class="config-linha config-linha-coluna">
                   <div class="config-texto">
@@ -151,11 +183,9 @@ require __DIR__ . '/_partials/auth.php';
                     <small>Aparecem na hora de fechar a conta.</small>
                   </div>
                   <div class="opcoes" role="group" aria-labelledby="o-pagamentos">
-                    <label class="opcao"><input type="checkbox" name="pagamentos[]" value="PIX" checked><span><i class="fa-brands fa-pix" aria-hidden="true"></i> Pix</span></label>
-                    <label class="opcao"><input type="checkbox" name="pagamentos[]" value="CREDITO" checked><span><i class="fa-regular fa-credit-card" aria-hidden="true"></i> Crédito</span></label>
-                    <label class="opcao"><input type="checkbox" name="pagamentos[]" value="DEBITO" checked><span><i class="fa-solid fa-credit-card" aria-hidden="true"></i> Débito</span></label>
-                    <label class="opcao"><input type="checkbox" name="pagamentos[]" value="DINHEIRO" checked><span><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i> Dinheiro</span></label>
-                    <label class="opcao"><input type="checkbox" name="pagamentos[]" value="BOLETO"><span><i class="fa-solid fa-barcode" aria-hidden="true"></i> Boleto</span></label>
+                    <?php foreach ($formasPagamento as $valor => [$icone, $rotulo]): ?>
+                      <label class="opcao"><input type="checkbox" name="pagamentos[]" value="<?= $valor ?>"<?= in_array($valor, $pagamentosAtivos, true) ? ' checked' : '' ?><?= $desabilitaOperacao ?>><span><i class="<?= $icone ?>" aria-hidden="true"></i> <?= $rotulo ?></span></label>
+                    <?php endforeach; ?>
                   </div>
                 </li>
               </ul>
@@ -177,18 +207,11 @@ require __DIR__ . '/_partials/auth.php';
             </section>
 
             <div class="barra-salvar">
-              <button type="button" class="btn btn-fantasma" id="btn-descartar">Descartar alterações</button>
+              <a class="btn btn-fantasma" href="<?= e(url()) ?>">Descartar alterações</a>
               <button type="submit" class="btn btn-primario"><i class="fa-solid fa-check" aria-hidden="true"></i> Salvar alterações</button>
             </div>
           </form>
 
         </div>
 
-      </div>
-    </main>
-  </div>
-  <script src="../js/painel/comum.js"></script>
-  <script src="../js/painel/configs.js"></script>
-</body>
-
-</html>
+<?php include __DIR__ . '/_partials/rodape.php'; ?>

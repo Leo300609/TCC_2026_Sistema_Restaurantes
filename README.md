@@ -65,6 +65,7 @@ Este projeto consiste em uma plataforma web focada em automação comercial para
    1. `bancofeitonamoraltmjamovcs.sql` (estrutura base)
    2. `migracao_dashboard.sql`
    3. `migracao_crud.sql` (tabelas e colunas dos CRUDs; pode ser executado mais de uma vez)
+   4. `procedures_crud.sql` (functions, views e procedures com as regras de todos os CRUDs; pode ser executado mais de uma vez)
 
 3. **Instale as dependências do PHP** (relatórios em PDF/Word/Excel): `composer install`
 
@@ -76,16 +77,18 @@ Este projeto consiste em uma plataforma web focada em automação comercial para
 
 ```text
 backend/
-  api/          APIs JSON de cada módulo (clientes, cardápio, estoque, pedidos, empresa, configs...)
+  api/          dados_dashboard.php (gráficos da Visão Geral)
+  lib/          bd.php (chama as procedures com prepared statements) e web.php (CSRF, avisos, paginação)
+  modulos/      regras de PHP compartilhadas entre telas (ex.: categorias)
   auth/         login, logout, cadastro de funcionário e código de acesso
   config/       conexão com o banco (conexao.php)
   relatorios/   exportação em PDF, Word e Excel
-database/       scripts SQL (estrutura base e migrações)
+database/       scripts SQL (estrutura base, migrações e procedures_crud.sql)
 frontend/
   html/         páginas públicas (index, login, cadastro)
-  painel/       páginas do dashboard (PHP) e _partials/ (menu lateral e controle de acesso)
+  painel/       telas do dashboard em PHP (formulários POST, sem JavaScript no CRUD) e _partials/
   css/          publico/ e painel/
-  js/           publico/ e painel/ (comum.js, um arquivo por módulo, menu.js, tabelas.js)
+  js/           publico/ e painel/ (apenas menu.js e tabelas.js, só visual)
   assets/       imagens e ícones
 vendor/         dependências do Composer
 ```
