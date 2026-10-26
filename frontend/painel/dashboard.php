@@ -248,9 +248,18 @@ require __DIR__ . '/_partials/auth.php';
       // Se o Chart.js (CDN) não carregar, os números continuam aparecendo; só os gráficos ficam de fora
       const temChart = typeof Chart !== 'undefined';
       fetch('../../backend/api/dados_dashboard.php')
-        .then(res => res.json())
+        .then(async res => {
+          const texto = await res.text();
+          let dados;
+          try {
+            dados = JSON.parse(texto);
+          } catch (e) {
+            throw new Error('Resposta inválida do servidor: ' + texto.replace(/<[^>]*>/g, ' ').trim().slice(0, 300));
+          }
+          if (dados.erro) throw new Error(dados.erro + (dados.detalhe ? ' (' + dados.detalhe + ')' : ''));
+          return dados;
+        })
         .then(data => {
-          if (data.erro) return;
 
           // Atualiza cards se os dados vierem da API
           if (data.financeiro) {
@@ -438,7 +447,13 @@ require __DIR__ . '/_partials/auth.php';
             document.getElementById('lista-equipe').innerHTML = '<p style="text-align:center; opacity:0.6; padding:20px;">Nenhum funcionário online no momento.</p>';
           }
         })
-        .catch(err => console.error('Erro ao carregar dashboard:', err));
+        .catch(err => {
+          console.error('Erro ao carregar dashboard:', err);
+          const aviso = document.getElementById('fat-detalhe');
+          if (aviso) aviso.innerText = 'Erro ao carregar: ' + err.message;
+          const tabela = document.getElementById('tabela-ultimos');
+          if (tabela) tabela.innerHTML = '<tr><td colspan="5" class="carregando">Não foi possível carregar os dados: ' + String(err.message).replace(/[<>&]/g, '') + '</td></tr>';
+        });
     });
   </script>
 </body>
