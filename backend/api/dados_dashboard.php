@@ -27,12 +27,16 @@ if ($verFinanceiro) {
     $fat_hoje = mysqli_fetch_assoc(mysqli_query($con, "SELECT SUM(TOTAL) as total FROM VENDA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
     $desp_hoje = mysqli_fetch_assoc(mysqli_query($con, "SELECT SUM(TOTAL) as total FROM COMPRA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
 
+    $fat_ontem = mysqli_fetch_assoc(mysqli_query($con, "SELECT SUM(TOTAL) as total FROM VENDA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE() - INTERVAL 1 DAY"))['total'] ?? 0;
+
     $total_mov = $fat_hoje + $desp_hoje;
     $perc_lucro = $total_mov > 0 ? round(($fat_hoje / $total_mov) * 100) : 50;
     $perc_despesa = 100 - $perc_lucro;
 
     $response['financeiro'] = [
         'faturamento_hoje' => number_format($fat_hoje, 2, ',', '.'),
+        'faturamento_ontem' => (float)$fat_ontem,
+        'faturamento_hoje_valor' => (float)$fat_hoje,
         'lucro' => $perc_lucro,
         'despesas' => $perc_despesa,
         'capital_inicial' => 50000.00,
@@ -45,7 +49,52 @@ if ($verFinanceiro) {
 // 4. DADOS DE PEDIDOS (Todos veem)
 $pedidos_hoje = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as total FROM VENDA WHERE DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
 $response['pedidos_hoje'] = (int)$pedidos_hoje;
-$response['pedidos_semana'] = [12, 19, 15, 25, 22, 30, (int)$pedidos_hoje];
+
+// Pedidos dos últimos 7 dias (cancelados não entram)
+$por_dia = [];
+$result_semana = mysqli_query($con, "SELECT DATE(DATA_CADASTRO) AS dia, COUNT(*) AS total FROM VENDA WHERE DATA_CADASTRO >= CURDATE() - INTERVAL 6 DAY AND STATUS <> 'CANCELADA' GROUP BY DATE(DATA_CADASTRO)");
+while ($row = mysqli_fetch_assoc($result_semana)) {
+    $por_dia[$row['dia']] = (int)$row['total'];
+}
+$dias_pt = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+$response['pedidos_semana'] = [];
+$response['pedidos_semana_labels'] = [];
+for ($i = 6; $i >= 0; $i--) {
+    $ts = strtotime("-$i day");
+    $response['pedidos_semana'][] = $por_dia[date('Y-m-d', $ts)] ?? 0;
+    $response['pedidos_semana_labels'][] = $dias_pt[(int)date('w', $ts)];
+}
+
+$response['pedidos_ultima_hora'] = (int)(mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM VENDA WHERE DATA_CADASTRO >= NOW() - INTERVAL 1 HOUR AND STATUS <> 'CANCELADA'"))['total'] ?? 0);
+
+// Ticket médio, em entrega e últimos pedidos (dependem das colunas de migracao_crud.sql)
+$response['ticket_medio'] = null;
+$response['em_entrega'] = 0;
+$response['ultimos_pedidos'] = [];
+try {
+    $ticket = mysqli_fetch_assoc(mysqli_query($con, "SELECT AVG(TOTAL) AS media FROM VENDA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE()"))['media'] ?? null;
+    $response['ticket_medio'] = $ticket === null ? null : round((float)$ticket, 2);
+
+    $response['em_entrega'] = (int)(mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM VENDA WHERE ETAPA='PRONTO' AND TIPO_PEDIDO='DELIVERY'"))['total'] ?? 0);
+
+    $result_ultimos = mysqli_query($con, "SELECT v.ID, v.TOTAL, v.ETAPA, v.TIPO_PEDIDO, v.MESA, c.NOME AS CLIENTE,
+            (SELECT GROUP_CONCAT(CONCAT(vi.QUANTIDADE, 'x ', p.NOME) ORDER BY p.NOME SEPARATOR ', ')
+               FROM VENDA_ITEM vi JOIN PRODUTO p ON p.ID = vi.PRODUTO_ID WHERE vi.VENDA_ID = v.ID) AS ITENS
+        FROM VENDA v LEFT JOIN CLIENTE c ON c.ID = v.CLIENTE_ID
+        ORDER BY v.ID DESC LIMIT 5");
+    while ($row = mysqli_fetch_assoc($result_ultimos)) {
+        $origem = $row['CLIENTE'] ?: ($row['TIPO_PEDIDO'] === 'SALAO' ? 'Mesa ' . $row['MESA'] : 'Balcão');
+        $response['ultimos_pedidos'][] = [
+            'id' => (int)$row['ID'],
+            'cliente' => $origem,
+            'itens' => $row['ITENS'] ?? '',
+            'total' => (float)$row['TOTAL'],
+            'etapa' => $row['ETAPA'],
+        ];
+    }
+} catch (Throwable $e) {
+    // banco ainda sem a migração: o painel continua funcionando sem esses blocos
+}
 
 // 5. DADOS DE ESTOQUE (Admin/Gerente/Cozinheiro)
 if ($verEstoque) {

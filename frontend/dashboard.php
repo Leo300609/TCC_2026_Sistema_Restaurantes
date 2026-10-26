@@ -126,18 +126,18 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
         <section class="grid-cards" aria-label="Indicadores do dia">
           <div class="card-metrica">
             <span class="card-titulo">Faturamento hoje</span>
-            <div class="card-valor" id="fat-hoje">R$ 1.840,50</div>
-            <span class="card-detalhe positivo">+12% em relação a ontem</span>
+            <div class="card-valor" id="fat-hoje">–</div>
+            <span class="card-detalhe neutro" id="fat-detalhe">Calculando...</span>
           </div>
           <div class="card-metrica">
             <span class="card-titulo">Pedidos realizados</span>
-            <div class="card-valor" id="pedidos-hoje">48</div>
-            <span class="card-detalhe positivo">+5 na última hora</span>
+            <div class="card-valor" id="pedidos-hoje">–</div>
+            <span class="card-detalhe neutro" id="pedidos-detalhe">&nbsp;</span>
           </div>
           <div class="card-metrica">
             <span class="card-titulo">Ticket médio</span>
-            <div class="card-valor">R$ 38,34</div>
-            <span class="card-detalhe neutro">Dentro da média</span>
+            <div class="card-valor" id="ticket-medio">–</div>
+            <span class="card-detalhe neutro">Pedidos finalizados hoje</span>
           </div>
 
           <?php if ($verEstoque): ?>
@@ -149,8 +149,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           <?php else: ?>
             <div class="card-metrica alerta-box">
               <span class="card-titulo">Em entrega</span>
-              <div class="card-valor">6</div>
-              <span class="card-detalhe alerta">Aguardando confirmação</span>
+              <div class="card-valor" id="em-entrega">–</div>
+              <span class="card-detalhe alerta">Delivery a caminho</span>
             </div>
           <?php endif; ?>
         </section>
@@ -172,28 +172,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td class="id-pedido">#1048</td>
-                    <td class="cliente-nome">Lucas Andrade</td>
-                    <td>2x X-Tudo, 1x Coca 2L</td>
-                    <td class="num valor-pedido">R$ 68,00</td>
-                    <td><span class="status em-preparo">Em preparo</span></td>
-                  </tr>
-                  <tr>
-                    <td class="id-pedido">#1047</td>
-                    <td class="cliente-nome">Mariana Costa</td>
-                    <td>1x Combo Artesanal</td>
-                    <td class="num valor-pedido">R$ 42,50</td>
-                    <td><span class="status a-caminho">A caminho</span></td>
-                  </tr>
-                  <tr>
-                    <td class="id-pedido">#1046</td>
-                    <td class="cliente-nome">Roberto Silva</td>
-                    <td>3x Misto Quente</td>
-                    <td class="num valor-pedido">R$ 31,50</td>
-                    <td><span class="status entregue">Entregue</span></td>
-                  </tr>
+                <tbody id="tabela-ultimos">
+                  <tr><td colspan="5" class="carregando">Carregando pedidos...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -412,13 +392,65 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           }
 
           document.getElementById('pedidos-hoje').innerText = data.pedidos_hoje;
+          document.getElementById('pedidos-detalhe').innerText = `${data.pedidos_ultima_hora} na última hora`;
+          document.getElementById('ticket-medio').innerText = data.ticket_medio === null ? '—' : data.ticket_medio.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+          const emEntrega = document.getElementById('em-entrega');
+          if (emEntrega) emEntrega.innerText = data.em_entrega;
+
+          // Faturamento: variação sobre ontem (só quem pode ver o financeiro)
+          if (data.financeiro) {
+            const hoje = data.financeiro.faturamento_hoje_valor;
+            const ontem = data.financeiro.faturamento_ontem;
+            const detalhe = document.getElementById('fat-detalhe');
+            if (ontem > 0) {
+              const variacao = Math.round(((hoje - ontem) / ontem) * 100);
+              detalhe.innerText = `${variacao >= 0 ? '+' : ''}${variacao}% em relação a ontem`;
+              detalhe.className = `card-detalhe ${variacao >= 0 ? 'positivo' : 'alerta'}`;
+            } else {
+              detalhe.innerText = 'Sem vendas ontem para comparar';
+            }
+          } else {
+            document.getElementById('fat-hoje').innerText = '—';
+            document.getElementById('fat-detalhe').innerText = 'Restrito à gerência';
+          }
+
+          // Últimos pedidos
+          const nomesEtapa = {
+            NOVO: ['novo', 'Novo'],
+            PREPARO: ['em-preparo', 'Em preparo'],
+            PRONTO: ['a-caminho', 'Pronto'],
+            ENTREGUE: ['entregue', 'Entregue'],
+            CANCELADO: ['cancelado', 'Cancelado']
+          };
+          const escapar = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          })[c]);
+          document.getElementById('tabela-ultimos').innerHTML = data.ultimos_pedidos.length ?
+            data.ultimos_pedidos.map((p) => {
+              const [classe, rotulo] = nomesEtapa[p.etapa] || ['', p.etapa];
+              return `<tr>
+                <td class="id-pedido">#${p.id}</td>
+                <td class="cliente-nome">${escapar(p.cliente)}</td>
+                <td>${escapar(p.itens)}</td>
+                <td class="num valor-pedido">${p.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td><span class="status ${classe}">${rotulo}</span></td>
+              </tr>`;
+            }).join('') :
+            '<tr><td colspan="5" class="carregando">Nenhum pedido registrado ainda.</td></tr>';
           if (data.estoque) document.getElementById('alertas-estoque').innerText = data.estoque.total_alertas;
 
           // Gráfico Linha (Pedidos - Visível para todos)
           new Chart(document.getElementById('graficoLinha'), {
             type: 'line',
             data: {
-              labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+              labels: data.pedidos_semana_labels,
               datasets: [{
                 label: 'Pedidos',
                 data: data.pedidos_semana,

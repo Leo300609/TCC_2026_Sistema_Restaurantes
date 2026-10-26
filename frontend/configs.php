@@ -3,6 +3,9 @@
 // 1. LÓGICA DE SESSÃO E PERMISSÃO (NOVO)
 // ==========================================
 session_start();
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 if (!isset($_SESSION['usuario_id'])) {
   header("Location: login.html");
   exit;
@@ -22,6 +25,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
   <title>Configurações · XTEC</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,7 +129,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <a href="#seguranca">Segurança</a>
           </nav>
 
-          <form class="config-secoes" action="#" method="post">
+          <form class="config-secoes" id="form-configs" action="#" method="post">
 
             <section class="painel-card" id="conta" aria-labelledby="titulo-conta">
               <div class="painel-header">
@@ -134,11 +138,11 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
               <div class="campos">
                 <div class="grupo-input">
                   <label for="nome">Nome</label>
-                  <input type="text" id="nome" name="nome" class="input-dash" value="Leonardo Canto" autocomplete="name">
+                  <input type="text" id="nome" name="nome" class="input-dash" maxlength="255" required autocomplete="name">
                 </div>
                 <div class="grupo-input">
                   <label for="email">E-mail</label>
-                  <input type="email" id="email" name="email" class="input-dash" value="leonardo@brasaechapa.com.br" autocomplete="email">
+                  <input type="email" id="email" name="email" class="input-dash" maxlength="255" required autocomplete="email">
                 </div>
                 <div class="grupo-input">
                   <label for="senha_atual">Senha atual</label>
@@ -146,7 +150,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
                 </div>
                 <div class="grupo-input">
                   <label for="senha_nova">Nova senha</label>
-                  <input type="password" id="senha_nova" name="senha_nova" class="input-dash" autocomplete="new-password" aria-describedby="dica-senha">
+                  <input type="password" id="senha_nova" name="senha_nova" class="input-dash" minlength="8" autocomplete="new-password" aria-describedby="dica-senha">
                   <small id="dica-senha">Use ao menos 8 caracteres.</small>
                 </div>
               </div>
@@ -201,6 +205,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
               <div class="painel-header">
                 <h2 id="titulo-operacao">Operação</h2>
               </div>
+              <p class="painel-nota" id="aviso-operacao" hidden>Somente administradores e gerentes podem alterar a operação.</p>
               <ul class="config-linhas">
                 <li class="config-linha">
                   <div class="config-texto">
@@ -253,7 +258,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             </section>
 
             <div class="barra-salvar">
-              <button type="button" class="btn btn-fantasma">Descartar alterações</button>
+              <button type="button" class="btn btn-fantasma" id="btn-descartar">Descartar alterações</button>
               <button type="submit" class="btn btn-primario"><i class="fa-solid fa-check" aria-hidden="true"></i> Salvar alterações</button>
             </div>
           </form>
@@ -263,6 +268,8 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
       </div>
     </main>
   </div>
+  <script src="js/comum.js"></script>
+  <script src="js/configs.js"></script>
 </body>
 
 </html>

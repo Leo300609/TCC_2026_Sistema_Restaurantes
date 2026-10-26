@@ -3,6 +3,9 @@
 // 1. LÓGICA DE SESSÃO E PERMISSÃO (NOVO)
 // ==========================================
 session_start();
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 if (!isset($_SESSION['usuario_id'])) {
   header("Location: login.html");
   exit;
@@ -22,6 +25,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
   <title>Pedidos · XTEC</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,221 +125,20 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <label class="busca">
               <span class="sr-only">Buscar pedido</span>
               <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-              <input type="search" class="input-dash" name="busca" placeholder="Buscar por número ou cliente">
+              <input type="search" id="busca" class="input-dash" name="busca" placeholder="Buscar por número, mesa ou cliente" autocomplete="off">
             </label>
-            <div class="filtros" role="group" aria-label="Tipo de pedido">
-              <button type="button" class="filtro ativo" aria-pressed="true">Todos <span>14</span></button>
-              <button type="button" class="filtro" aria-pressed="false">Salão <span>5</span></button>
-              <button type="button" class="filtro" aria-pressed="false">Balcão <span>3</span></button>
-              <button type="button" class="filtro" aria-pressed="false">Delivery <span>6</span></button>
-            </div>
+            <div class="filtros" id="filtros" role="group" aria-label="Tipo de pedido"></div>
           </div>
-          <button type="button" class="btn btn-primario"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo pedido</button>
+          <button type="button" class="btn btn-primario" id="btn-novo"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo pedido</button>
         </div>
 
-        <div class="quadro">
-
-          <section class="coluna" aria-labelledby="col-novos">
-            <header class="coluna-topo">
-              <h2 id="col-novos">Novos</h2>
-              <span class="contagem">2</span>
-            </header>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1052</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> há 2 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i> Mesa 4</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">1x</span> X-Tudo</li>
-                <li><span class="qtd">1x</span> Coca-Cola 2L</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 41,00</strong>
-                  <small>Pix</small>
-                </div>
-                <button type="button" class="btn btn-pequeno btn-primario">Aceitar</button>
-              </footer>
-            </article>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1051</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> há 5 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Delivery · Camila Rocha</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">1x</span> Combo Artesanal</li>
-                <li><span class="qtd">1x</span> Batata média <em>sem sal</em></li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 64,50</strong>
-                  <small>Crédito</small>
-                </div>
-                <button type="button" class="btn btn-pequeno btn-primario">Aceitar</button>
-              </footer>
-            </article>
-          </section>
-
-          <section class="coluna" aria-labelledby="col-preparo">
-            <header class="coluna-topo">
-              <h2 id="col-preparo">Em preparo</h2>
-              <span class="contagem">3</span>
-            </header>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1050</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> há 11 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Balcão · Henrique Dias</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">3x</span> Misto Quente</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 31,50</strong>
-                  <small>Dinheiro</small>
-                </div>
-                <button type="button" class="btn btn-pequeno">Marcar pronto</button>
-              </footer>
-            </article>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1049</strong>
-                <span class="comanda-tempo atrasado"><i class="fa-regular fa-clock" aria-hidden="true"></i> há 24 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i> Mesa 7</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">1x</span> Parmegiana de frango</li>
-                <li><span class="qtd">2x</span> Suco de laranja</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 57,90</strong>
-                  <small>Débito</small>
-                </div>
-                <button type="button" class="btn btn-pequeno">Marcar pronto</button>
-              </footer>
-            </article>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1048</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> há 9 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Delivery · Lucas Andrade</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">2x</span> X-Tudo</li>
-                <li><span class="qtd">1x</span> Coca-Cola 2L</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 68,00</strong>
-                  <small>Pix</small>
-                </div>
-                <button type="button" class="btn btn-pequeno">Enviar para entrega</button>
-              </footer>
-            </article>
-          </section>
-
-          <section class="coluna" aria-labelledby="col-caminho">
-            <header class="coluna-topo">
-              <h2 id="col-caminho">A caminho</h2>
-              <span class="contagem">2</span>
-            </header>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1047</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> saiu há 8 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Delivery · Mariana Costa</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">1x</span> Combo Artesanal</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 42,50</strong>
-                  <small>Pix</small>
-                </div>
-                <button type="button" class="btn btn-pequeno">Confirmar entrega</button>
-              </footer>
-            </article>
-
-            <article class="comanda">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1045</strong>
-                <span class="comanda-tempo"><i class="fa-regular fa-clock" aria-hidden="true"></i> saiu há 19 min</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Delivery · Pedro Nunes</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">2x</span> Parmegiana de frango</li>
-                <li><span class="qtd">1x</span> Guaraná 2L</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 93,80</strong>
-                  <small>Crédito</small>
-                </div>
-                <button type="button" class="btn btn-pequeno">Confirmar entrega</button>
-              </footer>
-            </article>
-          </section>
-
-          <section class="coluna" aria-labelledby="col-entregues">
-            <header class="coluna-topo">
-              <h2 id="col-entregues">Entregues</h2>
-              <span class="contagem">7</span>
-            </header>
-
-            <article class="comanda concluida">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1046</strong>
-                <span class="status entregue">Entregue</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Delivery · Roberto Silva</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">3x</span> Misto Quente</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 31,50</strong>
-                  <small>Dinheiro</small>
-                </div>
-                <span class="comanda-hora">19:42</span>
-              </footer>
-            </article>
-
-            <article class="comanda concluida">
-              <header class="comanda-topo">
-                <strong class="comanda-numero">#1044</strong>
-                <span class="status entregue">Entregue</span>
-              </header>
-              <p class="comanda-origem"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i> Mesa 2</p>
-              <ul class="comanda-itens">
-                <li><span class="qtd">2x</span> Filé à cavalo</li>
-                <li><span class="qtd">2x</span> Cerveja long neck</li>
-              </ul>
-              <footer class="comanda-rodape">
-                <div class="comanda-total">
-                  <strong>R$ 112,00</strong>
-                  <small>Débito</small>
-                </div>
-                <span class="comanda-hora">19:30</span>
-              </footer>
-            </article>
-          </section>
-
-        </div>
+        <div class="quadro" id="quadro" aria-live="polite"></div>
 
       </div>
     </main>
   </div>
+  <script src="js/comum.js"></script>
+  <script src="js/pedidos.js"></script>
 </body>
 
 </html>

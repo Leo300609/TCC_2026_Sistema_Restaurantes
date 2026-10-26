@@ -38,6 +38,7 @@ $actions = [
     'pay_account',
     'create_manual_flow',
     'update_manual_flow',
+    'delete_manual_flow',
 ];
 
 if (!is_string($action) || !in_array($action, $actions, true)) {
@@ -153,7 +154,7 @@ try {
     switch ($action) {
         case 'cashflow':
             $incoming = $rows(
-                "SELECT 'ENTRADA' tipo, 'VENDA' origem, cr.ID id, v.ID referencia, cr.DATA_VENCIMENTO vencimento, cr.DATA_PAGAMENTO pagamento, cr.TOTAL total, cr.STATUS status, cl.NOME contraparte FROM CONTA_RECEBER cr JOIN VENDA v ON v.ID=cr.VENDA_ID JOIN CLIENTE cl ON cl.ID=v.CLIENTE_ID ORDER BY cr.DATA_VENCIMENTO DESC, cr.ID DESC LIMIT 500",
+                "SELECT 'ENTRADA' tipo, 'VENDA' origem, cr.ID id, v.ID referencia, cr.DATA_VENCIMENTO vencimento, cr.DATA_PAGAMENTO pagamento, cr.TOTAL total, cr.STATUS status, COALESCE(cl.NOME, 'Consumidor final') contraparte FROM CONTA_RECEBER cr JOIN VENDA v ON v.ID=cr.VENDA_ID LEFT JOIN CLIENTE cl ON cl.ID=v.CLIENTE_ID ORDER BY cr.DATA_VENCIMENTO DESC, cr.ID DESC LIMIT 500",
             );
             $outgoing = $rows(
                 "SELECT 'SAIDA' tipo, 'COMPRA' origem, cp.ID id, c.ID referencia, cp.DATA_VENCIMENTO vencimento, cp.DATA_PAGAMENTO pagamento, cp.TOTAL total, cp.STATUS status, f.NOME contraparte FROM CONTA_PAGAR cp JOIN COMPRA c ON c.ID=cp.COMPRA_ID JOIN FORNECEDOR f ON f.ID=c.FORNECEDOR_ID ORDER BY cp.DATA_VENCIMENTO DESC, cp.ID DESC LIMIT 500",
@@ -364,6 +365,21 @@ try {
             );
 
             reply(['ok' => true, 'message' => 'Lançamento atualizado.']);
+
+        case 'delete_manual_flow':
+            $flowId = $id('id');
+            $check = $stmt(
+                'SELECT ID FROM MOVIMENTACAO_CAIXA WHERE ID=?',
+                'i',
+                [$flowId],
+            );
+            if (!mysqli_fetch_assoc(mysqli_stmt_get_result($check))) {
+                reply(['error' => 'Lançamento não encontrado.'], 404);
+            }
+
+            $stmt('DELETE FROM MOVIMENTACAO_CAIXA WHERE ID=?', 'i', [$flowId]);
+
+            reply(['ok' => true, 'message' => 'Lançamento excluído.']);
     }
 } catch (Throwable $error) {
     error_log('Fluxo de Caixa API: ' . $error->getMessage());
