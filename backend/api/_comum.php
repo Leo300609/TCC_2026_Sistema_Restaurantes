@@ -91,7 +91,7 @@ final class Api
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
         try {
-            require_once __DIR__ . '/../conexao.php';
+            require_once __DIR__ . '/../config/conexao.php';
             $banco = new BancodeDados();
             $banco->conecta();
             self::$con = $banco->con;
@@ -115,7 +115,7 @@ final class Api
                 1451 => self::falhar('Este registro está em uso e não pode ser removido.', 409),
                 1452 => self::falhar('Um dos itens selecionados não existe mais.', 422),
                 1146, 1054 => self::falhar(
-                    'O banco de dados está desatualizado. Execute o arquivo backend/conexao/migracao_crud.sql.',
+                    'O banco de dados está desatualizado. Execute o arquivo database/migracao_crud.sql.',
                     500,
                 ),
                 default => self::falhar('Não foi possível processar a solicitação.', 500),

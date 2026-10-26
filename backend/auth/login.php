@@ -61,7 +61,7 @@ if (!empty($pemail) && !empty($psenha)) {
             $mysql->fechar();
             
             // Redireciona para a página principal
-            header("Location: ../frontend/dashboard.php");
+            header("Location: ../../frontend/painel/dashboard.php");
             exit;
         }
     }
@@ -70,6 +70,6 @@ if (!empty($pemail) && !empty($psenha)) {
 $mysql->fechar();
 
 // Se o login falhar
-header("Location: ../frontend/html/login.html?erro=1");
+header("Location: ../../frontend/html/login.html?erro=1");
 exit;
 ?>

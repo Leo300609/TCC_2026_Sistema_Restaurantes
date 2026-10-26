@@ -1412,3 +1412,10 @@
     order: 4;
   }
 }
+
+/* Tabelas em cartões no celular: libera a largura mínima da tabela */
+@media (max-width: 700px) {
+  .painel-tabela .tabela {
+    min-width: 0;
+  }
+}

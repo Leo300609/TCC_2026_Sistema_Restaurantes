@@ -1,10 +1,6 @@
 <?php
 session_start();
 
-if (file_exists(__DIR__ . '/conexao/conexao.php')) {
-    require_once __DIR__ . '/conexao/conexao.php';
-}
-
 if (!isset($pdo)) {
     $host = '127.0.0.1';
     $port = '3307';
@@ -71,7 +67,7 @@ try {
 
     echo "<script>
             alert('Cadastro de funcionário realizado com sucesso!');
-            window.location.href = '../frontend/html/login.html';
+            window.location.href = '../../frontend/html/login.html';
           </script>";
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {

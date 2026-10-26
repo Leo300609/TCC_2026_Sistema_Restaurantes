@@ -15,7 +15,7 @@ $verFinanceiro = ($nivel === 'ADMIN' || $cargo === 'Gerente');
 $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinheiro');
 
 // 2. Conexão com o Banco (Sobe 1 nível para a pasta backend)
-require_once '../conexao.php'; // Se o seu arquivo for "conexão.php" com acento, mude aqui!
+require_once __DIR__ . '/../config/conexao.php';
 $mysql = new BancodeDados();
 $mysql->conecta();
 $con = $mysql->con;

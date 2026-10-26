@@ -1,17 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.html");
-  exit;
-}
-
-$cargo = $_SESSION['usuario_cargo'] ?? 'FUNCIONARIO';
-$nivel = $_SESSION['usuario_nivel'] ?? 'FUNCIONARIO';
-$nomeUsuario = htmlspecialchars($_SESSION['usuario_nome'] ?? 'Usuário');
-
-// Define o que cada um pode ver
-$verFinanceiro = ($nivel === 'ADMIN' || $cargo === 'Gerente');
-$verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinheiro');
+require __DIR__ . '/_partials/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -19,14 +7,15 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
   <title>Visão Geral · XTEC</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/dashboard.css">
-  <link rel="stylesheet" href="css/visao_geral.css">
+  <link rel="stylesheet" href="../css/painel/dashboard.css">
+  <link rel="stylesheet" href="../css/painel/visao_geral.css">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -36,70 +25,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 
   <div class="dashboard-layout">
 
-    <aside class="sidebar">
-      <div>
-        <div class="sidebar-header">
-          <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
-          <h2 class="nome-empresa">XTEC</h2>
-        </div>
-        <nav class="sidebar-nav" aria-label="Navegação principal">
-          <a href="dashboard.php" class="nav-item active" aria-current="page">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-            <span>Visão Geral</span>
-          </a>
-          <?php if ($verFinanceiro): ?>
-            <a href="fluxo_de_caixa.php" class="nav-item">
-              <i class="fa-solid fa-wallet" aria-hidden="true"></i>
-              <span>Fluxo de Caixa</span>
-            </a>
-          <?php endif; ?>
-
-          <?php if ($verEstoque): ?>
-            <a href="estoque.php" class="nav-item">
-              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
-              <span>Estoque</span>
-            </a>
-          <?php endif; ?>
-
-          <a href="pedidos.php" class="nav-item">
-            <i class="fa-solid fa-receipt" aria-hidden="true"></i>
-            <span>Pedidos</span>
-          </a>
-          <a href="cardapios.php" class="nav-item">
-            <i class="fa-solid fa-utensils" aria-hidden="true"></i>
-            <span>Cardápio</span>
-          </a>
-          <a href="clientes.php" class="nav-item">
-            <i class="fa-solid fa-users" aria-hidden="true"></i>
-            <span>Clientes</span>
-          </a>
-
-          <a href="empresa.php" class="nav-item">
-            <i class="fa-solid fa-city" aria-hidden="true"></i>
-            <span>Empresa</span>
-          </a>
-
-          <a href="configs.php" class="nav-item">
-            <i class="fa-solid fa-gear" aria-hidden="true"></i>
-            <span>Configurações</span>
-          </a>
-        </nav>
-      </div>
-
-      <div class="sidebar-footer">
-        <div class="usuario-chip">
-          <span class="usuario-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-          <span class="usuario-dados">
-            <strong><?= $nomeUsuario ?></strong>
-            <small><?= htmlspecialchars($cargo) ?></small>
-          </span>
-        </div>
-        <a href="../backend/logout.php" class="btn-sair">
-          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-          <span>Sair</span>
-        </a>
-      </div>
-    </aside>
+    <?php $paginaAtual = 'dashboard'; include __DIR__ . '/_partials/sidebar.php'; ?>
 
     <main class="main-content" id="conteudo" tabindex="-1">
       <div class="conteudo">
@@ -117,9 +43,9 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 
         <?php if ($verFinanceiro): ?>
           <section class="export-actions" aria-label="Exportar relatórios">
-            <a href="../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exportar PDF</a>
-            <a href="../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word" aria-hidden="true"></i> Exportar Word</a>
-            <a href="../backend/relatorios/gerar_excel.php" class="btn-export excel"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Exportar Excel</a>
+            <a href="../../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exportar PDF</a>
+            <a href="../../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word" aria-hidden="true"></i> Exportar Word</a>
+            <a href="../../backend/relatorios/gerar_excel.php" class="btn-export excel"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Exportar Excel</a>
           </section>
         <?php endif; ?>
 
@@ -283,7 +209,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
       formData.append('funcao', funcao);
       formData.append('nivel_acesso', nivel);
 
-      fetch('../backend/gerar_codigo_processa.php', { // Corrigido nome do arquivo conforme seu original
+      fetch('../../backend/auth/gerar_codigo_processa.php', { // Corrigido nome do arquivo conforme seu original
           method: 'POST',
           body: formData
         })
@@ -319,7 +245,9 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
   <!-- NOVO: SCRIPT PARA CARREGAR OS DADOS DO DASHBOARD E GRÁFICOS -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      fetch('../backend/api/dados_dashboard.php')
+      // Se o Chart.js (CDN) não carregar, os números continuam aparecendo; só os gráficos ficam de fora
+      const temChart = typeof Chart !== 'undefined';
+      fetch('../../backend/api/dados_dashboard.php')
         .then(res => res.json())
         .then(data => {
           if (data.erro) return;
@@ -329,7 +257,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             document.getElementById('fat-hoje').innerText = `R$ ${data.financeiro.faturamento_hoje}`;
 
             // Gráfico Pizza
-            new Chart(document.getElementById('graficoPizza'), {
+            if (temChart) new Chart(document.getElementById('graficoPizza'), {
               type: 'doughnut',
               data: {
                 labels: ['Lucro', 'Despesas'],
@@ -354,7 +282,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             });
 
             // Gráfico Barra
-            new Chart(document.getElementById('graficoBarra'), {
+            if (temChart) new Chart(document.getElementById('graficoBarra'), {
               type: 'bar',
               data: {
                 labels: ['Capital Inicial', 'Capital Atual'],
@@ -447,7 +375,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
           if (data.estoque) document.getElementById('alertas-estoque').innerText = data.estoque.total_alertas;
 
           // Gráfico Linha (Pedidos - Visível para todos)
-          new Chart(document.getElementById('graficoLinha'), {
+          if (temChart) new Chart(document.getElementById('graficoLinha'), {
             type: 'line',
             data: {
               labels: data.pedidos_semana_labels,

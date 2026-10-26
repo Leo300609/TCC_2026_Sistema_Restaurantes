@@ -5,5 +5,5 @@ session_start();
 session_destroy();
 
 // Redireciona para o login, mantendo o contexto da pasta do projeto.
-header("Location: ../frontend/html/login.html");
+header("Location: ../../frontend/html/login.html");
 exit();

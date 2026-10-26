@@ -3,14 +3,14 @@ session_start();
 
 // 1. Segurança: Apenas Admin ou Gerente pode gerar relatórios
 if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_nivel'] !== 'ADMIN' && $_SESSION['usuario_cargo'] !== 'Gerente')) {
-    die("<h1>Acesso Negado</h1><p>Você não tem permissão para gerar relatórios.</p><a href='../../frontend/dashboard.php'>Voltar</a>");
+    die("<h1>Acesso Negado</h1><p>Você não tem permissão para gerar relatórios.</p><a href='../../frontend/painel/dashboard.php'>Voltar</a>");
 }
 
 // 2. Carregar o Composer (Bibliotecas)
-require_once '../../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // 3. Conexão com o Banco
-require_once '../conexao.php';
+require_once __DIR__ . '/../config/conexao.php';
 $mysql = new BancodeDados();
 $mysql->conecta();
 $con = $mysql->con;

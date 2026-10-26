@@ -241,10 +241,6 @@
     margin: 0 -16px -18px;
   }
 
-  .tabela-pedidos {
-    min-width: 560px;
-  }
-
   .form-gerar-codigo {
     grid-template-columns: minmax(0, 1fr);
   }

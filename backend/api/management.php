@@ -78,7 +78,7 @@ if ($method === 'POST') {
     }
 }
 
-require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../config/conexao.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $db = new BancodeDados();

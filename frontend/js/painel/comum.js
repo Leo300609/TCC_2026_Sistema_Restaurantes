@@ -100,7 +100,7 @@
    * opcoes.chave troca o nome do parâmetro da ação (management.php usa "action").
    */
   async function api(arquivo, acao, { dados, params = {}, chave = 'acao' } = {}) {
-    let url = `../backend/api/${arquivo}.php`;
+    let url = `../../backend/api/${arquivo}.php`;
     const opcoes = { credentials: 'same-origin', headers: { Accept: 'application/json' } };
 
     if (dados !== undefined) {

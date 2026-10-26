@@ -7,8 +7,8 @@ if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_nivel'] !== 'ADMIN' &
 }
 
 // 2. Bibliotecas e Conexão
-require_once '../../vendor/autoload.php';
-require_once '../conexao.php'; // Ajuste para 'conexão.php' se tiver acento
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../config/conexao.php';
 
 $mysql = new BancodeDados();
 $mysql->conecta();

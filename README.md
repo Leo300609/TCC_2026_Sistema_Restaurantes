@@ -59,3 +59,33 @@ Este projeto consiste em uma plataforma web focada em automação comercial para
 1. **Clone o repositório:**
    ```bash
    git clone https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes.git
+   ```
+
+2. **Crie o banco de dados** (MySQL/MariaDB, porta 3307 no WampServer) e execute, nesta ordem, os arquivos da pasta `database/`:
+   1. `bancofeitonamoraltmjamovcs.sql` (estrutura base)
+   2. `migracao_dashboard.sql`
+   3. `migracao_crud.sql` (tabelas e colunas dos CRUDs; pode ser executado mais de uma vez)
+
+3. **Instale as dependências do PHP** (relatórios em PDF/Word/Excel): `composer install`
+
+4. **Acesse o sistema** pelo navegador em `http://localhost/TCC_2026_Sistema_Restaurantes/frontend/html/index.html`.
+
+---
+
+## 🗂️ Estrutura de Pastas
+
+```text
+backend/
+  api/          APIs JSON de cada módulo (clientes, cardápio, estoque, pedidos, empresa, configs...)
+  auth/         login, logout, cadastro de funcionário e código de acesso
+  config/       conexão com o banco (conexao.php)
+  relatorios/   exportação em PDF, Word e Excel
+database/       scripts SQL (estrutura base e migrações)
+frontend/
+  html/         páginas públicas (index, login, cadastro)
+  painel/       páginas do dashboard (PHP) e _partials/ (menu lateral e controle de acesso)
+  css/          publico/ e painel/
+  js/           publico/ e painel/ (comum.js, um arquivo por módulo, menu.js, tabelas.js)
+  assets/       imagens e ícones
+vendor/         dependências do Composer
+```
