@@ -3,6 +3,9 @@
 // 1. LÓGICA DE SESSÃO E PERMISSÃO (NOVO)
 // ==========================================
 session_start();
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 if (!isset($_SESSION['usuario_id'])) {
   header("Location: login.html");
   exit;
@@ -22,6 +25,7 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
   <title>Clientes · XTEC</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,146 +125,23 @@ $verEstoque = ($nivel === 'ADMIN' || $cargo === 'Gerente' || $cargo === 'Cozinhe
             <label class="busca">
               <span class="sr-only">Buscar cliente</span>
               <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-              <input type="search" class="input-dash" name="busca" placeholder="Buscar por nome, CPF/CNPJ ou telefone">
+              <input type="search" id="busca" class="input-dash" name="busca" placeholder="Buscar por nome, CPF/CNPJ ou telefone" autocomplete="off">
             </label>
-            <div class="filtros" role="group" aria-label="Situação do cliente">
-              <button type="button" class="filtro ativo" aria-pressed="true">Todos <span>128</span></button>
-              <button type="button" class="filtro" aria-pressed="false">Ativos <span>119</span></button>
-              <button type="button" class="filtro" aria-pressed="false">Inativos <span>9</span></button>
-            </div>
+            <div class="filtros" id="filtros" role="group" aria-label="Situação do cliente"></div>
           </div>
-          <button type="button" class="btn btn-primario"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Novo cliente</button>
+          <button type="button" class="btn btn-primario" id="btn-novo"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Novo cliente</button>
         </div>
 
         <section class="painel-card painel-tabela" aria-label="Lista de clientes">
-          <div class="tabela-container" tabindex="0" role="region" aria-label="Tabela de clientes, role para os lados se necessário">
-            <table class="tabela">
-              <thead>
-                <tr>
-                  <th scope="col">Cliente</th>
-                  <th scope="col">Telefone</th>
-                  <th scope="col">Cidade</th>
-                  <th scope="col" class="num">Pedidos</th>
-                  <th scope="col" class="num">Total gasto</th>
-                  <th scope="col">Situação</th>
-                  <th scope="col"><span class="sr-only">Ações</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">LA</span>
-                      <span class="celula-dupla"><strong>Lucas Andrade</strong><small>CPF 321.654.987-00</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 98765-4321</td>
-                  <td>São Paulo, SP</td>
-                  <td class="num">18</td>
-                  <td class="num">R$ 1.126,40</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Lucas Andrade</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">MC</span>
-                      <span class="celula-dupla"><strong>Mariana Costa</strong><small>CPF 123.456.789-09</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 97654-3210</td>
-                  <td>Guarulhos, SP</td>
-                  <td class="num">12</td>
-                  <td class="num">R$ 804,00</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Mariana Costa</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">PB</span>
-                      <span class="celula-dupla"><strong>Padaria Boa Massa Ltda</strong><small>CNPJ 45.987.321/0001-55</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 3456-7890</td>
-                  <td>Osasco, SP</td>
-                  <td class="num">9</td>
-                  <td class="num">R$ 2.340,00</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Padaria Boa Massa Ltda</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">RS</span>
-                      <span class="celula-dupla"><strong>Roberto Silva</strong><small>CPF 987.654.321-00</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 96543-2109</td>
-                  <td>Osasco, SP</td>
-                  <td class="num">7</td>
-                  <td class="num">R$ 389,90</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Roberto Silva</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">CR</span>
-                      <span class="celula-dupla"><strong>Camila Rocha</strong><small>CPF 456.789.123-11</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 95432-1098</td>
-                  <td>Santo André, SP</td>
-                  <td class="num">5</td>
-                  <td class="num">R$ 291,40</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Camila Rocha</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">PN</span>
-                      <span class="celula-dupla"><strong>Pedro Nunes</strong><small>CPF 654.321.987-22</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 94321-0987</td>
-                  <td>São Paulo, SP</td>
-                  <td class="num">3</td>
-                  <td class="num">R$ 187,60</td>
-                  <td><span class="status ativo">Ativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Pedro Nunes</span></button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="pessoa">
-                      <span class="avatar" aria-hidden="true">HD</span>
-                      <span class="celula-dupla"><strong>Henrique Dias</strong><small>CPF 789.123.456-33</small></span>
-                    </div>
-                  </td>
-                  <td>(11) 93210-9876</td>
-                  <td>Barueri, SP</td>
-                  <td class="num">1</td>
-                  <td class="num">R$ 31,50</td>
-                  <td><span class="status inativo">Inativo</span></td>
-                  <td class="acoes"><button type="button" class="btn btn-pequeno btn-fantasma"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar<span class="sr-only"> Henrique Dias</span></button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <nav class="paginacao" aria-label="Paginação">
-            <span class="painel-meta">Mostrando 1 a 7 de 128 clientes</span>
-            <div class="paginacao-botoes">
-              <button type="button" class="btn btn-pequeno" disabled><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Anterior</button>
-              <button type="button" class="btn btn-pequeno">Próxima <i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
-            </div>
-          </nav>
+          <div class="tabela-container" tabindex="0" role="region" aria-label="Tabela de clientes, role para os lados se necessário" aria-live="polite"></div>
+          <nav class="paginacao" id="paginacao" aria-label="Paginação" hidden></nav>
         </section>
 
       </div>
     </main>
   </div>
+  <script src="js/comum.js"></script>
+  <script src="js/clientes.js"></script>
 </body>
 
 </html>

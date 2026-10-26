@@ -54,6 +54,10 @@ if (!empty($pemail) && !empty($psenha)) {
             $_SESSION['usuario_cargo'] = $usuario['CARGO'] ?? 'FUNCIONARIO';
             $_SESSION['id_empresa'] = 1;
 
+            // Registra o acesso (usado em "Equipe online" e na tela Empresa)
+            $idLogin = (int)$usuario['ID'];
+            mysqli_query($mysql->con, "UPDATE usuarios SET ULTIMO_LOGIN = NOW() WHERE ID = $idLogin");
+
             $mysql->fechar();
             
             // Redireciona para a página principal
