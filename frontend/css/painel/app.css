@@ -1389,7 +1389,11 @@ textarea.input-dash {
 
 .card-detalhe.positivo { color: var(--salvia-texto); }
 .card-detalhe.alerta { color: var(--brasa-texto); }
-.card-detalhe.aviso { color: var(--mostarda-texto); }
+.card-detalhe.atencao { color: var(--mostarda-texto); }
+
+.grid-cards.cinco .card-valor {
+  font-size: clamp(20px, 1.75vw, 26px);
+}
 
 .alerta-box.ativo-alerta {
   border-color: color-mix(in srgb, var(--brasa) 45%, var(--fio));
@@ -2137,6 +2141,10 @@ td.saida, .valor-saida { color: var(--brasa-texto); font-weight: 600; }
   display: none;
 }
 
+.form-card .gaveta-corpo .confirmar-card {
+  margin: 0 0 16px;
+}
+
 body:has(.form-card, .confirmar-card, .paleta:not([hidden])) .main-content {
   overflow: hidden;
 }
@@ -2406,6 +2414,7 @@ body:has(.form-card, .confirmar-card) .veu-bloqueio {
 
 .comanda-total strong {
   font-size: 15px;
+  white-space: nowrap;
 }
 
 .comanda-total small {

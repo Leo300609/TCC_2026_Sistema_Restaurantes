@@ -171,7 +171,7 @@ $filtrosSit = [['TODOS', 'Todos', $contagem['todos']], ['CRITICO', 'Críticos', 
 
         <?php if ($mov): ?>
           <section class="painel-card form-card" id="movimento" aria-labelledby="t-mov">
-            <div class="painel-header"><h2 id="t-mov"><?= $mov === 'ENTRADA' ? 'Registrar entrada' : 'Registrar saída' ?></h2></div>
+            <div class="painel-header"><h2 id="t-mov"><?= $mov === 'ENTRADA' ? 'Registrar entrada' : 'Registrar saída' ?></h2><a class="gaveta-fechar" href="<?= e(url(['mov' => null, 'produto' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <form method="post" action="<?= e(url()) ?>">
               <?= csrf_campo() ?>
               <input type="hidden" name="acao" value="movimentar">
@@ -205,7 +205,7 @@ $filtrosSit = [['TODOS', 'Todos', $contagem['todos']], ['CRITICO', 'Críticos', 
 
         <?php if ($formAberto && ($editarId === 0 || $item)): ?>
           <section class="painel-card form-card" id="formulario" aria-labelledby="t-form">
-            <div class="painel-header"><h2 id="t-form"><?= $i['id'] ? 'Editar item do estoque' : 'Novo item do estoque' ?></h2></div>
+            <div class="painel-header"><h2 id="t-form"><?= $i['id'] ? 'Editar item do estoque' : 'Novo item do estoque' ?></h2><a class="gaveta-fechar" href="<?= e(url(['novo' => null, 'editar' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <form method="post" action="<?= e(url()) ?>">
               <?= csrf_campo() ?>
               <input type="hidden" name="acao" value="salvar">

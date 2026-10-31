@@ -2,79 +2,131 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>XTEC - Restaurante</title>
-
-  <link rel="icon" type="image/png" href="../assets/favicon.svg" />
-  <link rel="stylesheet" href="../css/publico/login.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
-  <style>
-    
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar · XTEC</title>
+  <meta name="description" content="Acesso ao sistema de gestão XTEC para restaurantes.">
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('xtec-tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'escuro') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+      document.documentElement.setAttribute('data-tema', t);
+    })();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/publico/acesso.css">
 </head>
 
 <body>
-  <div class="fundo"></div>
-  <div class="bola1"></div>
-  <div class="bola2"></div>
+  <aside class="marca-lado">
+    <a class="marca" href="index.html">
+      <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
+      <strong>XTEC</strong>
+    </a>
 
-  <main class="container">
-    <!-- Lado Esquerdo -->
-    <section class="caixa-bemvindo">
-      <div class="cabecalho-marca">
-        <div class="marca-info">
-          <div class="icone-caixa">
-            <i class="fa-solid fa-utensils"></i>
+    <div class="marca-texto">
+      <h1>Do pedido ao caixa, sem papel perdido.</h1>
+      <p>Comandas, cozinha, estoque e financeiro do seu restaurante no mesmo lugar, atualizados enquanto o salão funciona.</p>
+      <div class="ticket" aria-hidden="true">
+        <div class="ticket-topo"><strong>#1042</strong><span>Mesa 7 · 19:42</span></div>
+        <ul>
+          <li><b>2x</b> X-Burguer Duplo <em>R$ 76,00</em></li>
+          <li><b>1x</b> Batata Frita GG <em>R$ 22,00</em></li>
+          <li><b>2x</b> Guaraná Lata <em>R$ 11,00</em></li>
+        </ul>
+        <div class="ticket-total"><span>Total</span><span>R$ 109,00</span></div>
+      </div>
+    </div>
+
+    <p class="marca-rodape">Sistema de Gestão e Automação Comercial · TCC 2026</p>
+  </aside>
+
+  <main class="form-lado">
+    <a href="index.html" class="voltar"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar ao site</a>
+
+    <div class="cartao">
+      <h2>Entrar</h2>
+      <p>Use o e-mail e a senha da sua conta na equipe.</p>
+
+      <div id="mensagem" role="alert" hidden></div>
+
+      <form action="../../backend/auth/login.php" method="POST" id="form-login" novalidate>
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <div class="entrada">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+            <input type="email" id="email" name="email" autocomplete="username" required placeholder="voce@restaurante.com">
           </div>
-          <span class="nome-empresa">XTEC</span>
         </div>
-      </div>
 
-      <div class="conteudo-principal">
-        <span class="slogan">Sistema de Gestão</span>
-        <h1>Boas-vindas ao seu restaurante.</h1>
-        <p class="descricao">
-          Controle de pedidos, inteligência operacional e segurança centralizada em uma única plataforma intuitiva.
-        </p>
-      </div>
-    </section>
-
-    <!-- Lado Direito-->
-    <section class="caixa-formulario">
-      <form action="../../backend/auth/login.php" method="POST" class="meu-forms">
-        <h2>Bem-vindo de volta</h2>
-        <small>Acesse o sistema para continuar</small>
-
-        <input type="email" placeholder="E-mail" id="email" name="email" required />
-        <input type="password" placeholder="Senha" id="senha" name="senha" required />
-
-        <button type="submit">
-          <i class="fa-solid fa-right-to-bracket"></i> Entrar no sistema
-        </button>
-
-        <p class="link-login">
-          Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
-        </p>
-
-        <div class="nota_rodapé">
-          <i class="fa-solid fa-lock"></i> Senhas protegidas com hash seguro e sessão no servidor.
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <div class="entrada">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <input type="password" id="senha" name="senha" autocomplete="current-password" required placeholder="Sua senha">
+            <button type="button" class="mostrar-senha" data-alvo="senha" aria-label="Mostrar senha"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>
+          </div>
         </div>
+
+        <label class="lembrar"><input type="checkbox" id="lembrar"> Lembrar meu e-mail neste computador</label>
+
+        <button type="submit" class="botao" id="btn-entrar"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Entrar no sistema</button>
       </form>
-    </section>
+
+      <p class="alternar">Recebeu um código da gerência? <a href="cadastro.html">Criar minha conta</a></p>
+
+      <p class="nota"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Senhas com hash bcrypt. Depois de 5 tentativas erradas o acesso fica bloqueado por 15 minutos.</p>
+    </div>
   </main>
 
-  <a href="index.html" class="btn-voltar" title="Voltar ao início">
-    <i class="fa-solid fa-arrow-left"></i> Voltar
-  </a>
-
+  <script src="../js/publico/acesso.js"></script>
   <script>
-    // Alerta simples caso volte com erro na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('erro') === '1') {
-      alert('E-mail ou senha inválidos!');
-    }
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const mensagens = {
+        credenciais: ['erro', 'E-mail ou senha incorretos.'],
+        restam2: ['aviso', 'E-mail ou senha incorretos. Restam 2 tentativas antes do bloqueio temporário.'],
+        restam1: ['aviso', 'E-mail ou senha incorretos. Resta 1 tentativa antes do bloqueio temporário.'],
+        bloqueado: ['erro', 'Muitas tentativas erradas. Aguarde 15 minutos e tente de novo, ou peça ajuda à gerência.'],
+        inativo: ['erro', 'Esta conta está desativada. Fale com a gerência do restaurante.'],
+        sessao: ['aviso', 'Sua sessão expirou por falta de uso. Entre novamente.'],
+        dados: ['erro', 'Informe um e-mail válido e a senha.'],
+        banco: ['erro', 'Não foi possível conectar ao banco de dados. Confira se o MySQL do WampServer está ligado.'],
+      };
+      const sucesso = {
+        saiu: 'Você saiu do sistema com segurança.',
+        cadastro: 'Conta criada. Entre com o e-mail e a senha que você cadastrou.',
+      };
+      if (q.get('erro') && mensagens[q.get('erro')]) xtecMensagem(...mensagens[q.get('erro')]);
+      else if (q.get('ok') && sucesso[q.get('ok')]) xtecMensagem('ok', sucesso[q.get('ok')]);
+
+      const email = document.getElementById('email');
+      const lembrar = document.getElementById('lembrar');
+      let guardado = null;
+      try { guardado = localStorage.getItem('xtec-email'); } catch (e) {}
+      email.value = q.get('email') || guardado || '';
+      lembrar.checked = !!guardado;
+      (email.value ? document.getElementById('senha') : email).focus();
+
+      document.getElementById('form-login').addEventListener('submit', (e) => {
+        if (!email.value.trim() || !document.getElementById('senha').value) {
+          e.preventDefault();
+          return xtecMensagem('erro', 'Informe o e-mail e a senha.');
+        }
+        try {
+          if (lembrar.checked) localStorage.setItem('xtec-email', email.value.trim());
+          else localStorage.removeItem('xtec-email');
+        } catch (err) {}
+        const b = document.getElementById('btn-entrar');
+        b.disabled = true;
+        b.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Entrando…';
+      });
+    })();
   </script>
 </body>
 

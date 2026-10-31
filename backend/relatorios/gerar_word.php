@@ -1,80 +1,73 @@
 <?php
-session_start();
+declare(strict_types=1);
 
-// 1. Segurança
-if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_nivel'] !== 'ADMIN' && $_SESSION['usuario_cargo'] !== 'Gerente')) {
-    die("Acesso negado.");
-}
-
-// 2. Bibliotecas e Conexão
+/** Relatório gerencial do período em Word (PhpWord). */
+require __DIR__ . '/_dados.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../config/conexao.php';
 
-$mysql = new BancodeDados();
-$mysql->conecta();
-$con = $mysql->con;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
 
-// 3. Buscar Dados
-$faturamento = mysqli_fetch_assoc(mysqli_query($con, "SELECT SUM(TOTAL) as total FROM VENDA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
-$total_pedidos = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as total FROM VENDA WHERE DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
+$formas = formas_pagamento();
+$tipos = ['SALAO' => 'Salão', 'BALCAO' => 'Balcão', 'DELIVERY' => 'Delivery'];
 
-$pedidos = mysqli_query($con, "SELECT V.ID, U.NOME as cliente, V.TOTAL, V.STATUS FROM VENDA V JOIN CLIENTE U ON V.CLIENTE_ID = U.ID ORDER BY V.DATA_CADASTRO DESC LIMIT 5");
+$word = new PhpWord();
+$word->setDefaultFontName('Calibri');
+$word->setDefaultFontSize(10.5);
+$word->addTitleStyle(1, ['size' => 18, 'bold' => true, 'color' => 'B81F26']);
+$word->addTitleStyle(2, ['size' => 13, 'bold' => true, 'color' => '1C1F24'], ['spaceBefore' => 240, 'spaceAfter' => 80]);
+$estiloTabela = ['borderSize' => 4, 'borderColor' => 'C9CEC6', 'cellMargin' => 70];
+$cabecalho = ['bold' => true, 'color' => 'FFFFFF'];
+$fundoCabecalho = ['bgColor' => '1C1F24'];
+$direita = ['alignment' => 'right'];
 
-$mysql->fechar();
+$secao = $word->addSection(['marginTop' => 900, 'marginBottom' => 900, 'marginLeft' => 1000, 'marginRight' => 1000]);
+$secao->addFooter()->addText('Gerado em ' . $rel['gerado_em'] . ' por ' . $rel['gerado_por'] . ' · Sistema XTEC', ['size' => 8, 'color' => '6B7380'], ['alignment' => 'center']);
 
-// 4. Gerar o Documento Word
-$phpWord = new \PhpOffice\PhpWord\PhpWord();
+$secao->addTitle(($rel['empresa']['nome_fantasia'] ?: 'XTEC') . ' · Relatório gerencial', 1);
+$secao->addText('Período: ' . data_br($rel['de']) . ' a ' . data_br($rel['ate']), ['color' => '6B7380']);
 
-// Estilos base
-$styleTitle = ['name' => 'Arial', 'size' => 16, 'bold' => true, 'color' => 'b12e2f'];
-$styleText = ['name' => 'Arial', 'size' => 11];
-$styleHeader = ['name' => 'Arial', 'size' => 11, 'bold' => true, 'bgColor' => '3b0b12', 'color' => 'FFFFFF'];
+/** Tabela simples com cabeçalho escuro; colunas numéricas alinhadas à direita. */
+$tabela = static function (string $titulo, array $colunas, array $linhas, array $larguras, array $numericas = []) use ($secao, $estiloTabela, $cabecalho, $fundoCabecalho, $direita): void {
+    $secao->addTitle($titulo, 2);
+    $t = $secao->addTable($estiloTabela);
+    $t->addRow();
+    foreach ($colunas as $i => $c) {
+        $t->addCell($larguras[$i], $fundoCabecalho)->addText($c, $cabecalho, in_array($i, $numericas, true) ? $direita : []);
+    }
+    if (!$linhas) {
+        $t->addRow();
+        $t->addCell(array_sum($larguras), ['gridSpan' => count($colunas)])->addText('Sem dados no período.', ['color' => '6B7380']);
+    }
+    foreach ($linhas as $linha) {
+        $t->addRow();
+        foreach ($linha as $i => $valor) {
+            $t->addCell($larguras[$i])->addText((string) $valor, [], in_array($i, $numericas, true) ? $direita : []);
+        }
+    }
+};
 
-// Título e Cabeçalho
-$section = $phpWord->addSection();
-$section->addTitle('XTEC - Relatório Gerencial', 1);
-$section->addText("Gerado em: " . date('d/m/Y H:i') . " por " . $_SESSION['usuario_nome'], $styleText);
-$section->addTextBreak(1);
+$tabela('Indicadores do período', ['Indicador', 'Valor'], indicadores_relatorio($rel), [6000, 3600], [1]);
+$tabela('Produtos mais vendidos', ['Produto', 'Categoria', 'Qtd.', 'Receita'],
+    array_map(static fn($p) => [$p['nome'], $p['categoria'], numero($p['quantidade']), moeda($p['receita'])], array_slice($rel['produtos'], 0, 15)),
+    [3800, 2400, 1200, 2200], [2, 3]);
+$tabela('Formas de pagamento', ['Forma', 'Pedidos', 'Total'],
+    array_map(static fn($f) => [$formas[$f['forma']][0] ?? $f['forma'], numero($f['pedidos']), moeda($f['total'])], $rel['formas']),
+    [4600, 2200, 2800], [1, 2]);
+$tabela('Canais de venda', ['Canal', 'Pedidos', 'Total'],
+    array_map(static fn($t) => [$tipos[$t['tipo']] ?? $t['tipo'], numero($t['pedidos']), moeda($t['total'])], $rel['tipos']),
+    [4600, 2200, 2800], [1, 2]);
+$tabela('Desempenho da equipe', ['Atendente', 'Pedidos', 'Ticket médio', 'Total'],
+    array_map(static fn($a) => [$a['nome'], numero($a['pedidos']), moeda($a['ticket']), moeda($a['total'])], $rel['atendentes']),
+    [3800, 1600, 2000, 2200], [1, 2, 3]);
 
-// Resumo
-$section->addTitle('Resumo do Dia', 2);
-$section->addText("Faturamento Hoje: R$ " . number_format($faturamento, 2, ',', '.'), $styleText);
-$section->addText("Total de Pedidos: {$total_pedidos}", $styleText);
-$section->addTextBreak(1);
+$arquivo = tempnam(sys_get_temp_dir(), 'xtec_');
+IOFactory::createWriter($word, 'Word2007')->save($arquivo);
 
-// Tabela de Pedidos
-$section->addTitle('Últimos Pedidos', 2);
-$table = $section->addTable(['borderSize' => 6, 'borderColor' => '999999', 'cellMargin' => 80]);
-
-// Cabeçalho da tabela
-$table->addRow();
-$table->addCell(2000)->addText('ID', $styleHeader);
-$table->addCell(4000)->addText('Cliente', $styleHeader);
-$table->addCell(2000)->addText('Total', $styleHeader);
-$table->addCell(2000)->addText('Status', $styleHeader);
-
-// Linhas da tabela
-while ($p = mysqli_fetch_assoc($pedidos)) {
-    $table->addRow();
-    $table->addCell(2000)->addText("#{$p['ID']}", $styleText);
-    $table->addCell(4000)->addText($p['cliente'], $styleText);
-    $table->addCell(2000)->addText("R$ " . number_format($p['TOTAL'], 2, ',', '.'), $styleText);
-    $table->addCell(2000)->addText($p['STATUS'], $styleText);
-}
-
-// 5. Forçar Download
-$tempFile = tempnam(sys_get_temp_dir(), 'word_') . '.docx';
-$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
-$objWriter->save($tempFile);
-
-header('Content-Description: File Transfer');
 header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-header('Content-Disposition: attachment; filename="relatorio_xtec_' . date('Y-m-d') . '.docx"');
-header('Content-Transfer-Encoding: binary');
-header('Expires: 0');
+header('Content-Disposition: attachment; filename="' . $rel['nome_arquivo'] . '.docx"');
+header('Content-Length: ' . filesize($arquivo));
 header('Cache-Control: must-revalidate');
-header('Pragma: public');
-header('Content-Length: ' . filesize($tempFile));
-readfile($tempFile);
-unlink($tempFile);
+readfile($arquivo);
+unlink($arquivo);
 exit;

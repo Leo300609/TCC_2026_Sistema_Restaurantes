@@ -118,7 +118,7 @@ include __DIR__ . '/_partials/topo.php';
           <div class="card-metrica">
             <span class="card-titulo"><span class="card-icone mostarda"><i class="fa-solid fa-ban" aria-hidden="true"></i></span> Cancelamentos</span>
             <div class="card-valor"><?= numero($r['cancelados']) ?></div>
-            <span class="card-detalhe <?= (int) $r['cancelados'] ? 'aviso' : '' ?>"><?= moeda($r['valor_cancelado']) ?> · <?= numero(((int) $r['pedidos'] + (int) $r['cancelados']) ? (int) $r['cancelados'] / ((int) $r['pedidos'] + (int) $r['cancelados']) * 100 : 0, 1) ?>% dos pedidos</span>
+            <span class="card-detalhe <?= (int) $r['cancelados'] ? 'atencao' : '' ?>"><?= moeda($r['valor_cancelado']) ?> · <?= numero(((int) $r['pedidos'] + (int) $r['cancelados']) ? (int) $r['cancelados'] / ((int) $r['pedidos'] + (int) $r['cancelados']) * 100 : 0, 1) ?>% dos pedidos</span>
           </div>
         </section>
 

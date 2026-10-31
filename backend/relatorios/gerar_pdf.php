@@ -1,93 +1,100 @@
 <?php
-session_start();
+declare(strict_types=1);
 
-// 1. Segurança: Apenas Admin ou Gerente pode gerar relatórios
-if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_nivel'] !== 'ADMIN' && $_SESSION['usuario_cargo'] !== 'Gerente')) {
-    die("<h1>Acesso Negado</h1><p>Você não tem permissão para gerar relatórios.</p><a href='../../frontend/painel/dashboard.php'>Voltar</a>");
-}
-
-// 2. Carregar o Composer (Bibliotecas)
+/** Relatório gerencial do período em PDF (Dompdf). */
+require __DIR__ . '/_dados.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-// 3. Conexão com o Banco
-require_once __DIR__ . '/../config/conexao.php';
-$mysql = new BancodeDados();
-$mysql->conecta();
-$con = $mysql->con;
-
-// 4. Buscar dados reais do banco
-$faturamento = mysqli_fetch_assoc(mysqli_query($con, "SELECT SUM(TOTAL) as total FROM VENDA WHERE STATUS='FINALIZADA' AND DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
-$total_pedidos = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as total FROM VENDA WHERE DATE(DATA_CADASTRO) = CURDATE()"))['total'] ?? 0;
-
-// Buscar últimos 5 pedidos
-$pedidos = mysqli_query($con, "SELECT V.ID, U.NOME as cliente, V.TOTAL, V.STATUS FROM VENDA V JOIN CLIENTE U ON V.CLIENTE_ID = U.ID ORDER BY V.DATA_CADASTRO DESC LIMIT 5");
-
-$linhas_pedidos = "";
-while ($p = mysqli_fetch_assoc($pedidos)) {
-    $status_cor = ($p['STATUS'] == 'FINALIZADA') ? 'green' : 'orange';
-    $linhas_pedidos .= "
-        <tr>
-            <td style='padding: 8px; border: 1px solid #ddd;'>#{$p['ID']}</td>
-            <td style='padding: 8px; border: 1px solid #ddd;'>{$p['cliente']}</td>
-            <td style='padding: 8px; border: 1px solid #ddd;'>R$ " . number_format($p['TOTAL'], 2, ',', '.') . "</td>
-            <td style='padding: 8px; border: 1px solid #ddd; color: {$status_cor}; font-weight: bold;'>{$p['STATUS']}</td>
-        </tr>
-    ";
-}
-
-$mysql->fechar();
-
-// 5. Montar o HTML do Relatório (Use CSS inline para PDFs)
-$html = "
-    <div style='font-family: Arial, sans-serif; color: #333;'>
-        <h2 style='color: #b12e2f; text-align: center;'>XTEC - Relatório Gerencial</h2>
-        <p style='text-align: center; color: #666;'>Gerado em: " . date('d/m/Y H:i') . " por " . $_SESSION['usuario_nome'] . "</p>
-        <hr>
-        
-        <h3 style='color: #25080d;'>Resumo do Dia</h3>
-        <table style='width: 100%; margin-bottom: 20px;'>
-            <tr>
-                <td style='padding: 10px; background: #f2e3c6; font-weight: bold; width: 50%;'>Faturamento Hoje</td>
-                <td style='padding: 10px; background: #f2e3c6; font-weight: bold;'>R$ " . number_format($faturamento, 2, ',', '.') . "</td>
-            </tr>
-            <tr>
-                <td style='padding: 10px; border: 1px solid #ddd;'>Total de Pedidos</td>
-                <td style='padding: 10px; border: 1px solid #ddd;'>{$total_pedidos} pedidos</td>
-            </tr>
-        </table>
-
-        <h3 style='color: #25080d;'>Últimos Pedidos Realizados</h3>
-        <table style='width: 100%; border-collapse: collapse;'>
-            <thead>
-                <tr style='background: #3b0b12; color: white;'>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>ID</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Cliente</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Total</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {$linhas_pedidos}
-            </tbody>
-        </table>
-        
-        <p style='margin-top: 30px; font-size: 12px; color: #999; text-align: center;'>Documento gerado automaticamente pelo Sistema XTEC.</p>
-    </div>
-";
-
-// 6. Gerar o PDF (Usando DomPDF)
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
+$formas = formas_pagamento();
+$tipos = ['SALAO' => 'Salão', 'BALCAO' => 'Balcão', 'DELIVERY' => 'Delivery'];
+
+$linhasIndicadores = '';
+foreach (indicadores_relatorio($rel) as [$rotulo, $valor]) {
+    $linhasIndicadores .= '<tr><td>' . e($rotulo) . '</td><td class="v">' . e($valor) . '</td></tr>';
+}
+$linhasProdutos = '';
+foreach (array_slice($rel['produtos'], 0, 15) as $n => $p) {
+    $linhasProdutos .= '<tr><td>' . ($n + 1) . '</td><td>' . e($p['nome']) . '<br><small>' . e($p['categoria']) . '</small></td><td class="v">'
+        . numero($p['quantidade']) . '</td><td class="v">' . e(moeda($p['receita'])) . '</td></tr>';
+}
+$linhasFormas = '';
+foreach ($rel['formas'] as $f) {
+    $linhasFormas .= '<tr><td>' . e($formas[$f['forma']][0] ?? $f['forma']) . '</td><td class="v">' . numero($f['pedidos']) . '</td><td class="v">' . e(moeda($f['total'])) . '</td></tr>';
+}
+$linhasTipos = '';
+foreach ($rel['tipos'] as $t) {
+    $linhasTipos .= '<tr><td>' . e($tipos[$t['tipo']] ?? $t['tipo']) . '</td><td class="v">' . numero($t['pedidos']) . '</td><td class="v">' . e(moeda($t['total'])) . '</td></tr>';
+}
+$linhasEquipe = '';
+foreach ($rel['atendentes'] as $a) {
+    $linhasEquipe .= '<tr><td>' . e($a['nome']) . '</td><td class="v">' . numero($a['pedidos']) . '</td><td class="v">' . e(moeda($a['ticket'])) . '</td><td class="v">' . e(moeda($a['total'])) . '</td></tr>';
+}
+
+$empresa = e($rel['empresa']['nome_fantasia'] ?: config('app_nome'));
+$periodo = e(data_br($rel['de']) . ' a ' . data_br($rel['ate']));
+$rodape = e('Gerado em ' . $rel['gerado_em'] . ' por ' . $rel['gerado_por']);
+$vazio = '<tr><td colspan="4" class="vazio">Sem vendas no período.</td></tr>';
+
+$html = <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<style>
+  @page { margin: 28px 34px 40px; }
+  body { font-family: DejaVu Sans, sans-serif; font-size: 10.5px; color: #1c1f24; }
+  .topo { border-bottom: 3px solid #d7262e; padding-bottom: 8px; margin-bottom: 14px; }
+  .topo h1 { margin: 0; font-size: 20px; }
+  .topo p { margin: 2px 0 0; color: #6b7380; }
+  h2 { font-size: 13px; margin: 18px 0 6px; color: #b81f26; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #1c1f24; color: #fff; text-align: left; padding: 6px 8px; font-size: 10px; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e1e4df; vertical-align: top; }
+  td.v, th.v { text-align: right; white-space: nowrap; }
+  small { color: #6b7380; }
+  .dupla { width: 100%; }
+  .dupla > tbody > tr > td { width: 50%; border: 0; padding: 0 8px 0 0; vertical-align: top; }
+  .vazio { color: #6b7380; text-align: center; }
+  .rodape { position: fixed; bottom: -26px; left: 0; right: 0; font-size: 9px; color: #6b7380; text-align: center; }
+</style></head>
+<body>
+  <div class="topo">
+    <h1>{$empresa} · Relatório gerencial</h1>
+    <p>Período: {$periodo}</p>
+  </div>
+
+  <h2>Indicadores do período</h2>
+  <table>{$linhasIndicadores}</table>
+
+  <h2>Produtos mais vendidos</h2>
+  <table><thead><tr><th>#</th><th>Produto</th><th class="v">Qtd.</th><th class="v">Receita</th></tr></thead>
+  <tbody>{$linhasProdutos}</tbody></table>
+
+  <table class="dupla"><tr>
+    <td><h2>Formas de pagamento</h2>
+      <table><thead><tr><th>Forma</th><th class="v">Pedidos</th><th class="v">Total</th></tr></thead><tbody>{$linhasFormas}</tbody></table></td>
+    <td><h2>Canais de venda</h2>
+      <table><thead><tr><th>Canal</th><th class="v">Pedidos</th><th class="v">Total</th></tr></thead><tbody>{$linhasTipos}</tbody></table></td>
+  </tr></table>
+
+  <h2>Desempenho da equipe</h2>
+  <table><thead><tr><th>Atendente</th><th class="v">Pedidos</th><th class="v">Ticket médio</th><th class="v">Total</th></tr></thead>
+  <tbody>{$linhasEquipe}</tbody></table>
+
+  <div class="rodape">{$rodape} · Sistema XTEC de gestão para restaurantes</div>
+</body></html>
+HTML;
+$html = str_replace('<tbody></tbody>', '<tbody>' . $vazio . '</tbody>', $html);
+
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true); // Permite carregar imagens externas se precisar
+$options->set('isRemoteEnabled', false);
+$options->set('defaultFont', 'DejaVu Sans');
 
 $dompdf = new Dompdf($options);
-$dompdf->loadHtml($html);
+$dompdf->loadHtml($html, 'UTF-8');
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-
-// Força o download do arquivo
-$dompdf->stream("relatorio_xtec_" . date('Y-m-d') . ".pdf", ["Attachment" => true]);
+$dompdf->stream($rel['nome_arquivo'] . '.pdf', ['Attachment' => true]);
 exit;

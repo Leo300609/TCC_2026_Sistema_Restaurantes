@@ -94,6 +94,7 @@ include __DIR__ . '/_partials/topo.php';
             <a href="#conta">Conta</a>
             <a href="#notificacoes">Notificações</a>
             <a href="#operacao">Operação</a>
+            <a href="#aparencia">Aparência</a>
             <a href="#seguranca">Segurança</a>
           </nav>
 
@@ -191,6 +192,20 @@ include __DIR__ . '/_partials/topo.php';
               </ul>
             </section>
 
+            <section class="painel-card" id="aparencia" aria-labelledby="titulo-aparencia">
+              <div class="painel-header">
+                <h2 id="titulo-aparencia">Aparência</h2>
+                <span class="painel-meta">Vale para este navegador</span>
+              </div>
+              <div class="painel-corpo">
+                <div class="tema-opcoes" role="radiogroup" aria-labelledby="titulo-aparencia">
+                  <label class="tema-opcao claro"><input type="radio" name="tema_visual" value="claro" form="nao-enviar"><span>Claro</span></label>
+                  <label class="tema-opcao escuro"><input type="radio" name="tema_visual" value="escuro" form="nao-enviar"><span>Escuro</span></label>
+                  <label class="tema-opcao sistema"><input type="radio" name="tema_visual" value="sistema" form="nao-enviar"><span>Igual ao sistema</span></label>
+                </div>
+              </div>
+            </section>
+
             <section class="painel-card" id="seguranca" aria-labelledby="titulo-seguranca">
               <div class="painel-header">
                 <h2 id="titulo-seguranca">Segurança</h2>
@@ -214,4 +229,18 @@ include __DIR__ . '/_partials/topo.php';
 
         </div>
 
-<?php include __DIR__ . '/_partials/rodape.php'; ?>
+<?php
+$rodapeExtra = <<<'HTML'
+<script>
+  (() => {
+    let atual = 'sistema';
+    try { atual = localStorage.getItem('xtec-tema') || 'sistema'; } catch (e) { /* ignora */ }
+    document.querySelectorAll('input[name=tema_visual]').forEach((r) => {
+      r.checked = r.value === atual;
+      r.addEventListener('change', () => window.xtecDefinirTema?.(r.value));
+    });
+  })();
+</script>
+HTML;
+include __DIR__ . '/_partials/rodape.php';
+?>

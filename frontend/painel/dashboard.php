@@ -54,7 +54,7 @@ $diaSemanaPassada = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta'
 $nomesEtapa = ['NOVO' => ['novo', 'Novo'], 'PREPARO' => ['em-preparo', 'Em preparo'], 'PRONTO' => ['pronto', 'Pronto'],
                'ENTREGUE' => ['entregue', 'Entregue'], 'CANCELADO' => ['cancelado', 'Cancelado']];
 $hora = (int) date('G');
-$saudacao = $hora < 12 ? 'Bom dia' : ($hora < 18 ? 'Boa tarde' : 'Boa noite');
+$saudacao = $hora >= 5 && $hora < 12 ? 'Bom dia' : ($hora >= 12 && $hora < 18 ? 'Boa tarde' : 'Boa noite');
 $primeiroNome = explode(' ', trim($_SESSION['usuario_nome'] ?? ''))[0];
 
 $titulo = 'Visão geral';
@@ -69,7 +69,7 @@ include __DIR__ . '/_partials/topo.php';
             <div class="card-metrica">
               <span class="card-titulo"><span class="card-icone brasa"><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i></span> Faturamento hoje</span>
               <div class="card-valor"><?= moeda($r['faturamento_hoje']) ?></div>
-              <span class="card-detalhe"><?= delta_html(variacao((float) $r['faturamento_hoje'], (float) $r['faturamento_ontem_ate_agora'])) ?: '<span>Sem vendas ontem até agora</span>' ?> <span>vs. ontem até agora</span></span>
+              <span class="card-detalhe"><?= ($d = delta_html(variacao((float) $r['faturamento_hoje'], (float) $r['faturamento_ontem_ate_agora']))) ? $d . ' <span>vs. ontem neste horário</span>' : '<span>Ontem não havia vendas até este horário</span>' ?></span>
               <?= sparkline($fat7) ?>
             </div>
           <?php endif; ?>

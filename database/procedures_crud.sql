@@ -6,11 +6,13 @@
 -- valida o formato do que veio do formulário, confere a permissão do usuário
 -- e chama as procedures (CALL sp_...).
 --
--- Ordem de execução:
+-- Ordem de execução (ou use o instalador em /instalar.php):
 --   1. bancofeitonamoraltmjamovcs.sql   (estrutura base)
 --   2. migracao_dashboard.sql
 --   3. migracao_crud.sql                (colunas/tabelas novas)
---   4. procedures_crud.sql              (este arquivo)
+--   4. migracao_modulos.sql             (mesas, ficha técnica, auditoria...)
+--   5. procedures_crud.sql              (este arquivo)
+--   6. procedures_modulos.sql           (rotinas dos módulos finais)
 --
 -- Pode ser executado quantas vezes quiser: cada rotina é recriada.
 --
@@ -135,7 +137,8 @@ BEGIN
         RETURN 'INATIVO';
     ELSEIF p_validade IS NOT NULL AND p_validade < CURDATE() THEN
         RETURN 'VENCIDO';
-    ELSEIF p_estoque <= p_minimo THEN
+    ELSEIF p_minimo > 0 AND p_estoque <= p_minimo THEN
+        -- mínimo 0 = item sem controle de reposição (ex.: lanche feito na hora)
         RETURN 'CRITICO';
     ELSEIF p_validade IS NOT NULL AND p_validade <= DATE_ADD(CURDATE(), INTERVAL p_dias DAY) THEN
         RETURN 'VENCENDO';
@@ -705,7 +708,7 @@ CREATE PROCEDURE sp_estoque_resumo(IN p_dias INT)
 BEGIN
     SELECT COUNT(*) AS itens,
            COUNT(DISTINCT p.CATEGORIA_ID) AS categorias,
-           COALESCE(SUM(p.ESTOQUE <= p.ESTOQUE_MINIMO), 0) AS abaixo_minimo,
+           COALESCE(SUM(p.ESTOQUE_MINIMO > 0 AND p.ESTOQUE <= p.ESTOQUE_MINIMO), 0) AS abaixo_minimo,
            COALESCE(SUM(p.DATA_VALIDADE IS NOT NULL AND p.DATA_VALIDADE <= DATE_ADD(CURDATE(), INTERVAL p_dias DAY)), 0) AS vencendo,
            COALESCE(SUM(p.ESTOQUE * p.PRECO_UNITARIO), 0) AS valor_estoque
     FROM PRODUTO p

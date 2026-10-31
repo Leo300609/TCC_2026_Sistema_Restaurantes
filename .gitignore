@@ -10,3 +10,6 @@ desktop.ini
 .vscode/
 .idea/
 *.log
+
+# Cache de fontes gerado pelo Dompdf na primeira exportação
+vendor/dompdf/dompdf/lib/fonts/*.ufm.json

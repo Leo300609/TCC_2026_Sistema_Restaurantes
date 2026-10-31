@@ -66,7 +66,7 @@ function permissoes(string $nivel, string $cargo): array
         'compras' => $gerente,
         'relatorios' => $gerente,
         'auditoria' => $gerente,
-        'pdv' => !$cozinha,
+        'pdv' => !$cozinha && !$entregador,
         'mesas' => !$cozinha && !$entregador,
         'cozinha' => !$entregador,
     ];

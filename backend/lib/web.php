@@ -149,7 +149,14 @@ function formas_pagamento(): array
 function entrada(string $campo, string $padrao = ''): string
 {
     $v = $_POST[$campo] ?? $_GET[$campo] ?? $padrao;
-    return is_string($v) ? trim($v) : $padrao;
+    if (!is_string($v)) {
+        return $padrao;
+    }
+    // texto vindo de outra codificação (ex.: Windows-1252) vira UTF-8 em vez de quebrar a gravação
+    if (!mb_check_encoding($v, 'UTF-8')) {
+        $v = mb_convert_encoding($v, 'UTF-8', 'Windows-1252');
+    }
+    return trim($v);
 }
 
 function entrada_int(string $campo, int $padrao = 0): int

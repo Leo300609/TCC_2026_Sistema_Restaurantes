@@ -418,14 +418,14 @@ BEGIN
         SELECT t.tipo, t.descricao, t.categoria, t.valor, t.dia,
                IF(t.dia < CURDATE(), t.dia, NULL), IF(t.dia < CURDATE(), 'PAGO', 'PENDENTE'), v_admin
         FROM (
-            SELECT 'SAIDA' AS tipo, 'Aluguel do salão' AS descricao, 'Despesas fixas' AS categoria, 4500.00 AS valor, v_inicio + INTERVAL 4 DAY AS dia
-            UNION ALL SELECT 'SAIDA', 'Folha de pagamento', 'Pessoal', 11800.00, v_inicio + INTERVAL 4 DAY
+            SELECT 'SAIDA' AS tipo, 'Aluguel do salão' AS descricao, 'Despesas fixas' AS categoria, 3400.00 AS valor, v_inicio + INTERVAL 4 DAY AS dia
+            UNION ALL SELECT 'SAIDA', 'Folha de pagamento', 'Pessoal', 7200.00, v_inicio + INTERVAL 4 DAY
             UNION ALL SELECT 'SAIDA', 'Conta de energia', 'Despesas fixas', ROUND(820 + RAND() * 260, 2), v_inicio + INTERVAL 9 DAY
             UNION ALL SELECT 'SAIDA', 'Conta de água', 'Despesas fixas', ROUND(210 + RAND() * 90, 2), v_inicio + INTERVAL 11 DAY
             UNION ALL SELECT 'SAIDA', 'Internet e telefone', 'Despesas fixas', 189.90, v_inicio + INTERVAL 14 DAY
             UNION ALL SELECT 'SAIDA', 'Gás de cozinha', 'Insumos', ROUND(340 + RAND() * 120, 2), v_inicio + INTERVAL 19 DAY
             UNION ALL SELECT 'SAIDA', 'Anúncios em redes sociais', 'Marketing', 600.00, v_inicio + INTERVAL 24 DAY
-            UNION ALL SELECT 'SAIDA', 'Simples Nacional', 'Impostos', ROUND(2100 + RAND() * 600, 2), v_inicio + INTERVAL 19 DAY
+            UNION ALL SELECT 'SAIDA', 'Simples Nacional', 'Impostos', ROUND(1500 + RAND() * 400, 2), v_inicio + INTERVAL 19 DAY
         ) t;
 
         SET v_mes = v_mes - 1;

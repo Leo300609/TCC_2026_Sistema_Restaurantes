@@ -45,6 +45,24 @@ tratar_post(function () use ($podeEditar, $souAdmin, $meuId, $diasSemana) {
         return ['Funcionário atualizado.', url(['membro' => null])];
     }
 
+    if ($acao === 'convidar') {
+        $nivelConvite = $souAdmin && entrada('nivel') === 'ADMIN' ? 'ADMIN' : 'FUNCIONARIO';
+        // sem letras parecidas (O/0, I/1) para o código ser lido em voz alta sem erro
+        $alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $codigo = 'XTEC-';
+        for ($i = 0; $i < 6; $i++) {
+            $codigo .= $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+        }
+        $c = chamar_um('sp_convite_criar', [$codigo, entrada('cargo'), $nivelConvite, $meuId, entrada_int('dias', 7)]);
+        $_SESSION['convite_novo'] = $codigo;
+        return ["Convite {$codigo} criado para " . entrada('cargo') . ". Vale até {$c['expira']}.", url(['convite' => 1]) . '#convites'];
+    }
+
+    if ($acao === 'revogar_convite') {
+        chamar('sp_convite_revogar', [entrada_int('id')]);
+        return ['Convite revogado. O código não pode mais ser usado.', url() . '#convites'];
+    }
+
     if ($acao === 'remover_membro') {
         $r = chamar_valor('sp_equipe_remover', [entrada_int('id'), $meuId, $souAdmin ? 1 : 0]);
         return [$r === 'INATIVADO' ? 'O funcionário tem histórico no sistema, então teve o acesso desativado em vez de ser removido.' : 'Funcionário removido.', url(['membro' => null, 'remover' => null])];
@@ -70,6 +88,10 @@ $membro = $podeEditar && $membroId > 0 ? ler(fn() => chamar_um('sp_equipe_obter'
 $removerId = entrada_int('remover');
 $alvoRemover = $podeEditar && $removerId > 0 ? ler(fn() => chamar_um('sp_equipe_obter', [$removerId]), null) : null;
 
+$convites = $podeEditar ? ler(fn() => chamar('sp_convite_listar')) : [];
+$conviteNovo = $_SESSION['convite_novo'] ?? null;
+unset($_SESSION['convite_novo']);
+
 $desabilitado = $podeEditar ? '' : ' disabled';
 
 $titulo = 'Empresa';
@@ -94,7 +116,7 @@ include __DIR__ . '/_partials/topo.php';
 
         <?php if ($membro): ?>
           <section class="painel-card form-card" id="membro" aria-labelledby="t-membro">
-            <div class="painel-header"><h2 id="t-membro">Editar <?= e($membro['nome']) ?></h2></div>
+            <div class="painel-header"><h2 id="t-membro">Editar <?= e($membro['nome']) ?></h2><a class="gaveta-fechar" href="<?= e(url(['membro' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <form method="post" action="<?= e(url()) ?>">
               <?= csrf_campo() ?>
               <input type="hidden" name="acao" value="salvar_membro">
@@ -161,11 +183,11 @@ include __DIR__ . '/_partials/topo.php';
                 </div>
                 <div class="grupo-input">
                   <label for="cnpj">CNPJ</label>
-                  <input type="text" id="cnpj" name="cnpj" class="input-dash" maxlength="18" inputmode="numeric" value="<?= e($empresa['cnpj']) ?>"<?= $desabilitado ?>>
+                  <input type="text" id="cnpj" name="cnpj" class="input-dash" maxlength="18" inputmode="numeric" data-mascara="documento" value="<?= e($empresa['cnpj']) ?>"<?= $desabilitado ?>>
                 </div>
                 <div class="grupo-input">
                   <label for="telefone">Telefone</label>
-                  <input type="tel" id="telefone" name="telefone" class="input-dash" maxlength="16" value="<?= e($empresa['telefone']) ?>"<?= $desabilitado ?>>
+                  <input type="tel" id="telefone" name="telefone" class="input-dash" maxlength="16" data-mascara="telefone" value="<?= e(telefone_br($empresa['telefone'])) ?>"<?= $desabilitado ?>>
                 </div>
                 <div class="grupo-input campo-largo">
                   <label for="email_contato">E-mail de contato</label>
@@ -245,11 +267,11 @@ include __DIR__ . '/_partials/topo.php';
               <?php foreach ($equipe as $m):
                 $eu = (int) $m['id'] === $meuId;
                 $inativo = $m['ativo'] === 'INATIVO';
-                $rotuloCargo = $m['cargo'] === 'FUNCIONARIO' ? ($m['nivel'] === 'ADMIN' ? 'Administrador' : 'Funcionário') : $m['cargo'];
+                $rotuloCargo = rotulo_cargo($m['cargo'], $m['nivel']) . ($m['nivel'] === 'ADMIN' && $m['cargo'] !== 'ADMIN' ? ' · admin' : '');
                 $podeMexer = $podeEditar && !$eu && ($souAdmin || $m['nivel'] !== 'ADMIN');
               ?>
                 <li class="membro<?= $inativo ? ' membro-inativo' : '' ?>">
-                  <span class="avatar" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($m['nome'], 0, 1))) ?></span>
+                  <span class="avatar <?= $corAvatar($m['nome']) ?>" aria-hidden="true"><?= e($iniciais($m['nome'])) ?></span>
                   <span class="celula-dupla"><strong><?= e($m['nome']) ?></strong><small><?= e($rotuloCargo) ?><?= $eu ? ' · você' : '' ?></small></span>
                   <span class="membro-lado">
                     <?php if ($inativo): ?>
@@ -264,8 +286,62 @@ include __DIR__ . '/_partials/topo.php';
                 </li>
               <?php endforeach; ?>
             </ul>
-            <?php if ($verFinanceiro): ?>
-              <a href="dashboard.php#convidar" class="btn btn-pequeno equipe-convidar"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Convidar funcionário</a>
+            <?php if ($podeEditar): ?>
+              <div id="convites" style="border-top:1px solid var(--fio)">
+                <div class="painel-header"><h2><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Convidar para a equipe</h2></div>
+                <?php if ($conviteNovo): ?>
+                  <div class="box-codigo">
+                    <span><small class="muted" style="display:block">Envie este código ao funcionário</small><strong><?= e($conviteNovo) ?></strong></span>
+                    <button type="button" class="btn btn-pequeno" data-copiar="<?= e($conviteNovo) ?>"><i class="fa-regular fa-copy" aria-hidden="true"></i> Copiar</button>
+                  </div>
+                <?php endif; ?>
+                <form method="post" action="<?= e(url(['convite' => null])) ?>" class="painel-corpo" style="display:flex;flex-direction:column;gap:10px">
+                  <?= csrf_campo() ?>
+                  <input type="hidden" name="acao" value="convidar">
+                  <div class="linha-dupla">
+                    <div class="grupo-input">
+                      <label for="cv-cargo">Cargo</label>
+                      <select id="cv-cargo" name="cargo" class="input-dash">
+                        <?php foreach (['Atendente / Caixa', 'Cozinheiro', 'Entregador', 'Gerente'] as $c): ?><option value="<?= e($c) ?>"><?= e($c) ?></option><?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="grupo-input">
+                      <label for="cv-dias">Validade</label>
+                      <select id="cv-dias" name="dias" class="input-dash">
+                        <option value="1">1 dia</option><option value="3">3 dias</option><option value="7" selected>7 dias</option><option value="30">30 dias</option>
+                      </select>
+                    </div>
+                  </div>
+                  <?php if ($souAdmin): ?>
+                    <label class="switch-rotulo"><span class="switch"><input type="checkbox" name="nivel" value="ADMIN"><span class="switch-trilho" aria-hidden="true"></span></span><span>Acesso de administrador</span></label>
+                  <?php endif; ?>
+                  <button type="submit" class="btn btn-primario"><i class="fa-solid fa-key" aria-hidden="true"></i> Gerar código de convite</button>
+                  <p class="painel-meta">O funcionário cria a própria conta em <strong>Cadastro</strong> usando o código. Cargo e acesso vêm do convite.</p>
+                </form>
+                <?php if ($convites): ?>
+                  <ul class="lista-linhas">
+                    <?php foreach ($convites as $cv):
+                      $situacao = $cv['status'] === 'pendente' ? ((int) $cv['expirado'] ? ['inativo', 'Expirado'] : ['pendente', 'Aguardando']) : ($cv['status'] === 'usado' ? ['ativo', 'Usado'] : ['inativo', 'Revogado']); ?>
+                      <li>
+                        <span class="celula-dupla" style="flex:1">
+                          <strong class="codigo-convite"><?= e($cv['codigo']) ?></strong>
+                          <small><?= e($cv['cargo']) ?><?= $cv['nivel'] === 'ADMIN' ? ' · admin' : '' ?> · <?= $cv['status'] === 'usado' ? 'por ' . e($cv['usado_por'] ?? '—') : 'vale até ' . e($cv['expira_em']) ?></small>
+                        </span>
+                        <span class="status <?= $situacao[0] ?>"><?= $situacao[1] ?></span>
+                        <?php if ($cv['status'] === 'pendente' && !(int) $cv['expirado']): ?>
+                          <button type="button" class="btn btn-pequeno btn-fantasma btn-icone" data-copiar="<?= e($cv['codigo']) ?>" aria-label="Copiar <?= e($cv['codigo']) ?>"><i class="fa-regular fa-copy" aria-hidden="true"></i></button>
+                          <form class="em-linha" method="post" action="<?= e(url(['convite' => null])) ?>">
+                            <?= csrf_campo() ?>
+                            <input type="hidden" name="acao" value="revogar_convite">
+                            <input type="hidden" name="id" value="<?= (int) $cv['id'] ?>">
+                            <button type="submit" class="btn btn-pequeno btn-fantasma btn-icone" title="Revogar" aria-label="Revogar <?= e($cv['codigo']) ?>"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
+                          </form>
+                        <?php endif; ?>
+                      </li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php endif; ?>
+              </div>
             <?php endif; ?>
           </section>
 

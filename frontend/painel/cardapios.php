@@ -18,10 +18,24 @@ tratar_post(function () use ($ehGerente, $podeDisponibilidade) {
         if (!$ehGerente) {
             throw new ErroNegocio('Somente administradores e gerentes podem editar o cardápio.');
         }
-        chamar('sp_produto_salvar', [
+        // ficha técnica: linhas com insumo escolhido (as em branco são ignoradas)
+        $ficha = [];
+        foreach ((array) ($_POST['ficha_insumo'] ?? []) as $n => $insumo) {
+            if ((int) $insumo > 0) {
+                $ficha[] = [(int) $insumo, (int) ($_POST['ficha_qtd'][$n] ?? 1)];
+            }
+        }
+        $novoId = (int) chamar_valor('sp_produto_salvar', [
             $id, 'CARDAPIO', entrada('nome'), entrada('descricao'), entrada_decimal('preco'), entrada_int('categoria_id'),
             entrada('status', 'ATIVO'), entrada('codigo_barras'), '', 'UN', 0, null, 0, (int) $_SESSION['usuario_id'],
         ]);
+        transacao(function () use ($novoId, $ficha) {
+            chamar('sp_produto_controle_estoque', [$novoId, isset($_POST['controla_estoque']) && !$ficha ? 1 : 0]);
+            chamar('sp_ficha_limpar', [$novoId]);
+            foreach ($ficha as [$insumo, $qtd]) {
+                chamar('sp_ficha_adicionar', [$novoId, $insumo, $qtd]);
+            }
+        });
         return [$id ? 'Item atualizado.' : 'Item adicionado ao cardápio.', url(['editar' => null, 'novo' => null])];
     }
     if ($acao === 'disponibilidade') {
@@ -62,7 +76,10 @@ foreach ($itens as $i) {
 $editarId = entrada_int('editar');
 $formAberto = $ehGerente && (isset($_GET['novo']) || $editarId > 0);
 $item = $editarId > 0 ? ler(fn() => chamar_um('sp_produto_obter', [$editarId]), null) : null;
-$i = $item ?? ['id' => 0, 'nome' => '', 'descricao' => '', 'preco' => '', 'categoria_id' => 0, 'codigo_barras' => '', 'status' => 'ATIVO'];
+$i = $item ?? ['id' => 0, 'nome' => '', 'descricao' => '', 'preco' => '', 'categoria_id' => 0, 'codigo_barras' => '', 'status' => 'ATIVO', 'controla_estoque' => 0];
+$insumos = $formAberto ? ler(fn() => chamar('sp_ficha_insumos')) : [];
+$fichaAtual = $formAberto && $item ? ler(fn() => chamar('sp_ficha_listar', [$editarId])) : [];
+$custoFicha = array_sum(array_map(static fn($f) => (float) $f['custo'], $fichaAtual));
 $categoriasAtivas = array_values(array_filter($categorias, static fn($c) => $c['status'] === 'ATIVO' || (int) $c['id'] === (int) $i['categoria_id']));
 
 $excluirId = entrada_int('excluir');
@@ -119,7 +136,7 @@ include __DIR__ . '/_partials/topo.php';
 
         <?php if ($formAberto && ($editarId === 0 || $item)): ?>
           <section class="painel-card form-card" id="formulario" aria-labelledby="t-form">
-            <div class="painel-header"><h2 id="t-form"><?= $i['id'] ? 'Editar item' : 'Novo item do cardápio' ?></h2></div>
+            <div class="painel-header"><h2 id="t-form"><?= $i['id'] ? 'Editar item' : 'Novo item do cardápio' ?></h2><a class="gaveta-fechar" href="<?= e(url(['novo' => null, 'editar' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <?php if (!$categoriasAtivas): ?>
               <p class="vazio">Crie uma categoria antes de adicionar itens ao cardápio. <a href="<?= e(url(['categorias' => 1, 'cat_novo' => 1, 'novo' => null])) ?>#categorias">Criar categoria</a></p>
             <?php else: ?>
@@ -160,9 +177,36 @@ include __DIR__ . '/_partials/topo.php';
                     </select>
                   </div>
                 </div>
+
+                <h3 class="subtitulo-form">Ficha técnica <span class="painel-meta">Insumos usados em uma unidade</span></h3>
+                <p class="painel-meta" style="margin:-4px 0 10px">Quando o pedido é entregue, o estoque desses insumos recebe baixa automática. Deixe em branco para itens sem receita.</p>
+                <div class="itens-pedido" id="ficha">
+                  <?php $linhasFicha = max(4, count($fichaAtual) + 2); for ($n = 0; $n < $linhasFicha; $n++): $atual = $fichaAtual[$n] ?? null; ?>
+                    <div class="item-pedido ficha">
+                      <select name="ficha_insumo[]" class="input-dash" aria-label="Insumo <?= $n + 1 ?>">
+                        <option value="0" data-custo="0">— Escolha um insumo —</option>
+                        <?php $grupo = null; foreach ($insumos as $ins): ?>
+                          <?php if ($ins['categoria'] !== $grupo): ?><?= $grupo !== null ? '</optgroup>' : '' ?><optgroup label="<?= e($ins['categoria']) ?>"><?php $grupo = $ins['categoria']; endif; ?>
+                          <option value="<?= (int) $ins['id'] ?>" data-custo="<?= e($ins['preco']) ?>"<?= $atual && (int) $atual['insumo_id'] === (int) $ins['id'] ? ' selected' : '' ?>><?= e($ins['nome']) ?> (<?= e($ins['unidade']) ?> · <?= moeda($ins['preco']) ?>)</option>
+                        <?php endforeach; ?>
+                        <?= $grupo !== null ? '</optgroup>' : '' ?>
+                      </select>
+                      <input type="number" name="ficha_qtd[]" class="input-dash" min="1" max="9999" step="1" value="<?= $atual ? (int) $atual['quantidade'] : 1 ?>" aria-label="Quantidade do insumo <?= $n + 1 ?>">
+                    </div>
+                  <?php endfor; ?>
+                </div>
+                <div class="resumo-compra" aria-live="polite">
+                  <div><span>Custo estimado por unidade</span><strong id="ficha-custo"><?= moeda($custoFicha) ?></strong></div>
+                  <div><span>Margem sobre o preço</span><strong id="ficha-margem">—</strong></div>
+                </div>
+                <label class="switch-rotulo" style="margin-top:14px">
+                  <span class="switch"><input type="checkbox" name="controla_estoque" value="1"<?= (int) ($i['controla_estoque'] ?? 0) === 1 ? ' checked' : '' ?>><span class="switch-trilho" aria-hidden="true"></span></span>
+                  <span class="config-texto"><strong>Item de revenda</strong><small>Sem ficha técnica: cada venda desconta o estoque do próprio item (ex.: refrigerante em lata).</small></span>
+                </label>
+
                 <div class="form-acoes">
                   <button type="submit" class="btn btn-primario"><?= $i['id'] ? 'Salvar alterações' : 'Adicionar ao cardápio' ?></button>
-                  <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null])) ?>">Cancelar</a>
+                  <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null])) ?>" data-fechar>Cancelar</a>
                 </div>
               </form>
             <?php endif; ?>
@@ -188,6 +232,17 @@ include __DIR__ . '/_partials/topo.php';
                       <span class="item-preco"><?= moeda($it['preco']) ?></span>
                     </div>
                     <p class="item-descricao"><?= e($it['descricao']) ?></p>
+                    <?php
+                      $custo = $it['custo'] !== null ? (float) $it['custo'] : null;
+                      $margemItem = $custo !== null && (float) $it['preco'] > 0 ? ((float) $it['preco'] - $custo) / (float) $it['preco'] * 100 : null;
+                      $prod = $it['produziveis'];
+                    ?>
+                    <div class="item-meta">
+                      <?php if ((int) $it['insumos'] > 0): ?><span class="selo" title="Ficha técnica"><i class="fa-solid fa-list-ul" aria-hidden="true"></i> <?= (int) $it['insumos'] ?> insumos</span><?php endif; ?>
+                      <?php if ((int) $it['controla_estoque'] === 1 && !(int) $it['insumos']): ?><span class="selo"><i class="fa-solid fa-box" aria-hidden="true"></i> Revenda</span><?php endif; ?>
+                      <?php if ($ehGerente && $margemItem !== null): ?><span class="selo" title="Custo <?= e(moeda($custo)) ?>">Margem <?= numero($margemItem, 0) ?>%</span><?php endif; ?>
+                      <?php if ($prod !== null): ?><span class="status <?= (int) $prod <= 0 ? 'critico' : ((int) $prod <= 10 ? 'baixo' : 'ok') ?>"><?= (int) $prod <= 0 ? 'Sem estoque' : 'Rende ' . (int) $prod ?></span><?php endif; ?>
+                    </div>
                     <div class="item-acoes">
                       <span class="status <?= $disp ? 'ativo' : 'inativo' ?>"><?= $disp ? 'Disponível' : 'Indisponível' ?></span>
                       <?php if ($ehGerente || $podeDisponibilidade): ?>
@@ -211,4 +266,31 @@ include __DIR__ . '/_partials/topo.php';
           <?php endforeach; ?>
         </div>
 
-<?php include __DIR__ . '/_partials/rodape.php'; ?>
+<?php
+$rodapeExtra = <<<'HTML'
+<script>
+  // custo e margem da ficha técnica enquanto o gerente edita
+  (() => {
+    const ficha = document.getElementById('ficha');
+    if (!ficha) return;
+    const preco = document.getElementById('i-preco');
+    const moeda = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    function calcular() {
+      let custo = 0;
+      ficha.querySelectorAll('.item-pedido').forEach((l) => {
+        const op = l.querySelector('select').selectedOptions[0];
+        custo += (Number(op?.dataset.custo) || 0) * (Number(l.querySelector('input').value) || 0);
+      });
+      const p = Number(preco.value) || 0;
+      document.getElementById('ficha-custo').textContent = moeda(custo);
+      document.getElementById('ficha-margem').textContent = p && custo ? Math.round((p - custo) / p * 100) + '%' : '—';
+    }
+    ficha.addEventListener('input', calcular);
+    ficha.addEventListener('change', calcular);
+    preco.addEventListener('input', calcular);
+    calcular();
+  })();
+</script>
+HTML;
+include __DIR__ . '/_partials/rodape.php';
+?>

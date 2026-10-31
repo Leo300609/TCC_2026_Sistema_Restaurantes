@@ -7,8 +7,12 @@ $c = $ed ?? ['id' => 0, 'nome' => '', 'descricao' => '', 'status' => 'ATIVO'];
 <section class="painel-card form-card" id="categorias" aria-labelledby="t-cats">
   <div class="painel-header">
     <h2 id="t-cats">Categorias <?= e($rotuloCat) ?></h2>
-    <a class="btn btn-pequeno btn-secundario" href="<?= e(url(['cat_novo' => 1, 'cat' => null, 'cat_excluir' => null])) ?>#categorias"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nova categoria</a>
+    <span class="toolbar-grupo" style="width:auto">
+      <a class="btn btn-pequeno" href="<?= e(url(['cat_novo' => 1, 'cat' => null, 'cat_excluir' => null])) ?>#categorias"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nova categoria</a>
+      <a class="gaveta-fechar" href="<?= e(url(['categorias' => null, 'cat' => null, 'cat_novo' => null, 'cat_excluir' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+    </span>
   </div>
+  <div class="gaveta-corpo">
 
   <?php if ($dadosCat['excluir']): $x = $dadosCat['excluir']; ?>
     <div class="confirmar-card">
@@ -74,4 +78,5 @@ $c = $ed ?? ['id' => 0, 'nome' => '', 'descricao' => '', 'status' => 'ATIVO'];
       </table>
     </div>
   <?php endif; ?>
+  </div>
 </section>

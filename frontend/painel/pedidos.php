@@ -127,9 +127,10 @@ if ($editarId > 0) {
         flash('erro', 'Esse pedido não existe ou não pode mais ser editado.');
     }
 }
-$p = $pedido ?? ['id' => 0, 'tipo' => 'SALAO', 'mesa' => '', 'cliente_id' => 0, 'forma_pagamento' => $pagamentosAceitos[0] ?? 'PIX', 'desconto' => 0, 'observacao' => ''];
+$p = $pedido ?? ['id' => 0, 'tipo' => entrada('mesa') !== '' || !entrada('tipo_novo') ? 'SALAO' : entrada('tipo_novo'), 'mesa' => entrada('mesa'), 'cliente_id' => 0, 'forma_pagamento' => $pagamentosAceitos[0] ?? 'PIX', 'desconto' => 0, 'observacao' => ''];
 $produtos = $formAberto ? ler(fn() => chamar('sp_pedido_opcoes_produtos')) : [];
 $clientes = $formAberto ? ler(fn() => chamar('sp_pedido_opcoes_clientes')) : [];
+$mesasOpcoes = $formAberto ? ler(fn() => chamar('sp_mesa_opcoes')) : [];
 $formasForm = array_values(array_unique(array_merge($pagamentosAceitos, [$p['forma_pagamento']])));
 $linhasItens = max(6, count($itensPedido) + 3);
 
@@ -147,6 +148,7 @@ $subtitulo = 'Comandas do dia, da cozinha até a entrega';
 $paginaAtual = 'pedidos';
 include __DIR__ . '/_partials/topo.php';
 ?>
+<script>document.body.dataset.atualizar = '<?= $formAberto || $detalhe || $alvoCancelar || $alvoExcluir ? '0' : '30' ?>';</script>
 
         <form class="toolbar" method="get" action="pedidos.php">
           <div class="toolbar-grupo">
@@ -163,7 +165,11 @@ include __DIR__ . '/_partials/topo.php';
               <?php endforeach; ?>
             </div>
           </div>
-          <a class="btn btn-primario" href="<?= e(url(['novo' => 1, 'editar' => null, 'detalhes' => null])) ?>#formulario"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo pedido</a>
+          <div class="toolbar-grupo">
+            <a class="btn" href="cozinha.php"><i class="fa-solid fa-fire-burner" aria-hidden="true"></i> Tela da cozinha</a>
+            <?php if ($perm['pdv']): ?><a class="btn" href="pdv.php"><i class="fa-solid fa-cash-register" aria-hidden="true"></i> Abrir PDV</a><?php endif; ?>
+            <a class="btn btn-primario" href="<?= e(url(['novo' => 1, 'editar' => null, 'detalhes' => null])) ?>#formulario"><i class="fa-solid fa-plus" aria-hidden="true"></i> Novo pedido</a>
+          </div>
         </form>
 
         <?php foreach ([['cancelar', $alvoCancelar, 'Cancelar pedido', 'Cancelar', 'fa-ban'], ['excluir', $alvoExcluir, 'Excluir pedido', 'Excluir', 'fa-trash']] as [$param, $alvo, $tituloConf, $botao, $icone]): ?>
@@ -183,7 +189,7 @@ include __DIR__ . '/_partials/topo.php';
                 <input type="hidden" name="id" value="<?= (int) $alvo['id'] ?>">
                 <input type="hidden" name="etapa" value="<?= e($alvo['etapa']) ?>">
                 <button type="submit" class="btn btn-perigo"><i class="fa-solid <?= $icone ?>" aria-hidden="true"></i> <?= $botao ?></button>
-                <a class="btn btn-secundario" href="<?= e(url([$param => null])) ?>">Voltar</a>
+                <a class="btn btn-secundario" href="<?= e(url([$param => null])) ?>" data-fechar>Voltar</a>
               </form>
             </section>
           <?php endif; ?>
@@ -191,8 +197,8 @@ include __DIR__ . '/_partials/topo.php';
 
         <?php if ($detalhe): ?>
           <section class="painel-card form-card" aria-labelledby="t-det">
-            <div class="painel-header"><h2 id="t-det">Pedido #<?= (int) $detalhe['id'] ?></h2><a class="btn btn-pequeno btn-secundario" href="<?= e(url(['detalhes' => null])) ?>">Fechar</a></div>
-            <div style="padding: 0 20px 20px">
+            <div class="painel-header"><h2 id="t-det">Pedido #<?= (int) $detalhe['id'] ?></h2><a class="gaveta-fechar" href="<?= e(url(['detalhes' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
+            <div class="gaveta-corpo">
               <p class="comanda-origem"><?= $origem($detalhe) ?></p>
               <ul class="comanda-itens">
                 <?php foreach ($itensDetalhe as $it): ?>
@@ -202,16 +208,19 @@ include __DIR__ . '/_partials/topo.php';
               <?php if ($detalhe['observacao']): ?><p class="modal-texto">Observação: <?= e($detalhe['observacao']) ?></p><?php endif; ?>
               <p class="modal-texto">Atendido por <?= e($detalhe['atendente']) ?> · <?= e($formas[$detalhe['forma_pagamento']] ?? $detalhe['forma_pagamento']) ?><?= (float) $detalhe['desconto'] > 0 ? ' · desconto de ' . moeda($detalhe['desconto']) : '' ?></p>
               <p class="total-pedido"><span>Total</span><strong><?= moeda($detalhe['total']) ?></strong></p>
-              <?php if ($ehGerente && $detalhe['etapa'] !== 'CANCELADO'): ?>
-                <div class="form-acoes"><a class="btn btn-perigo" href="<?= e(url(['cancelar' => $detalhe['id'], 'detalhes' => null])) ?>"><i class="fa-solid fa-ban" aria-hidden="true"></i> Cancelar pedido (estornar)</a></div>
-              <?php endif; ?>
+              <div class="form-acoes">
+                <a class="btn" href="comprovante.php?id=<?= (int) $detalhe['id'] ?>" target="_blank" rel="noopener"><i class="fa-solid fa-print" aria-hidden="true"></i> Comprovante</a>
+                <?php if ($ehGerente && $detalhe['etapa'] !== 'CANCELADO'): ?>
+                  <a class="btn btn-perigo empurra" href="<?= e(url(['cancelar' => $detalhe['id'], 'detalhes' => null])) ?>"><i class="fa-solid fa-ban" aria-hidden="true"></i> Cancelar pedido (estornar)</a>
+                <?php endif; ?>
+              </div>
             </div>
           </section>
         <?php endif; ?>
 
         <?php if ($formAberto && ($editarId === 0 || $pedido)): ?>
           <section class="painel-card form-card" id="formulario" aria-labelledby="t-form">
-            <div class="painel-header"><h2 id="t-form"><?= $p['id'] ? 'Editar pedido #' . (int) $p['id'] : 'Novo pedido' ?></h2></div>
+            <div class="painel-header"><h2 id="t-form"><?= $p['id'] ? 'Editar pedido #' . (int) $p['id'] : 'Novo pedido' ?></h2><a class="gaveta-fechar" href="<?= e(url(['novo' => null, 'editar' => null, 'mesa' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <?php if (!$produtos): ?>
               <p class="vazio">Não há itens disponíveis no cardápio. Cadastre itens na tela de Cardápio antes de criar pedidos.</p>
             <?php else: ?>
@@ -231,7 +240,8 @@ include __DIR__ . '/_partials/topo.php';
                 <div class="form-grid">
                   <div class="grupo-input">
                     <label for="p-mesa">Mesa (só no salão)</label>
-                    <input type="text" id="p-mesa" name="mesa" class="input-dash" maxlength="20" placeholder="Ex.: 4" value="<?= e($p['mesa']) ?>">
+                    <input type="text" id="p-mesa" name="mesa" class="input-dash" maxlength="20" placeholder="Ex.: 4" list="lista-mesas" value="<?= e($p['mesa']) ?>">
+                    <datalist id="lista-mesas"><?php foreach ($mesasOpcoes as $m): ?><option value="<?= e($m['numero']) ?>"><?= e($m['area']) ?> · <?= (int) $m['lugares'] ?> lugares</option><?php endforeach; ?></datalist>
                   </div>
                   <div class="grupo-input">
                     <label for="p-cliente">Cliente (obrigatório no delivery)</label>
@@ -287,7 +297,7 @@ include __DIR__ . '/_partials/topo.php';
 
                 <div class="form-acoes">
                   <button type="submit" class="btn btn-primario"><?= $p['id'] ? 'Salvar alterações' : 'Criar pedido' ?></button>
-                  <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null])) ?>">Cancelar</a>
+                  <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null, 'mesa' => null])) ?>" data-fechar>Cancelar</a>
                   <?php if ($p['id']): ?>
                     <a class="btn btn-fantasma" href="<?= e(url(['cancelar' => $p['id'], 'editar' => null])) ?>"><i class="fa-solid fa-ban" aria-hidden="true"></i> Cancelar pedido</a>
                     <?php if ($ehGerente): ?><a class="btn btn-perigo" href="<?= e(url(['excluir' => $p['id'], 'editar' => null])) ?>"><i class="fa-solid fa-trash" aria-hidden="true"></i> Excluir</a><?php endif; ?>
@@ -303,7 +313,7 @@ include __DIR__ . '/_partials/topo.php';
             $doGrupo = array_values(array_filter($lista, static fn($x) => $x['etapa'] === $etapa));
             if ($etapa === 'ENTREGUE') { $doGrupo = array_reverse($doGrupo); }
           ?>
-            <section class="coluna" aria-labelledby="col-<?= $n ?>">
+            <section class="coluna" data-etapa="<?= $etapa ?>" aria-labelledby="col-<?= $n ?>">
               <header class="coluna-topo">
                 <h2 id="col-<?= $n ?>"><?= $rotuloColuna ?></h2>
                 <span class="contagem"><?= count($doGrupo) ?></span>
@@ -340,6 +350,7 @@ include __DIR__ . '/_partials/topo.php';
                     <div class="comanda-acoes">
                       <?php if ($entregue): ?>
                         <span class="comanda-hora"><?= e($pd['hora_etapa']) ?></span>
+                        <a class="btn btn-pequeno btn-fantasma btn-icone" href="comprovante.php?id=<?= (int) $pd['id'] ?>" target="_blank" rel="noopener" title="Comprovante" aria-label="Comprovante do pedido <?= (int) $pd['id'] ?>"><i class="fa-solid fa-print" aria-hidden="true"></i></a>
                         <a class="btn btn-pequeno btn-fantasma" href="<?= e(url(['detalhes' => $pd['id'], 'editar' => null, 'novo' => null])) ?>">Detalhes<span class="sr-only"> do pedido <?= (int) $pd['id'] ?></span></a>
                       <?php else: ?>
                         <?php if (isset($anterior[$pd['etapa']])): ?>

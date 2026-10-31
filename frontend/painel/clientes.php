@@ -87,14 +87,14 @@ $filtros = [['', 'Todos', $contagem['todos']], ['ATIVO', 'Ativos', $contagem['at
               <input type="hidden" name="acao" value="excluir">
               <input type="hidden" name="id" value="<?= (int) $alvoExcluir['id'] ?>">
               <button type="submit" class="btn btn-perigo"><i class="fa-solid fa-trash" aria-hidden="true"></i> Excluir</button>
-              <a class="btn btn-secundario" href="<?= e(url(['excluir' => null])) ?>">Cancelar</a>
+              <a class="btn btn-secundario" href="<?= e(url(['excluir' => null])) ?>" data-fechar>Cancelar</a>
             </form>
           </section>
         <?php endif; ?>
 
         <?php if ($formAberto && ($editar === 0 || $cliente)): ?>
           <section class="painel-card form-card" id="formulario" aria-labelledby="t-form">
-            <div class="painel-header"><h2 id="t-form"><?= $c['id'] ? 'Editar cliente' : 'Novo cliente' ?></h2></div>
+            <div class="painel-header"><h2 id="t-form"><?= $c['id'] ? 'Editar cliente' : 'Novo cliente' ?></h2><a class="gaveta-fechar" href="<?= e(url(['novo' => null, 'editar' => null])) ?>" data-fechar aria-label="Fechar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a></div>
             <form method="post" action="<?= e(url()) ?>">
               <?= csrf_campo() ?>
               <input type="hidden" name="acao" value="salvar">
@@ -106,11 +106,11 @@ $filtros = [['', 'Todos', $contagem['todos']], ['ATIVO', 'Ativos', $contagem['at
                 </div>
                 <div class="grupo-input">
                   <label for="c-doc">CPF ou CNPJ</label>
-                  <input type="text" id="c-doc" name="documento" class="input-dash" inputmode="numeric" maxlength="18" required value="<?= e($c['documento']) ?>">
+                  <input type="text" id="c-doc" name="documento" class="input-dash" inputmode="numeric" maxlength="18" required data-mascara="documento" value="<?= e(documento_br($c['documento'])) ?>">
                 </div>
                 <div class="grupo-input">
                   <label for="c-tel">Telefone</label>
-                  <input type="tel" id="c-tel" name="telefone" class="input-dash" maxlength="16" placeholder="(11) 98765-4321" required value="<?= e($c['telefone']) ?>">
+                  <input type="tel" id="c-tel" name="telefone" class="input-dash" maxlength="16" placeholder="(11) 98765-4321" required data-mascara="telefone" value="<?= e(telefone_br($c['telefone'])) ?>">
                 </div>
                 <div class="grupo-input largo">
                   <label for="c-end">Endereço (rua e bairro)</label>
@@ -146,7 +146,7 @@ $filtros = [['', 'Todos', $contagem['todos']], ['ATIVO', 'Ativos', $contagem['at
               </div>
               <div class="form-acoes">
                 <button type="submit" class="btn btn-primario"><?= $c['id'] ? 'Salvar alterações' : 'Cadastrar cliente' ?></button>
-                <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null])) ?>">Cancelar</a>
+                <a class="btn btn-secundario" href="<?= e(url(['novo' => null, 'editar' => null])) ?>" data-fechar>Cancelar</a>
               </div>
             </form>
           </section>
@@ -174,11 +174,11 @@ $filtros = [['', 'Todos', $contagem['todos']], ['ATIVO', 'Ativos', $contagem['at
                     <tr>
                       <td>
                         <div class="pessoa">
-                          <span class="avatar" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($cl['nome'], 0, 1))) ?></span>
-                          <span class="celula-dupla"><strong><?= e($cl['nome']) ?></strong><small><?= strlen($cl['documento']) === 14 ? 'CNPJ' : 'CPF' ?> <?= e($cl['documento']) ?></small></span>
+                          <span class="avatar <?= $corAvatar($cl['nome']) ?>" aria-hidden="true"><?= e($iniciais($cl['nome'])) ?></span>
+                          <span class="celula-dupla"><strong><?= e($cl['nome']) ?></strong><small><?= strlen($cl['documento']) === 14 ? 'CNPJ' : 'CPF' ?> <?= e(documento_br($cl['documento'])) ?></small></span>
                         </div>
                       </td>
-                      <td><?= e($cl['telefone']) ?></td>
+                      <td style="white-space:nowrap"><?= e(telefone_br($cl['telefone'])) ?></td>
                       <td><?= e($cl['cidade']) ?>, <?= e($cl['estado']) ?></td>
                       <td class="num"><?= (int) $cl['pedidos'] ?></td>
                       <td class="num"><?= moeda($cl['total_gasto']) ?></td>
