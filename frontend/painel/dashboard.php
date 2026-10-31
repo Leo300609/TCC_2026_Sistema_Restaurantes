@@ -1,461 +1,294 @@
 <?php
 require __DIR__ . '/_partials/auth.php';
+
+$uid = (int) $_SESSION['usuario_id'];
+$cfg = ler(fn() => chamar_um('sp_config_listar', [$uid]), ['dias_validade' => 3]);
+
+$r = ler(fn() => chamar_um('sp_dash_resumo'), null) ?? [];
+$r += ['faturamento_hoje' => 0, 'faturamento_ontem_ate_agora' => 0, 'pedidos_hoje' => 0, 'pedidos_ontem_ate_agora' => 0,
+       'pedidos_ultima_hora' => 0, 'ticket_hoje' => null, 'ticket_30dias' => null, 'em_andamento' => 0, 'atrasados' => 0,
+       'em_entrega' => 0, 'cancelados_hoje' => 0, 'mesas_ocupadas' => 0, 'mesas_total' => 0, 'tempo_preparo' => 20];
+$etapas = ler(fn() => chamar_um('sp_dash_etapas'), null) ?? ['novos' => 0, 'preparo' => 0, 'prontos' => 0, 'entregues' => 0];
+$ultimos = ler(fn() => chamar('sp_dash_ultimos', [6]));
+$maisVendidos = ler(fn() => chamar('sp_rel_produtos', [date('Y-m-d', strtotime('-6 days')), date('Y-m-d'), 5]));
+$equipe = ler(fn() => chamar('sp_dash_equipe_online'));
+$mes = $perm['financeiro'] ? ler(fn() => chamar_um('sp_dash_mes'), null) : null;
+$alertas = $perm['estoque'] ? ler(fn() => chamar('sp_dash_alertas_estoque', [(int) $cfg['dias_validade']])) : [];
+
+// Últimos 14 dias: sete atuais para os minigráficos, sete anteriores para comparar
+$porDia = [];
+foreach (ler(fn() => chamar('sp_dash_semana')) as $d) {
+  $porDia[$d['dia']] = $d;
+}
+$fat7 = $ped7 = [];
+$fatSemana = $fatSemanaAnterior = 0.0;
+for ($i = 13; $i >= 0; $i--) {
+  $dia = date('Y-m-d', strtotime("-{$i} days"));
+  $f = (float) ($porDia[$dia]['faturamento'] ?? 0);
+  if ($i <= 6) {
+    $fat7[] = $f;
+    $ped7[] = (int) ($porDia[$dia]['pedidos'] ?? 0);
+    $fatSemana += $f;
+  } else {
+    $fatSemanaAnterior += $f;
+  }
+}
+
+// Vendas por hora: hoje x mesmo dia da semana passada
+$horas = ['HOJE' => array_fill(0, 24, 0.0), 'SEMANA_PASSADA' => array_fill(0, 24, 0.0)];
+foreach (ler(fn() => chamar('sp_dash_horas')) as $h) {
+  $horas[$h['dia']][(int) $h['hora']] = (float) $h['total'];
+}
+$comVenda = array_keys(array_filter(array_map(null, $horas['HOJE'], $horas['SEMANA_PASSADA']), static fn($p) => $p[0] > 0 || $p[1] > 0));
+$horaIni = min(11, $comVenda ? min($comVenda) : 11);
+$horaFim = max(23, $comVenda ? max($comVenda) : 23);
+$horaAgora = (int) date('G');
+$grafico = ['rotulos' => [], 'hoje' => [], 'passada' => []];
+for ($h = $horaIni; $h <= $horaFim; $h++) {
+  $grafico['rotulos'][] = sprintf('%02dh', $h);
+  $grafico['hoje'][] = $h <= $horaAgora ? round($horas['HOJE'][$h], 2) : null;
+  $grafico['passada'][] = round($horas['SEMANA_PASSADA'][$h], 2);
+}
+$diaSemanaPassada = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][(int) date('w')];
+
+$nomesEtapa = ['NOVO' => ['novo', 'Novo'], 'PREPARO' => ['em-preparo', 'Em preparo'], 'PRONTO' => ['pronto', 'Pronto'],
+               'ENTREGUE' => ['entregue', 'Entregue'], 'CANCELADO' => ['cancelado', 'Cancelado']];
+$hora = (int) date('G');
+$saudacao = $hora < 12 ? 'Bom dia' : ($hora < 18 ? 'Boa tarde' : 'Boa noite');
+$primeiroNome = explode(' ', trim($_SESSION['usuario_nome'] ?? ''))[0];
+
+$titulo = 'Visão geral';
+$subtitulo = "{$saudacao}, {$primeiroNome}. Este é o movimento de hoje, " . date('d/m') . '.';
+$paginaAtual = 'dashboard';
+$cabecaExtra = '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>';
+include __DIR__ . '/_partials/topo.php';
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-  <title>Visão Geral · XTEC</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/painel/dashboard.css">
-  <link rel="stylesheet" href="../css/painel/visao_geral.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-
-<body>
-  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-
-  <div class="dashboard-layout">
-
-    <?php $paginaAtual = 'dashboard'; include __DIR__ . '/_partials/sidebar.php'; ?>
-
-    <main class="main-content" id="conteudo" tabindex="-1">
-      <div class="conteudo">
-
-        <header class="topbar">
-          <div class="boas-vindas">
-            <h1>Visão Geral</h1>
-            <p>Operação em tempo real</p>
-          </div>
-          <div class="usuario-perfil">
-            <span class="status-loja online"><i class="fa-solid fa-circle" aria-hidden="true"></i> Loja aberta</span>
-            <span class="nome-admin"><?= $nomeUsuario ?></span>
-          </div>
-        </header>
-
-        <?php if ($verFinanceiro): ?>
-          <section class="export-actions" aria-label="Exportar relatórios">
-            <a href="../../backend/relatorios/gerar_pdf.php" class="btn-export pdf"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exportar PDF</a>
-            <a href="../../backend/relatorios/gerar_word.php" class="btn-export word"><i class="fa-solid fa-file-word" aria-hidden="true"></i> Exportar Word</a>
-            <a href="../../backend/relatorios/gerar_excel.php" class="btn-export excel"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Exportar Excel</a>
-          </section>
-        <?php endif; ?>
-
-        <section class="grid-cards" aria-label="Indicadores do dia">
-          <div class="card-metrica">
-            <span class="card-titulo">Faturamento hoje</span>
-            <div class="card-valor" id="fat-hoje">–</div>
-            <span class="card-detalhe neutro" id="fat-detalhe">Calculando...</span>
-          </div>
-          <div class="card-metrica">
-            <span class="card-titulo">Pedidos realizados</span>
-            <div class="card-valor" id="pedidos-hoje">–</div>
-            <span class="card-detalhe neutro" id="pedidos-detalhe">&nbsp;</span>
-          </div>
-          <div class="card-metrica">
-            <span class="card-titulo">Ticket médio</span>
-            <div class="card-valor" id="ticket-medio">–</div>
-            <span class="card-detalhe neutro">Pedidos finalizados hoje</span>
-          </div>
-
-          <?php if ($verEstoque): ?>
-            <div class="card-metrica alerta-box">
-              <span class="card-titulo">Alertas de estoque</span>
-              <div class="card-valor" id="alertas-estoque">0</div>
-              <span class="card-detalhe alerta">Itens críticos ou vencendo</span>
-            </div>
-          <?php else: ?>
-            <div class="card-metrica alerta-box">
-              <span class="card-titulo">Em entrega</span>
-              <div class="card-valor" id="em-entrega">–</div>
-              <span class="card-detalhe alerta">Delivery a caminho</span>
+        <section class="grid-cards cinco" aria-label="Indicadores de hoje">
+          <?php if ($perm['financeiro']): ?>
+            <div class="card-metrica">
+              <span class="card-titulo"><span class="card-icone brasa"><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i></span> Faturamento hoje</span>
+              <div class="card-valor"><?= moeda($r['faturamento_hoje']) ?></div>
+              <span class="card-detalhe"><?= delta_html(variacao((float) $r['faturamento_hoje'], (float) $r['faturamento_ontem_ate_agora'])) ?: '<span>Sem vendas ontem até agora</span>' ?> <span>vs. ontem até agora</span></span>
+              <?= sparkline($fat7) ?>
             </div>
           <?php endif; ?>
+          <div class="card-metrica">
+            <span class="card-titulo"><span class="card-icone azul"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span> Pedidos hoje</span>
+            <div class="card-valor"><?= (int) $r['pedidos_hoje'] ?></div>
+            <span class="card-detalhe"><?= delta_html(variacao((float) $r['pedidos_hoje'], (float) $r['pedidos_ontem_ate_agora'])) ?> <span><?= (int) $r['pedidos_ultima_hora'] ?> na última hora</span></span>
+            <?= sparkline($ped7, 'var(--azul)') ?>
+          </div>
+          <?php if ($perm['financeiro']): ?>
+            <div class="card-metrica">
+              <span class="card-titulo"><span class="card-icone salvia"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span> Ticket médio</span>
+              <div class="card-valor"><?= $r['ticket_hoje'] === null ? '—' : moeda($r['ticket_hoje']) ?></div>
+              <span class="card-detalhe"><?= $r['ticket_hoje'] !== null && $r['ticket_30dias'] ? delta_html(variacao((float) $r['ticket_hoje'], (float) $r['ticket_30dias'])) . ' <span>vs. média de 30 dias</span>' : '<span>Pedidos entregues hoje</span>' ?></span>
+            </div>
+          <?php else: ?>
+            <div class="card-metrica">
+              <span class="card-titulo"><span class="card-icone salvia"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i></span> Em entrega</span>
+              <div class="card-valor"><?= (int) $r['em_entrega'] ?></div>
+              <span class="card-detalhe"><span>Delivery a caminho do cliente</span></span>
+            </div>
+          <?php endif; ?>
+          <a class="card-metrica alerta-box<?= (int) $r['atrasados'] > 0 ? ' ativo-alerta' : '' ?>" href="pedidos.php" style="text-decoration:none">
+            <span class="card-titulo"><span class="card-icone mostarda"><i class="fa-solid fa-fire-burner" aria-hidden="true"></i></span> Em andamento</span>
+            <div class="card-valor"><?= (int) $r['em_andamento'] ?></div>
+            <span class="card-detalhe <?= (int) $r['atrasados'] > 0 ? 'alerta' : '' ?>">
+              <?= (int) $r['atrasados'] > 0 ? '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> ' . (int) $r['atrasados'] . ' acima de ' . (int) $r['tempo_preparo'] . ' min' : 'Nenhum pedido atrasado' ?>
+            </span>
+          </a>
+          <a class="card-metrica" href="mesas.php" style="text-decoration:none">
+            <span class="card-titulo"><span class="card-icone roxo"><i class="fa-solid fa-chair" aria-hidden="true"></i></span> Mesas ocupadas</span>
+            <div class="card-valor"><?= (int) $r['mesas_ocupadas'] ?><small style="font-size:16px;color:var(--tinta-3)"> / <?= (int) $r['mesas_total'] ?></small></div>
+            <span class="progresso azul" aria-hidden="true"><span style="--nivel: <?= (int) $r['mesas_total'] ? round($r['mesas_ocupadas'] / $r['mesas_total'] * 100) : 0 ?>%"></span></span>
+            <span class="card-detalhe"><span><?= (int) $r['mesas_total'] ? round($r['mesas_ocupadas'] / $r['mesas_total'] * 100) : 0 ?>% de ocupação do salão</span></span>
+          </a>
         </section>
 
         <div class="dashboard-secoes">
-          <section class="painel-card">
+          <section class="painel-card" aria-labelledby="t-horas">
             <div class="painel-header">
-              <h2>Últimos pedidos</h2>
-              <a href="pedidos.php" class="btn-link">Ver todos</a>
-            </div>
-            <div class="tabela-container">
-              <table class="tabela-pedidos">
-                <thead>
-                  <tr>
-                    <th scope="col">Pedido</th>
-                    <th scope="col">Cliente</th>
-                    <th scope="col">Itens</th>
-                    <th scope="col" class="num">Total</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="tabela-ultimos">
-                  <tr><td colspan="5" class="carregando">Carregando pedidos...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="painel-card">
-            <div class="painel-header">
-              <h2>Evolução de pedidos</h2>
-              <span class="painel-meta">Últimos 7 dias</span>
+              <h2 id="t-horas"><i class="fa-solid fa-chart-area" aria-hidden="true"></i> Vendas por hora</h2>
+              <span class="painel-meta">Hoje x <?= $diaSemanaPassada ?> passado(a)</span>
             </div>
             <div class="chart-container alto">
-              <canvas id="graficoLinha" role="img" aria-label="Gráfico de linha com os pedidos dos últimos 7 dias"></canvas>
+              <canvas id="grafico-horas" role="img" aria-label="Faturamento por hora de hoje comparado com o mesmo dia da semana passada"></canvas>
             </div>
+            <ul class="legenda">
+              <li><span class="ponto" style="background:var(--brasa)" aria-hidden="true"></span> Hoje</li>
+              <li><span class="ponto" style="background:var(--fio-forte)" aria-hidden="true"></span> Mesmo dia da semana passada</li>
+              <li style="margin-left:auto">Semana: <strong><?= moeda($fatSemana) ?></strong> <?= delta_html(variacao($fatSemana, $fatSemanaAnterior)) ?></li>
+            </ul>
+          </section>
+
+          <section class="painel-card" aria-labelledby="t-agora">
+            <div class="painel-header">
+              <h2 id="t-agora"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Pedidos agora</h2>
+              <a href="pedidos.php" class="btn-link">Abrir quadro</a>
+            </div>
+            <div class="etapas-faixa">
+              <a href="pedidos.php" style="--cor: var(--azul)"><strong><?= (int) $etapas['novos'] ?></strong><span>Novos</span></a>
+              <a href="cozinha.php" style="--cor: var(--mostarda)"><strong><?= (int) $etapas['preparo'] ?></strong><span>Em preparo</span></a>
+              <a href="pedidos.php" style="--cor: var(--brasa)"><strong><?= (int) $etapas['prontos'] ?></strong><span>Prontos</span></a>
+              <a href="pedidos.php" style="--cor: var(--salvia)"><strong><?= (int) $etapas['entregues'] ?></strong><span>Entregues hoje</span></a>
+            </div>
+            <?php if (!$ultimos): ?>
+              <p class="vazio">Nenhum pedido registrado ainda. <a href="pdv.php">Abrir o PDV</a></p>
+            <?php else: ?>
+              <ul class="lista-linhas">
+                <?php foreach ($ultimos as $p):
+                  [$classe, $rotulo] = $nomesEtapa[$p['etapa']] ?? ['', $p['etapa']];
+                  $origem = $p['cliente'] ?: ($p['tipo'] === 'SALAO' ? 'Mesa ' . $p['mesa'] : ($p['tipo'] === 'DELIVERY' ? 'Delivery' : 'Balcão')); ?>
+                  <li>
+                    <span class="celula-dupla" style="flex:1">
+                      <strong><span class="id-pedido">#<?= (int) $p['id'] ?></span> <?= e($origem) ?></strong>
+                      <small><?= e($p['hora']) ?> · <?= e($p['itens'] ?: 'sem itens') ?></small>
+                    </span>
+                    <span class="lado">
+                      <strong><?= moeda($p['total']) ?></strong><br>
+                      <span class="status <?= $classe ?>"><?= $rotulo ?></span>
+                    </span>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
           </section>
         </div>
 
-        <?php if ($verFinanceiro || $verEstoque): ?>
-          <div class="dashboard-secoes secoes-graficos">
-
-            <?php if ($verFinanceiro): ?>
-              <section class="painel-card">
-                <div class="painel-header">
-                  <h2><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Lucro vs Despesas</h2>
-                </div>
-                <div class="chart-container"><canvas id="graficoPizza" role="img" aria-label="Gráfico de rosca comparando lucro e despesas"></canvas></div>
-              </section>
-              <section class="painel-card">
-                <div class="painel-header">
-                  <h2><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Capital inicial vs atual</h2>
-                </div>
-                <div class="chart-container"><canvas id="graficoBarra" role="img" aria-label="Gráfico de barras comparando capital inicial e atual"></canvas></div>
-              </section>
+        <div class="dashboard-secoes tres">
+          <section class="painel-card" aria-labelledby="t-top">
+            <div class="painel-header">
+              <h2 id="t-top"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Mais vendidos</h2>
+              <span class="painel-meta">Últimos 7 dias</span>
+            </div>
+            <?php if (!$maisVendidos): ?>
+              <p class="vazio">Sem vendas nos últimos 7 dias.</p>
+            <?php else: $maiorReceita = max(array_map(static fn($x) => (float) $x['receita'], $maisVendidos)) ?: 1; ?>
+              <ol class="ranking">
+                <?php foreach ($maisVendidos as $n => $p): ?>
+                  <li>
+                    <span class="pos"><?= $n + 1 ?></span>
+                    <span class="nome"><?= e($p['nome']) ?> <small class="muted"><?= (int) $p['quantidade'] ?> un.</small></span>
+                    <span class="valor"><?= $perm['financeiro'] ? moeda($p['receita']) : (int) $p['quantidade'] . ' un.' ?></span>
+                    <span class="progresso brasa"><span style="--nivel: <?= round((float) $p['receita'] / $maiorReceita * 100) ?>%"></span></span>
+                  </li>
+                <?php endforeach; ?>
+              </ol>
             <?php endif; ?>
+          </section>
 
-            <?php if ($verEstoque): ?>
-              <section class="painel-card">
-                <div class="painel-header">
-                  <h2><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Alertas de validade</h2>
+          <?php if ($mes): $saldoMes = (float) $mes['receitas'] - (float) $mes['despesas']; ?>
+            <section class="painel-card" aria-labelledby="t-mes">
+              <div class="painel-header">
+                <h2 id="t-mes"><i class="fa-solid fa-wallet" aria-hidden="true"></i> Caixa do mês</h2>
+                <a href="fluxo_de_caixa.php" class="btn-link">Fluxo de caixa</a>
+              </div>
+              <div class="painel-corpo">
+                <div class="card-valor" style="color: <?= $saldoMes >= 0 ? 'var(--salvia-texto)' : 'var(--brasa-texto)' ?>"><?= moeda($saldoMes) ?></div>
+                <p class="painel-meta" style="margin-bottom:14px">Saldo realizado em <?= ['', 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][(int) date('n')] ?> (recebido menos pago)</p>
+                <?php $base = max((float) $mes['receitas'], (float) $mes['despesas'], 1); ?>
+                <div class="grupo-input" style="gap:4px;margin-bottom:10px">
+                  <span class="card-detalhe" style="justify-content:space-between"><span>Receitas</span><strong style="color:var(--tinta)"><?= moeda($mes['receitas']) ?></strong></span>
+                  <span class="progresso"><span style="--nivel: <?= round((float) $mes['receitas'] / $base * 100) ?>%"></span></span>
                 </div>
-                <div id="lista-vencimento" class="lista-rolavel" aria-live="polite">
-                  <p class="carregando">Carregando dados...</p>
+                <div class="grupo-input" style="gap:4px">
+                  <span class="card-detalhe" style="justify-content:space-between"><span>Despesas</span><strong style="color:var(--tinta)"><?= moeda($mes['despesas']) ?></strong></span>
+                  <span class="progresso brasa"><span style="--nivel: <?= round((float) $mes['despesas'] / $base * 100) ?>%"></span></span>
                 </div>
-              </section>
-              <section class="painel-card">
-                <div class="painel-header">
-                  <h2><i class="fa-solid fa-users-viewfinder" aria-hidden="true"></i> Equipe online agora</h2>
-                </div>
-                <div id="lista-equipe" class="lista-rolavel" aria-live="polite">
-                  <p class="carregando">Carregando dados...</p>
-                </div>
-              </section>
+              </div>
+              <div class="saldo-mes">
+                <div><small>A receber</small><strong><?= moeda($mes['a_receber']) ?></strong></div>
+                <div><small>A pagar</small><strong><?= moeda($mes['a_pagar']) ?></strong><?php if ((float) $mes['vencido'] > 0): ?><small style="color:var(--brasa-texto)"><?= moeda($mes['vencido']) ?> vencido</small><?php endif; ?></div>
+              </div>
+            </section>
+          <?php endif; ?>
+
+          <?php if ($perm['estoque']): ?>
+            <section class="painel-card" aria-labelledby="t-alertas">
+              <div class="painel-header">
+                <h2 id="t-alertas"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Alertas de estoque</h2>
+                <span class="painel-meta"><?= count($alertas) ?> <?= count($alertas) === 1 ? 'item' : 'itens' ?></span>
+              </div>
+              <div class="lista-rolavel">
+                <?php if (!$alertas): ?>
+                  <p class="vazio"><span class="vazio-icone"><i class="fa-solid fa-check" aria-hidden="true"></i></span>Estoque em dia.</p>
+                <?php endif; ?>
+                <?php foreach ($alertas as $a):
+                  $critico = in_array($a['situacao'], ['VENCIDO', 'CRITICO'], true);
+                  $motivo = match ($a['situacao']) {
+                    'VENCIDO' => 'Vencido em ' . data_br($a['validade']),
+                    'CRITICO' => (int) $a['estoque'] . ' ' . $a['unidade'] . ' em estoque · mínimo ' . (int) $a['minimo'],
+                    default => (int) $a['dias'] === 0 ? 'Vence hoje' : 'Vence em ' . (int) $a['dias'] . ' ' . ((int) $a['dias'] === 1 ? 'dia' : 'dias'),
+                  }; ?>
+                  <a class="alerta-vencimento<?= $critico ? ' critico' : '' ?>" href="estoque.php?mov=ENTRADA&amp;produto=<?= (int) $a['id'] ?>#movimento">
+                    <span class="notif-icone"><i class="fa-solid <?= $a['situacao'] === 'CRITICO' ? 'fa-box-open' : 'fa-calendar-xmark' ?>" aria-hidden="true"></i></span>
+                    <span class="celula-dupla"><strong><?= e($a['nome']) ?></strong><small><?= e($motivo) ?></small></span>
+                  </a>
+                <?php endforeach; ?>
+              </div>
+            </section>
+          <?php endif; ?>
+
+          <section class="painel-card" aria-labelledby="t-equipe">
+            <div class="painel-header">
+              <h2 id="t-equipe"><i class="fa-solid fa-user-group" aria-hidden="true"></i> Equipe online</h2>
+              <a href="empresa.php" class="btn-link">Equipe</a>
+            </div>
+            <?php if (!$equipe): ?>
+              <p class="vazio">Ninguém mais conectado agora.</p>
+            <?php else: ?>
+              <ul class="lista-linhas">
+                <?php foreach ($equipe as $m): ?>
+                  <li>
+                    <span class="avatar <?= $corAvatar($m['nome']) ?>" aria-hidden="true"><?= e($iniciais($m['nome'])) ?></span>
+                    <span class="celula-dupla"><strong><?= e($m['nome']) ?></strong><small><?= e(rotulo_cargo($m['cargo'], $m['nivel'])) ?></small></span>
+                    <span class="lado presenca online"><?= (int) $m['minutos'] < 1 ? 'agora' : 'há ' . (int) $m['minutos'] . ' min' ?></span>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
             <?php endif; ?>
+          </section>
+        </div>
 
-          </div>
-        <?php endif; ?>
-
-        <section class="painel-card gestao-equipe" id="convidar">
-          <div class="painel-header">
-            <h2><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Convidar novo funcionário</h2>
-          </div>
-
-          <div class="form-gerar-codigo">
-            <div class="grupo-input">
-              <label for="funcao-funcionario">Função / Cargo</label>
-              <select id="funcao-funcionario" class="input-dash">
-                <option value="Atendente / Caixa">Atendente / Caixa</option>
-                <option value="Cozinheiro">Cozinheiro</option>
-                <option value="Entregador">Entregador</option>
-                <option value="Gerente">Gerente</option>
-              </select>
-            </div>
-
-            <div class="grupo-input">
-              <label for="nivel-acesso">Nível de acesso no sistema</label>
-              <select id="nivel-acesso" class="input-dash">
-                <option value="1">Nível 1 (Apenas Pedidos)</option>
-                <option value="2">Nível 2 (Caixa e Cozinha)</option>
-                <option value="3">Nível 3 (Acesso Total / Gerencial)</option>
-              </select>
-            </div>
-
-            <button type="button" onclick="gerarCodigoEquipe()" class="btn-gerar">
-              <i class="fa-solid fa-key" aria-hidden="true"></i> Gerar código
-            </button>
-          </div>
-
-          <div id="resultado-codigo" class="resultado-codigo hidden" aria-live="polite">
-            <p>Código de cadastro exclusivo para a equipe:</p>
-            <div class="box-codigo">
-              <strong id="codigo-gerado">XTEC-00000</strong>
-              <button type="button" onclick="copiarCodigo()" title="Copiar código" aria-label="Copiar código"><i class="fa-regular fa-copy" aria-hidden="true"></i></button>
-            </div>
-            <small>Forneça este código ao funcionário para que ele se registre na tela de cadastro.</small>
-          </div>
-        </section>
-
-      </div>
-    </main>
-  </div>
-
-  <!-- SCRIPT ORIGINAL MANTIDO -->
-  <script>
-    function gerarCodigoEquipe() {
-      const funcao = document.getElementById('funcao-funcionario').value;
-      const nivel = document.getElementById('nivel-acesso').value;
-      const formData = new FormData();
-      formData.append('funcao', funcao);
-      formData.append('nivel_acesso', nivel);
-
-      fetch('../../backend/auth/gerar_codigo_processa.php', { // Corrigido nome do arquivo conforme seu original
-          method: 'POST',
-          body: formData
-        })
-        .then(async response => {
-          const text = await response.text();
-          try {
-            return JSON.parse(text);
-          } catch (err) {
-            throw new Error("O PHP retornou um erro inesperado: " + text);
-          }
-        })
-        .then(data => {
-          if (data.sucesso) {
-            document.getElementById('codigo-gerado').innerText = data.codigo;
-            document.getElementById('resultado-codigo').classList.remove('hidden');
-          } else {
-            alert('Erro do Sistema: ' + data.mensagem);
-          }
-        })
-        .catch(error => {
-          console.error('Erro na requisição:', error);
-          alert(error.message);
-        });
+<?php
+$dadosGrafico = json_encode($grafico, JSON_UNESCAPED_UNICODE);
+$rodapeExtra = <<<HTML
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof Chart === 'undefined') return;
+    const dados = {$dadosGrafico};
+    const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const moeda = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    let grafico = null;
+    function desenhar() {
+      grafico?.destroy();
+      Chart.defaults.font.family = css('--f-ui');
+      Chart.defaults.color = css('--tinta-3');
+      grafico = new Chart(document.getElementById('grafico-horas'), {
+        type: 'line',
+        data: {
+          labels: dados.rotulos,
+          datasets: [
+            { label: 'Hoje', data: dados.hoje, borderColor: css('--brasa'), backgroundColor: css('--brasa-fundo'), fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2.5, spanGaps: false },
+            { label: 'Semana passada', data: dados.passada, borderColor: css('--fio-forte'), borderDash: [5, 4], fill: false, tension: 0.35, pointRadius: 0, pointHoverRadius: 3, borderWidth: 2 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => c.dataset.label + ': ' + moeda(c.parsed.y ?? 0) } } },
+          scales: {
+            x: { grid: { display: false }, border: { color: css('--fio') } },
+            y: { beginAtZero: true, grid: { color: css('--fio') }, border: { display: false }, ticks: { callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } },
+          },
+        },
+      });
     }
-
-    function copiarCodigo() {
-      const codigo = document.getElementById('codigo-gerado').innerText;
-      navigator.clipboard.writeText(codigo);
-      alert('Código copiado para a área de transferência!');
-    }
-  </script>
-
-  <!-- NOVO: SCRIPT PARA CARREGAR OS DADOS DO DASHBOARD E GRÁFICOS -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Se o Chart.js (CDN) não carregar, os números continuam aparecendo; só os gráficos ficam de fora
-      const temChart = typeof Chart !== 'undefined';
-      fetch('../../backend/api/dados_dashboard.php')
-        .then(async res => {
-          const texto = await res.text();
-          let dados;
-          try {
-            dados = JSON.parse(texto);
-          } catch (e) {
-            throw new Error('Resposta inválida do servidor: ' + texto.replace(/<[^>]*>/g, ' ').trim().slice(0, 300));
-          }
-          if (dados.erro) throw new Error(dados.erro + (dados.detalhe ? ' (' + dados.detalhe + ')' : ''));
-          return dados;
-        })
-        .then(data => {
-
-          // Atualiza cards se os dados vierem da API
-          if (data.financeiro) {
-            document.getElementById('fat-hoje').innerText = `R$ ${data.financeiro.faturamento_hoje}`;
-
-            // Gráfico Pizza
-            if (temChart) new Chart(document.getElementById('graficoPizza'), {
-              type: 'doughnut',
-              data: {
-                labels: ['Lucro', 'Despesas'],
-                datasets: [{
-                  data: [data.financeiro.lucro, data.financeiro.despesas],
-                  backgroundColor: ['rgba(27, 199, 27, 0.795)', '#fa4444'],
-                  borderWidth: 0
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                }
-              }
-            });
-
-            // Gráfico Barra
-            if (temChart) new Chart(document.getElementById('graficoBarra'), {
-              type: 'bar',
-              data: {
-                labels: ['Capital Inicial', 'Capital Atual'],
-                datasets: [{
-                  data: [data.financeiro.capital_inicial, data.financeiro.capital_atual],
-                  backgroundColor: ['#fa4444', 'rgba(27, 199, 27, 0.795)'],
-                  borderRadius: 6
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    },
-                    grid: {
-                      color: 'rgba(242, 227, 198, 0.1)'
-                    }
-                  },
-                  x: {
-                    ticks: {
-                      color: '#f2e3c6'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    display: false
-                  }
-                }
-              }
-            });
-          }
-
-          document.getElementById('pedidos-hoje').innerText = data.pedidos_hoje;
-          document.getElementById('pedidos-detalhe').innerText = `${data.pedidos_ultima_hora} na última hora`;
-          document.getElementById('ticket-medio').innerText = data.ticket_medio === null ? '—' : data.ticket_medio.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-          });
-          const emEntrega = document.getElementById('em-entrega');
-          if (emEntrega) emEntrega.innerText = data.em_entrega;
-
-          // Faturamento: variação sobre ontem (só quem pode ver o financeiro)
-          if (data.financeiro) {
-            const hoje = data.financeiro.faturamento_hoje_valor;
-            const ontem = data.financeiro.faturamento_ontem;
-            const detalhe = document.getElementById('fat-detalhe');
-            if (ontem > 0) {
-              const variacao = Math.round(((hoje - ontem) / ontem) * 100);
-              detalhe.innerText = `${variacao >= 0 ? '+' : ''}${variacao}% em relação a ontem`;
-              detalhe.className = `card-detalhe ${variacao >= 0 ? 'positivo' : 'alerta'}`;
-            } else {
-              detalhe.innerText = 'Sem vendas ontem para comparar';
-            }
-          } else {
-            document.getElementById('fat-hoje').innerText = '—';
-            document.getElementById('fat-detalhe').innerText = 'Restrito à gerência';
-          }
-
-          // Últimos pedidos
-          const nomesEtapa = {
-            NOVO: ['novo', 'Novo'],
-            PREPARO: ['em-preparo', 'Em preparo'],
-            PRONTO: ['a-caminho', 'Pronto'],
-            ENTREGUE: ['entregue', 'Entregue'],
-            CANCELADO: ['cancelado', 'Cancelado']
-          };
-          const escapar = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-          })[c]);
-          document.getElementById('tabela-ultimos').innerHTML = data.ultimos_pedidos.length ?
-            data.ultimos_pedidos.map((p) => {
-              const [classe, rotulo] = nomesEtapa[p.etapa] || ['', p.etapa];
-              return `<tr>
-                <td class="id-pedido">#${p.id}</td>
-                <td class="cliente-nome">${escapar(p.cliente)}</td>
-                <td>${escapar(p.itens)}</td>
-                <td class="num valor-pedido">${p.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-                <td><span class="status ${classe}">${rotulo}</span></td>
-              </tr>`;
-            }).join('') :
-            '<tr><td colspan="5" class="carregando">Nenhum pedido registrado ainda.</td></tr>';
-          if (data.estoque) document.getElementById('alertas-estoque').innerText = data.estoque.total_alertas;
-
-          // Gráfico Linha (Pedidos - Visível para todos)
-          if (temChart) new Chart(document.getElementById('graficoLinha'), {
-            type: 'line',
-            data: {
-              labels: data.pedidos_semana_labels,
-              datasets: [{
-                label: 'Pedidos',
-                data: data.pedidos_semana,
-                borderColor: '#b12e2f',
-                backgroundColor: 'rgba(177, 46, 47, 0.1)',
-                fill: true,
-                tension: 0.4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  },
-                  grid: {
-                    color: 'rgba(242, 227, 198, 0.1)'
-                  }
-                },
-                x: {
-                  ticks: {
-                    color: '#f2e3c6'
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  display: false
-                }
-              }
-            }
-          });
-
-          // Lista de Vencimento
-          if (data.estoque && data.estoque.lista.length > 0) {
-            document.getElementById('lista-vencimento').innerHTML = data.estoque.lista.map(item => `
-                        <div class="alerta-vencimento ${item.critico ? 'critico' : ''}">
-                            <i class="fa-solid ${item.critico ? 'fa-circle-exclamation' : 'fa-clock'}"></i>
-                            <div><strong>${item.nome}</strong><br><small>${item.motivo}</small></div>
-                        </div>
-                    `).join('');
-          } else if (data.estoque) {
-            document.getElementById('lista-vencimento').innerHTML = '<p style="text-align:center; color:#4ade80; padding:20px;"><i class="fa-solid fa-check"></i> Estoque em dia</p>';
-          }
-
-          // Lista de Equipe
-          if (data.equipe_online && data.equipe_online.length > 0) {
-            document.getElementById('lista-equipe').innerHTML = data.equipe_online.map(func => `
-                        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(242,227,198,0.15);">
-                            <span>${func.nome}</span>
-                            <span class="status-online" style="color:#4ade80;"><small>${func.cargo}</small></span>
-                        </div>
-                    `).join('');
-          } else {
-            document.getElementById('lista-equipe').innerHTML = '<p style="text-align:center; opacity:0.6; padding:20px;">Nenhum funcionário online no momento.</p>';
-          }
-        })
-        .catch(err => {
-          console.error('Erro ao carregar dashboard:', err);
-          const aviso = document.getElementById('fat-detalhe');
-          if (aviso) aviso.innerText = 'Erro ao carregar: ' + err.message;
-          const tabela = document.getElementById('tabela-ultimos');
-          if (tabela) tabela.innerHTML = '<tr><td colspan="5" class="carregando">Não foi possível carregar os dados: ' + String(err.message).replace(/[<>&]/g, '') + '</td></tr>';
-        });
-    });
-  </script>
-</body>
-
-</html>
+    desenhar();
+    document.addEventListener('xtec:tema', desenhar);
+  });
+</script>
+HTML;
+include __DIR__ . '/_partials/rodape.php';
+?>

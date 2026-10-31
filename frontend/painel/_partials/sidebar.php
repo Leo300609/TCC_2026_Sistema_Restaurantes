@@ -1,20 +1,37 @@
 <?php
 /**
- * Menu lateral do painel (vira gaveta com botão "hambúrguer" em telas pequenas).
- * Antes de incluir, a página define $paginaAtual (ex.: 'clientes').
- * Usa as variáveis de auth.php: $verFinanceiro, $verEstoque, $nomeUsuario, $cargo.
+ * Menu lateral do painel, agrupado por área. Vira gaveta em telas pequenas
+ * e pode ser recolhido (só ícones) no computador.
+ * Usa $paginaAtual, $perm, $nomeLoja e $etapasMenu (definidos em topo.php/auth.php).
  */
 $paginaAtual = $paginaAtual ?? '';
+$emAndamento = (int) $etapasMenu['novos'] + (int) $etapasMenu['preparo'] + (int) $etapasMenu['prontos'];
+$naCozinha = (int) $etapasMenu['novos'] + (int) $etapasMenu['preparo'];
 
-$itensMenu = [
-  ['dashboard',      'dashboard.php',      'fa-chart-line',     'Visão Geral',    true],
-  ['fluxo_de_caixa', 'fluxo_de_caixa.php', 'fa-wallet',         'Fluxo de Caixa', $verFinanceiro],
-  ['estoque',        'estoque.php',        'fa-boxes-stacked',  'Estoque',        $verEstoque],
-  ['pedidos',        'pedidos.php',        'fa-receipt',        'Pedidos',        true],
-  ['cardapios',      'cardapios.php',      'fa-utensils',       'Cardápio',       true],
-  ['clientes',       'clientes.php',       'fa-users',          'Clientes',       true],
-  ['empresa',        'empresa.php',        'fa-city',           'Empresa',        true],
-  ['configs',        'configs.php',        'fa-gear',           'Configurações',  true],
+$gruposMenu = [
+  'Operação' => [
+    ['dashboard', 'dashboard.php', 'fa-chart-line', 'Visão geral', true, 0],
+    ['pdv', 'pdv.php', 'fa-cash-register', 'PDV', $perm['pdv'], 0],
+    ['pedidos', 'pedidos.php', 'fa-receipt', 'Pedidos', true, $emAndamento],
+    ['mesas', 'mesas.php', 'fa-chair', 'Mesas', $perm['mesas'], 0],
+    ['cozinha', 'cozinha.php', 'fa-fire-burner', 'Cozinha', $perm['cozinha'], $naCozinha],
+  ],
+  'Gestão' => [
+    ['cardapios', 'cardapios.php', 'fa-utensils', 'Cardápio', true, 0],
+    ['estoque', 'estoque.php', 'fa-boxes-stacked', 'Estoque', $perm['estoque'], 0],
+    ['compras', 'compras.php', 'fa-cart-flatbed', 'Compras', $perm['compras'], 0],
+    ['fornecedores', 'fornecedores.php', 'fa-truck-field', 'Fornecedores', $perm['compras'], 0],
+    ['clientes', 'clientes.php', 'fa-users', 'Clientes', true, 0],
+  ],
+  'Financeiro' => [
+    ['fluxo_de_caixa', 'fluxo_de_caixa.php', 'fa-wallet', 'Fluxo de caixa', $perm['financeiro'], 0],
+    ['relatorios', 'relatorios.php', 'fa-chart-pie', 'Relatórios', $perm['relatorios'], 0],
+  ],
+  'Administração' => [
+    ['empresa', 'empresa.php', 'fa-store', 'Empresa e equipe', true, 0],
+    ['atividades', 'atividades.php', 'fa-clock-rotate-left', 'Atividades', $perm['auditoria'], 0],
+    ['configs', 'configs.php', 'fa-gear', 'Configurações', true, 0],
+  ],
 ];
 ?>
 <header class="topo-movel">
@@ -23,42 +40,41 @@ $itensMenu = [
   </button>
   <span class="topo-movel-marca">
     <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
-    <strong class="nome-empresa">XTEC</strong>
+    <strong class="nome-empresa"><?= e(config('app_nome')) ?></strong>
   </span>
 </header>
 <div class="menu-fundo" id="menu-fundo" hidden></div>
 
-<aside class="sidebar" id="menu-lateral">
-  <div>
-    <div class="sidebar-header">
-      <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
-      <h2 class="nome-empresa">XTEC</h2>
-    </div>
-    <nav class="sidebar-nav" aria-label="Navegação principal">
-      <?php foreach ($itensMenu as [$chave, $arquivo, $icone, $rotulo, $visivel]): ?>
-        <?php if (!$visivel) continue; ?>
-        <?php $ativo = ($chave === $paginaAtual); ?>
-        <a href="<?= $arquivo ?>" class="nav-item<?= $ativo ? ' active' : '' ?>"<?= $ativo ? ' aria-current="page"' : '' ?>>
-          <i class="fa-solid <?= $icone ?>" aria-hidden="true"></i>
-          <span><?= $rotulo ?></span>
-        </a>
-      <?php endforeach; ?>
-    </nav>
-  </div>
+<aside class="sidebar" id="menu-lateral" aria-label="Menu principal">
+  <a class="sidebar-header" href="dashboard.php" title="<?= e($nomeLoja) ?>">
+    <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
+    <span class="marca-texto">
+      <span class="nome-empresa"><?= e(config('app_nome')) ?></span>
+      <span class="marca-sub"><?= e($nomeLoja) ?></span>
+    </span>
+  </a>
+
+  <nav class="sidebar-nav" aria-label="Navegação principal">
+    <?php foreach ($gruposMenu as $_grupoMenu => $_itensMenu):
+      $_visiveisMenu = array_filter($_itensMenu, static fn($i) => $i[4]);
+      if (!$_visiveisMenu) continue; ?>
+      <div class="nav-grupo">
+        <span class="nav-grupo-titulo"><?= $_grupoMenu ?></span>
+        <?php foreach ($_visiveisMenu as [$_chave, $_arquivo, $_icone, $_rotulo, , $_contador]): $_ativo = ($_chave === $paginaAtual); ?>
+          <a href="<?= $_arquivo ?>" class="nav-item<?= $_ativo ? ' active' : '' ?>"<?= $_ativo ? ' aria-current="page"' : '' ?> title="<?= e($_rotulo) ?>" data-busca-pagina="<?= e($_rotulo) ?>" data-icone="<?= $_icone ?>">
+            <i class="fa-solid <?= $_icone ?>" aria-hidden="true"></i>
+            <span><?= $_rotulo ?></span>
+            <?php if ($_contador > 0): ?><span class="nav-contador" aria-label="<?= $_contador ?> em andamento"><?= $_contador ?></span><?php endif; ?>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    <?php endforeach; ?>
+  </nav>
 
   <div class="sidebar-footer">
-    <div class="usuario-chip">
-      <span class="usuario-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-      <span class="usuario-dados">
-        <strong><?= $nomeUsuario ?></strong>
-        <small><?= htmlspecialchars($cargo) ?></small>
-      </span>
-    </div>
-    <a href="../../backend/auth/logout.php" class="btn-sair">
-      <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-      <span>Sair</span>
-    </a>
+    <button type="button" class="btn-recolher" id="btn-recolher" aria-label="Recolher menu">
+      <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+      <span>Recolher menu</span>
+    </button>
   </div>
 </aside>
-<script src="../js/painel/menu.js" defer></script>
-<script src="../js/painel/tabelas.js" defer></script>

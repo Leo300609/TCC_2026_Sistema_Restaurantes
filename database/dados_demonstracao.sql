@@ -276,13 +276,19 @@ DELIMITER //
 CREATE PROCEDURE xtec_demo_hoje()
 BEGIN
     DECLARE v_minutos INT DEFAULT TIMESTAMPDIFF(MINUTE, CURDATE(), NOW());
+    DECLARE v_inicio INT DEFAULT 0;
     DECLARE v_i INT DEFAULT 0;
     DECLARE v_r DOUBLE;
+
+    -- depois do almoço as vendas do dia começam às 11h; de madrugada, desde a meia-noite
+    IF v_minutos > 12 * 60 THEN
+        SET v_inicio = 11 * 60;
+    END IF;
 
     IF v_minutos > 90 THEN
         WHILE v_i < 16 DO
             SET v_r = RAND();
-            CALL xtec_demo_pedido(CURDATE() + INTERVAL FLOOR(RAND() * (v_minutos - 60)) MINUTE, 'ENTREGUE',
+            CALL xtec_demo_pedido(CURDATE() + INTERVAL (v_inicio + FLOOR(RAND() * (v_minutos - 60 - v_inicio))) MINUTE, 'ENTREGUE',
                                   CASE WHEN v_r < 0.5 THEN 'SALAO' WHEN v_r < 0.75 THEN 'BALCAO' ELSE 'DELIVERY' END,
                                   CAST(1 + FLOOR(RAND() * 10) AS CHAR));
             SET v_i = v_i + 1;

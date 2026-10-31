@@ -99,6 +99,39 @@ function json_saida(array $dados, int $status = 200): never
     exit;
 }
 
+/** Mini gráfico de linha em SVG (sem JavaScript) para os cartões de indicadores. */
+function sparkline(array $valores, string $cor = 'var(--brasa)'): string
+{
+    $valores = array_values(array_map('floatval', $valores));
+    $n = count($valores);
+    if ($n < 2) {
+        return '';
+    }
+    $max = max($valores) ?: 1;
+    $min = min($valores);
+    $faixa = ($max - $min) ?: 1;
+    $pontos = [];
+    foreach ($valores as $i => $v) {
+        $pontos[] = round($i / ($n - 1) * 100, 2) . ',' . round(28 - ($v - $min) / $faixa * 24, 2);
+    }
+    $linha = implode(' ', $pontos);
+    return '<svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">'
+        . '<polygon points="0,30 ' . $linha . ' 100,30" fill="' . $cor . '" opacity="0.12"/>'
+        . '<polyline points="' . $linha . '" fill="none" stroke="' . $cor . '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>'
+        . '</svg>';
+}
+
+/** Etiqueta "+12%" / "-5%" para comparar com o período anterior. */
+function delta_html(?int $pct): string
+{
+    if ($pct === null) {
+        return '';
+    }
+    $sobe = $pct >= 0;
+    return '<span class="delta ' . ($sobe ? 'sobe' : 'desce') . '"><i class="fa-solid fa-arrow-' . ($sobe ? 'up' : 'down') . '" aria-hidden="true"></i>'
+        . abs($pct) . '%</span>';
+}
+
 /** Nome e ícone de cada forma de pagamento. */
 function formas_pagamento(): array
 {

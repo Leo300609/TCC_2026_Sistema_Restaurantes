@@ -922,7 +922,7 @@ END//
 DROP PROCEDURE IF EXISTS sp_rel_resumo//
 CREATE PROCEDURE sp_rel_resumo(IN p_de DATE, IN p_ate DATE)
 BEGIN
-    SELECT a.*, b.itens, b.cmv, d.despesas_pagas
+    SELECT a.*, b.itens, b.cmv, d.despesas_pagas, d.despesas_operacionais, d.compras_pagas
     FROM (
         SELECT COALESCE(SUM(CASE WHEN v.STATUS = 'FINALIZADA' THEN v.TOTAL END), 0) AS faturamento,
                COALESCE(SUM(v.STATUS = 'FINALIZADA'), 0) AS pedidos,
@@ -941,7 +941,9 @@ BEGIN
         WHERE v.STATUS = 'FINALIZADA' AND v.DATA_CADASTRO >= p_de AND v.DATA_CADASTRO < DATE_ADD(p_ate, INTERVAL 1 DAY)
     ) b
     CROSS JOIN (
-        SELECT COALESCE(SUM(total), 0) AS despesas_pagas
+        SELECT COALESCE(SUM(total), 0) AS despesas_pagas,
+               COALESCE(SUM(CASE WHEN origem = 'MANUAL' THEN total END), 0) AS despesas_operacionais,
+               COALESCE(SUM(CASE WHEN origem = 'COMPRA' THEN total END), 0) AS compras_pagas
         FROM vw_fluxo_caixa
         WHERE tipo = 'SAIDA' AND status = 'PAGO' AND pagamento BETWEEN p_de AND p_ate
     ) d;
