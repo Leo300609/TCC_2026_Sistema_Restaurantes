@@ -1,9 +1,16 @@
 <?php
-session_start();
+declare(strict_types=1);
 
-// Destrói a sessão no servidor.
-session_destroy();
+require_once __DIR__ . '/../lib/sessao.php';
 
-// Redireciona para o login, mantendo o contexto da pasta do projeto.
-header("Location: ../../frontend/html/login.html");
-exit();
+iniciar_sessao();
+
+if (isset($_SESSION['usuario_id'])) {
+    registrar_atividade('sessao', 'logout', 'Saiu do sistema');
+}
+
+// Apaga os dados e o cookie da sessão no servidor e no navegador.
+encerrar_sessao();
+
+header('Location: ../../frontend/html/login.html?ok=saiu');
+exit;

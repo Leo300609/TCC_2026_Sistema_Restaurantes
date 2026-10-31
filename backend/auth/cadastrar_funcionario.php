@@ -1,78 +1,54 @@
 <?php
-session_start();
+declare(strict_types=1);
 
-if (!isset($pdo)) {
-    $host = '127.0.0.1';
-    $port = '3307';
-    $db   = 'tcc';
-    $user = 'root';
-    $pass = '';
+/**
+ * Cadastro de funcionário com o código de convite gerado pela gerência
+ * (tela Empresa > Equipe). Cargo e nível de acesso vêm do convite.
+ */
+require_once __DIR__ . '/../lib/sessao.php';
+require_once __DIR__ . '/../lib/bd.php';
 
-    try {
-        $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4", $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]);
-    } catch (PDOException $e) {
-        die("Erro na conexão com o banco de dados: " . $e->getMessage());
-    }
+iniciar_sessao();
+
+$voltar = static function (string $mensagem, array $dados = []): never {
+    $q = ['erro' => $mensagem] + array_intersect_key($dados, array_flip(['codigo', 'nome', 'email']));
+    header('Location: ../../frontend/html/cadastro.html?' . http_build_query($q));
+    exit;
+};
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+    header('Location: ../../frontend/html/cadastro.html');
+    exit;
 }
 
-$codigo_equipe   = strtoupper(trim($_POST['codigo_equipe'] ?? ''));
-$nome            = trim($_POST['nome'] ?? '');
-$email           = trim($_POST['email'] ?? '');
-$senha           = $_POST['senha'] ?? '';
-$confirmar_senha = $_POST['confirmar_senha'] ?? '';
+$codigo = strtoupper(trim((string) ($_POST['codigo_equipe'] ?? '')));
+$nome = trim((string) ($_POST['nome'] ?? ''));
+$email = mb_strtolower(trim((string) ($_POST['email'] ?? '')));
+$senha = (string) ($_POST['senha'] ?? '');
+$confirmar = (string) ($_POST['confirmar_senha'] ?? '');
+$dados = ['codigo' => $codigo, 'nome' => $nome, 'email' => $email];
 
-if (empty($codigo_equipe) || empty($nome) || empty($email) || empty($senha)) {
-    die("Erro: Por favor, preencha todos os campos do formulário.");
+if ($codigo === '' || $nome === '' || $email === '' || $senha === '') {
+    $voltar('Preencha todos os campos do formulário.', $dados);
 }
-
-if ($senha !== $confirmar_senha) {
-    die("Erro: A senha e a confirmação de senha não coincidem.");
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $voltar('Informe um e-mail válido.', $dados);
 }
-
-// 1. Busca o convite pendente
-$stmt = $pdo->prepare("SELECT * FROM convites_equipe WHERE codigo = :codigo AND status = 'pendente'");
-$stmt->execute([':codigo' => $codigo_equipe]);
-$convite = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$convite) {
-    die("Erro: Código de equipe inválido, expirado ou já utilizado.");
+if (mb_strlen($senha) < 8 || !preg_match('/\d/', $senha) || !preg_match('/\pL/u', $senha)) {
+    $voltar('A senha precisa ter ao menos 8 caracteres, com letras e números.', $dados);
 }
-
-// 2. Hash da senha para segurança
-$senha_hash = password_hash($senha, PASSWORD_BCRYPT);
+if ($senha !== $confirmar) {
+    $voltar('A senha e a confirmação não coincidem.', $dados);
+}
 
 try {
-    $pdo->beginTransaction();
-
-    // 3. Cadastra o novo usuário utilizando a estrutura de colunas existente
-    $sql_user = "INSERT INTO usuarios (nome, email, senha, nivel, ativo) 
-                 VALUES (:nome, :email, :senha, :nivel, 'ATIVO')";
-    
-    $stmt_user = $pdo->prepare($sql_user);
-    $stmt_user->execute([
-        ':nome'  => $nome,
-        ':email' => $email,
-        ':senha' => $senha_hash,
-        ':nivel' => $convite['nivel_acesso'] ?? 'FUNCIONARIO'
-    ]);
-
-    // 4. Marca o convite como utilizado
-    $stmt_update = $pdo->prepare("UPDATE convites_equipe SET status = 'usado' WHERE id = :id");
-    $stmt_update->execute([':id' => $convite['id']]);
-
-    $pdo->commit();
-
-    echo "<script>
-            alert('Cadastro de funcionário realizado com sucesso!');
-            window.location.href = '../../frontend/html/login.html';
-          </script>";
-} catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    die("Erro ao cadastrar funcionário no banco: " . $e->getMessage());
+    $novo = chamar_um('sp_convite_usar', [$codigo, $nome, $email, password_hash($senha, PASSWORD_BCRYPT)]);
+    registrar_atividade('equipe', 'cadastro', "Nova conta criada com o convite {$codigo} ({$novo['cargo']})", (int) $novo['id'], $nome);
+    header('Location: ../../frontend/html/login.html?' . http_build_query(['ok' => 'cadastro', 'email' => $email]));
+    exit;
+} catch (ErroNegocio $e) {
+    $voltar($e->getMessage(), $dados);
+} catch (Throwable $e) {
+    error_log('[tcc] cadastro: ' . $e->getMessage());
+    $voltar('Não foi possível concluir o cadastro agora. Tente novamente em instantes.', $dados);
 }
-?>

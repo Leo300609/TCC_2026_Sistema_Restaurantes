@@ -8,6 +8,7 @@
 -- ==========================================================================
 
 USE tcc;
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Procedimento auxiliar: adiciona a coluna somente se ela ainda não existe.
 DROP PROCEDURE IF EXISTS xtec_add_coluna;

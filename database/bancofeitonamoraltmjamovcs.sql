@@ -3,6 +3,7 @@ CREATE DATABASE IF NOT EXISTS TCC
     COLLATE utf8mb4_unicode_ci;
 
 USE TCC;
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
 CREATE TABLE ESTADO (
@@ -250,13 +251,15 @@ INSERT INTO PRODUTO_CATEGORIA (NOME, DESCRICAO) VALUES
 ('Embalagens', 'Caixas, copos e descartáveis'),
 ('Limpeza', 'Produtos de higiene e limpeza da cozinha');
 
-INSERT INTO USUARIOS (EMAIL, SENHA, NOME, NIVEL) VALUES 
-('admin@tcc.com', 'Admin@2026', 'Administrador Master', 'ADMIN'),
-('func1@tcc.com', '123456', 'João Vendedor', 'FUNCIONARIO'),
-('func2@tcc.com', '123456', 'Maria Vendedora', 'FUNCIONARIO'),
-('func3@tcc.com', '123456', 'Carlos Comprador', 'FUNCIONARIO'),
-('func4@tcc.com', '123456', 'Ana Compradora', 'FUNCIONARIO'),
-('func5@tcc.com', '123456', 'Pedro Estoque', 'FUNCIONARIO');
+-- Senhas guardadas com bcrypt (password_hash do PHP).
+-- admin@tcc.com -> Admin@2026 | demais contas -> Equipe@2026
+INSERT INTO USUARIOS (EMAIL, SENHA, NOME, NIVEL, CARGO) VALUES
+('admin@tcc.com', '$2y$10$swvhMH//ybFAzY.B/kYx6Ot8TcwlB4x1diexK2kO.eTTEx7mhz19y', 'Administrador Master', 'ADMIN', 'ADMIN'),
+('func1@tcc.com', '$2y$10$f9eLz9kh/hbzcyR4Ss/2ne8uLAXaCChK5Aluiy6w4VHg1UI/yUnUK', 'João Pereira', 'FUNCIONARIO', 'Atendente / Caixa'),
+('func2@tcc.com', '$2y$10$f9eLz9kh/hbzcyR4Ss/2ne8uLAXaCChK5Aluiy6w4VHg1UI/yUnUK', 'Maria Oliveira', 'FUNCIONARIO', 'Atendente / Caixa'),
+('func3@tcc.com', '$2y$10$f9eLz9kh/hbzcyR4Ss/2ne8uLAXaCChK5Aluiy6w4VHg1UI/yUnUK', 'Carlos Mendes', 'FUNCIONARIO', 'Gerente'),
+('func4@tcc.com', '$2y$10$f9eLz9kh/hbzcyR4Ss/2ne8uLAXaCChK5Aluiy6w4VHg1UI/yUnUK', 'Ana Souza', 'FUNCIONARIO', 'Cozinheiro'),
+('func5@tcc.com', '$2y$10$f9eLz9kh/hbzcyR4Ss/2ne8uLAXaCChK5Aluiy6w4VHg1UI/yUnUK', 'Pedro Lima', 'FUNCIONARIO', 'Entregador');
 
 -- ==========================================
 -- 3. CLIENTES E FORNECEDORES (65 REGISTROS)

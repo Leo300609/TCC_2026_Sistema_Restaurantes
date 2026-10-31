@@ -23,6 +23,94 @@ function so_digitos(string $s): string
     return preg_replace('/\D+/', '', $s) ?? '';
 }
 
+function numero(mixed $v, int $casas = 0): string
+{
+    return number_format((float) $v, $casas, ',', '.');
+}
+
+/** Variação percentual com sinal ("+12%"), ou null quando não há base de comparação. */
+function variacao(float $atual, float $anterior): ?int
+{
+    return $anterior > 0 ? (int) round(($atual - $anterior) / $anterior * 100) : null;
+}
+
+/** (11) 98765-4321 / (11) 3333-4444 */
+function telefone_br(?string $t): string
+{
+    $d = so_digitos((string) $t);
+    return match (strlen($d)) {
+        11 => sprintf('(%s) %s-%s', substr($d, 0, 2), substr($d, 2, 5), substr($d, 7)),
+        10 => sprintf('(%s) %s-%s', substr($d, 0, 2), substr($d, 2, 4), substr($d, 6)),
+        default => (string) $t,
+    };
+}
+
+/** 123.456.789-01 / 12.345.678/0001-90 */
+function documento_br(?string $doc): string
+{
+    $d = so_digitos((string) $doc);
+    return match (strlen($d)) {
+        11 => sprintf('%s.%s.%s-%s', substr($d, 0, 3), substr($d, 3, 3), substr($d, 6, 3), substr($d, 9)),
+        14 => sprintf('%s.%s.%s/%s-%s', substr($d, 0, 2), substr($d, 2, 3), substr($d, 5, 3), substr($d, 8, 4), substr($d, 12)),
+        default => (string) $doc,
+    };
+}
+
+/**
+ * Período escolhido nos filtros (?periodo=hoje|7dias|30dias|mes|passado|ano|personalizado&de=&ate=).
+ * @return array{0: string, 1: string, 2: string} [de, ate, chave]
+ */
+function periodo_filtro(string $padrao = 'mes'): array
+{
+    $chave = entrada('periodo', $padrao);
+    $valida = static fn(string $d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && strtotime($d) !== false;
+
+    if ($chave === 'personalizado' && $valida(entrada('de')) && $valida(entrada('ate'))) {
+        $de = entrada('de');
+        $ate = entrada('ate');
+        return $de <= $ate ? [$de, $ate, $chave] : [$ate, $de, $chave];
+    }
+
+    return match ($chave) {
+        'hoje' => [date('Y-m-d'), date('Y-m-d'), 'hoje'],
+        '7dias' => [date('Y-m-d', strtotime('-6 days')), date('Y-m-d'), '7dias'],
+        '30dias' => [date('Y-m-d', strtotime('-29 days')), date('Y-m-d'), '30dias'],
+        'passado' => [date('Y-m-01', strtotime('first day of last month')), date('Y-m-t', strtotime('last day of last month')), 'passado'],
+        'ano' => [date('Y-01-01'), date('Y-12-31'), 'ano'],
+        '90dias' => [date('Y-m-d', strtotime('-89 days')), date('Y-m-d'), '90dias'],
+        default => [date('Y-m-01'), date('Y-m-t'), 'mes'],
+    };
+}
+
+/** Rótulos dos períodos para os seletores. */
+function periodos_rotulos(): array
+{
+    return ['hoje' => 'Hoje', '7dias' => 'Últimos 7 dias', '30dias' => 'Últimos 30 dias', 'mes' => 'Este mês',
+            'passado' => 'Mês passado', '90dias' => 'Últimos 90 dias', 'ano' => 'Este ano', 'personalizado' => 'Personalizado'];
+}
+
+/** Resposta JSON para as APIs internas. */
+function json_saida(array $dados, int $status = 200): never
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    echo json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    exit;
+}
+
+/** Nome e ícone de cada forma de pagamento. */
+function formas_pagamento(): array
+{
+    return [
+        'PIX' => ['Pix', 'fa-brands fa-pix'],
+        'CREDITO' => ['Crédito', 'fa-regular fa-credit-card'],
+        'DEBITO' => ['Débito', 'fa-solid fa-credit-card'],
+        'DINHEIRO' => ['Dinheiro', 'fa-solid fa-money-bill-wave'],
+        'BOLETO' => ['Boleto', 'fa-solid fa-barcode'],
+    ];
+}
+
 // ---------- entrada ----------
 
 function entrada(string $campo, string $padrao = ''): string
@@ -104,18 +192,23 @@ function tratar_post(callable $bloco, ?string $voltar = null): void
 
     try {
         $r = $bloco();
+        $mensagem = is_array($r) ? (string) $r[0] : (is_string($r) ? $r : '');
         if (is_array($r)) {
             flash('ok', $r[0]);
             $destino = $r[1] ?? $destino;
         } elseif (is_string($r) && $r !== '') {
             flash('ok', $r);
         }
+        // auditoria: toda ação concluída fica registrada com a mensagem mostrada ao usuário
+        if ($mensagem !== '' && function_exists('registrar_atividade')) {
+            registrar_atividade(basename((string) ($_SERVER['SCRIPT_NAME'] ?? 'painel'), '.php'), entrada('acao'), $mensagem);
+        }
     } catch (ErroNegocio $e) {
         flash('erro', $e->getMessage());
         $destino = $voltar ?? url();
     } catch (Throwable $e) {
         error_log('[tcc] ' . $e->getMessage());
-        flash('erro', 'Não foi possível concluir a operação. Confira se o script database/procedures_crud.sql foi executado.');
+        flash('erro', 'Não foi possível concluir a operação. Confira se o banco foi instalado (instalar.php).');
         $destino = $voltar ?? url();
     }
     redirecionar($destino);
@@ -131,7 +224,7 @@ function ler(callable $bloco, mixed $padrao = []): mixed
         static $avisou = false;
         if (!$avisou) {
             $avisou = true;
-            $_SESSION['flash_leitura'] = 'Não foi possível ler os dados. Execute database/procedures_crud.sql no MySQL.';
+            $_SESSION['flash_leitura'] = 'Não foi possível ler os dados. Confira se o MySQL está ligado e se o banco foi instalado (instalar.php).';
         }
         return $padrao;
     }

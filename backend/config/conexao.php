@@ -1,29 +1,36 @@
 <?php
-class BancodeDados {
-    // Nas linhas abaixo voce podera colocar as informaçoes do Banco de Dados.
-    private $host = "localhost:3307";
-   // private $host = "localhost"; 	// Nome ou IP do Servidor
-    private $user = "root"; 		// Usuario do Servidor MySQL
-    private $senha = ""; 		// Senha do Usuario MySQL
-    private $banco = "tcc"; 		// Nome do seu Banco de Dados
-    public $con;
+require_once __DIR__ . '/config.php';
 
-	// metodo responsavel para conexao a base de dados
-	function conecta(){
-        $this->con = mysqli_connect($this->host,$this->user,$this->senha, $this->banco);
-       //   $this->con = @mysqli_connect($this->host,$this->user,$this->senha, $this->banco);
-        // Conecta ao Banco de Dados
-        if(!$this->con){
-      		// Caso ocorra um erro, exibe uma mensagem com o erro
-			die ("Problemas com a conex&atildeo");
-        }
+/**
+ * Conexão mysqli com o banco. Os dados de acesso vêm de config.php.
+ * As páginas usam bd() (backend/lib/bd.php), que reaproveita esta classe.
+ */
+class BancodeDados
+{
+    public ?mysqli $con = null;
+
+    // Abre a conexão; em caso de erro lança exceção (quem chama decide como avisar).
+    public function conecta(): void
+    {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        $this->con = new mysqli(
+            (string) config('db_host'),
+            (string) config('db_usuario'),
+            (string) config('db_senha'),
+            (string) config('db_nome'),
+            (int) config('db_porta')
+        );
+        $this->con->set_charset('utf8mb4');
+        $this->con->query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+        // NOW() e CURDATE() do banco no mesmo fuso do PHP
+        $this->con->query("SET time_zone = '" . date('P') . "'");
     }
 
-	// metodo responsavel para fechar a conexao
-	function fechar(){
-		mysqli_close($this->con);
-		return;
-	}
-
+    public function fechar(): void
+    {
+        if ($this->con) {
+            $this->con->close();
+            $this->con = null;
+        }
+    }
 }
-?>

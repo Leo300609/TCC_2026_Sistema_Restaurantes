@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Acesso ao banco: toda regra de dados mora em procedures/functions (database/procedures_crud.sql).
+ * Acesso ao banco: toda regra de dados mora em procedures/functions
+ * (database/procedures_crud.sql e database/procedures_modulos.sql).
  * O PHP só chama `CALL sp_...(?, ?)` com prepared statements e mostra o resultado.
  */
 
@@ -17,11 +18,9 @@ function bd(): mysqli
 {
     static $con = null;
     if ($con === null) {
-        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         $banco = new BancodeDados();
         $banco->conecta();
         $con = $banco->con;
-        $con->set_charset('utf8mb4');
     }
     return $con;
 }
@@ -34,11 +33,10 @@ function bd(): mysqli
  */
 function chamar(string $procedimento, array $args = []): array
 {
-    $con = bd();
     $marcas = implode(', ', array_fill(0, count($args), '?'));
 
     try {
-        $stmt = $con->prepare("CALL {$procedimento}({$marcas})");
+        $stmt = bd()->prepare("CALL {$procedimento}({$marcas})");
         if ($args) {
             $tipos = '';
             foreach ($args as $valor) {
@@ -69,7 +67,7 @@ function chamar(string $procedimento, array $args = []): array
             throw new ErroNegocio($e->getMessage(), 0, $e);
         }
         error_log('[tcc] ' . $procedimento . ': ' . $e->getMessage());
-        throw new RuntimeException('Não foi possível concluir a operação. Confira se o script database/procedures_crud.sql foi executado.', 0, $e);
+        throw new RuntimeException('Não foi possível concluir a operação. Confira se o banco foi instalado (instalar.php).', 0, $e);
     }
 }
 

@@ -26,6 +26,7 @@
 -- ==========================================================================
 
 USE tcc;
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 DELIMITER //
 
@@ -443,7 +444,9 @@ BEGIN
 
     SELECT p.ID AS id, p.NOME AS nome, p.DESCRICAO AS descricao, p.PRECO_UNITARIO AS preco,
            p.STATUS AS status, p.CATEGORIA_ID AS categoria_id, c.NOME AS categoria,
-           p.CODIGO_BARRAS AS codigo_barras
+           p.CODIGO_BARRAS AS codigo_barras, p.CONTROLA_ESTOQUE AS controla_estoque, p.ESTOQUE AS estoque,
+           fn_produto_custo(p.ID) AS custo, fn_produto_produziveis(p.ID) AS produziveis,
+           (SELECT COUNT(*) FROM FICHA_TECNICA f WHERE f.PRODUTO_ID = p.ID) AS insumos
     FROM PRODUTO p
     JOIN PRODUTO_CATEGORIA c ON c.ID = p.CATEGORIA_ID
     WHERE c.TIPO = 'CARDAPIO'
@@ -457,7 +460,8 @@ BEGIN
     SELECT p.ID AS id, p.NOME AS nome, p.DESCRICAO AS descricao, p.PRECO_UNITARIO AS preco,
            p.ESTOQUE AS estoque, p.ESTOQUE_MINIMO AS estoque_minimo, p.UNIDADE_MEDIDA AS unidade,
            p.DATA_VALIDADE AS validade, p.STATUS AS status, p.CATEGORIA_ID AS categoria_id,
-           c.NOME AS categoria, c.TIPO AS categoria_tipo, p.CODIGO_BARRAS AS codigo_barras, p.NCM AS ncm
+           c.NOME AS categoria, c.TIPO AS categoria_tipo, p.CODIGO_BARRAS AS codigo_barras, p.NCM AS ncm,
+           p.CONTROLA_ESTOQUE AS controla_estoque
     FROM PRODUTO p
     JOIN PRODUTO_CATEGORIA c ON c.ID = p.CATEGORIA_ID
     WHERE p.ID = p_id;
@@ -1076,6 +1080,8 @@ BEGIN
         UPDATE CONTA_RECEBER
         SET STATUS = 'PAGO', DATA_PAGAMENTO = CURDATE()
         WHERE VENDA_ID = p_id AND STATUS IN ('PENDENTE', 'ATRASADO', 'NEGOCIANDO');
+        -- baixa automática dos insumos da ficha técnica (procedures_modulos.sql)
+        CALL sp_estoque_baixa_pedido(p_id, -1);
     END IF;
 
     COMMIT;
@@ -1110,6 +1116,8 @@ BEGIN
     UPDATE VENDA SET ETAPA = 'CANCELADO', STATUS = 'CANCELADA', DATA_ETAPA = NOW() WHERE ID = p_id;
     UPDATE VENDA_ITEM SET STATUS = 'CANCELADA' WHERE VENDA_ID = p_id;
     UPDATE CONTA_RECEBER SET STATUS = 'CANCELADO', DATA_PAGAMENTO = NULL WHERE VENDA_ID = p_id;
+    -- devolve ao estoque os insumos que já tinham recebido baixa
+    CALL sp_estoque_baixa_pedido(p_id, 1);
 
     COMMIT;
 END//
@@ -1426,8 +1434,8 @@ DROP PROCEDURE IF EXISTS sp_equipe_listar//
 CREATE PROCEDURE sp_equipe_listar()
 BEGIN
     SELECT ID AS id, NOME AS nome, EMAIL AS email, NIVEL AS nivel, COALESCE(CARGO, 'FUNCIONARIO') AS cargo,
-           ATIVO AS ativo, DATE_FORMAT(ULTIMO_LOGIN, '%d/%m %H:%i') AS ultimo_login,
-           COALESCE(ULTIMO_LOGIN >= NOW() - INTERVAL 15 MINUTE, 0) AS online
+           ATIVO AS ativo, DATE_FORMAT(COALESCE(ULTIMO_ACESSO, ULTIMO_LOGIN), '%d/%m %H:%i') AS ultimo_login,
+           COALESCE(COALESCE(ULTIMO_ACESSO, ULTIMO_LOGIN) >= NOW() - INTERVAL 15 MINUTE, 0) AS online
     FROM USUARIOS
     ORDER BY (ATIVO = 'INATIVO'), NOME;
 END//
