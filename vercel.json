@@ -1,18 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "echo 'Vitrine estatica: sem dependencias'",
-  "buildCommand": "bash scripts/vercel-vitrine.sh",
-  "outputDirectory": "vitrine",
-  "redirects": [
-    { "source": "/", "destination": "/frontend/html/index.html", "permanent": false }
+  "buildCommand": "",
+  "installCommand": "npm install --no-audit --no-fund",
+  "outputDirectory": "public",
+  "functions": {
+    "api/*.js": { "maxDuration": 30, "includeFiles": "servidor/**" }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/frontend/html/index.html" },
+    { "source": "/painel/:pagina*", "destination": "/api/index" },
+    { "source": "/auth/:acao*", "destination": "/api/index" },
+    { "source": "/relatorios/:formato*", "destination": "/api/index" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]
     }
   ]

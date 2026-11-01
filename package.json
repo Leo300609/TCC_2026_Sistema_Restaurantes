@@ -1,0 +1,25 @@
+{
+  "name": "xtec-restaurantes",
+  "version": "3.0.0",
+  "private": true,
+  "description": "XTEC · Sistema de gestão e automação comercial para restaurantes (Node.js + PostgreSQL)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node servidor.js",
+    "banco:instalar": "node scripts/banco.js instalar",
+    "banco:demo": "node scripts/banco.js demo"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "docx": "^9.15.1",
+    "exceljs": "^4.4.0",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17"
+  }
+}

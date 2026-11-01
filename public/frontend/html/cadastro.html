@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar conta · XTEC</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('xtec-tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'escuro') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+      document.documentElement.setAttribute('data-tema', t);
+    })();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/publico/acesso.css?v=2.1.0">
+</head>
+
+<body>
+  <aside class="marca-lado">
+    <a class="marca" href="index.html">
+      <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
+      <strong>XTEC</strong>
+    </a>
+
+    <div class="marca-texto">
+      <h1>Bem-vindo à equipe.</h1>
+      <p>Crie sua conta com o código de convite que a gerência gerou para você. Seu cargo e o que você pode acessar já vêm definidos no convite.</p>
+      <div class="ticket" aria-hidden="true">
+        <div class="ticket-topo"><strong>Convite</strong><span>válido por 7 dias</span></div>
+        <ul>
+          <li><b>1.</b> Receba o código XTEC-…</li>
+          <li><b>2.</b> Preencha seus dados</li>
+          <li><b>3.</b> Entre no sistema</li>
+        </ul>
+        <div class="ticket-total"><span>Cargo</span><span>definido pela gerência</span></div>
+      </div>
+    </div>
+
+    <p class="marca-rodape">Sistema de Gestão e Automação Comercial · TCC 2026</p>
+  </aside>
+
+  <main class="form-lado">
+    <a href="login.html" class="voltar"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Já tenho conta</a>
+
+    <div class="cartao">
+      <h2>Criar conta</h2>
+      <p>Leva menos de um minuto.</p>
+
+      <div id="mensagem" role="alert" hidden></div>
+
+      <form action="/auth/cadastro" method="POST" id="form-cadastro">
+        <div class="campo">
+          <label for="codigo_equipe">Código de convite</label>
+          <div class="entrada">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <input type="text" id="codigo_equipe" name="codigo_equipe" class="codigo" required maxlength="20" autocomplete="off" placeholder="XTEC-ABC123">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="nome">Nome completo</label>
+          <div class="entrada">
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
+            <input type="text" id="nome" name="nome" required maxlength="255" autocomplete="name" placeholder="Como você quer aparecer para a equipe">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <div class="entrada">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+            <input type="email" id="email" name="email" required maxlength="255" autocomplete="email" placeholder="voce@restaurante.com">
+          </div>
+        </div>
+
+        <div class="dupla">
+          <div class="campo">
+            <label for="senha">Senha</label>
+            <div class="entrada">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input type="password" id="senha" name="senha" required minlength="8" autocomplete="new-password" data-forca aria-describedby="forca-texto">
+              <button type="button" class="mostrar-senha" data-alvo="senha" aria-label="Mostrar senha"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="confirmar_senha">Confirmar senha</label>
+            <div class="entrada">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="8" autocomplete="new-password">
+            </div>
+          </div>
+        </div>
+        <div class="forca" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <p class="forca-texto" id="forca-texto" style="margin-bottom:20px">Ao menos 8 caracteres, com letras e números.</p>
+
+        <button type="submit" class="botao" id="btn-criar"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Criar minha conta</button>
+      </form>
+
+      <p class="alternar">Já tem conta? <a href="login.html">Entrar</a></p>
+    </div>
+  </main>
+
+  <script src="../js/publico/acesso.js?v=2.1.0"></script>
+  <script>
+    (() => {
+      const q = new URLSearchParams(location.search);
+      const form = document.getElementById('form-cadastro');
+      if (q.get('erro')) xtecMensagem('erro', q.get('erro'));
+      ['codigo', 'nome', 'email'].forEach((k) => {
+        const campo = k === 'codigo' ? form.codigo_equipe : form[k];
+        if (q.get(k)) campo.value = q.get(k);
+      });
+      form.codigo_equipe.addEventListener('input', () => { form.codigo_equipe.value = form.codigo_equipe.value.toUpperCase(); });
+
+      form.addEventListener('submit', (e) => {
+        const s = form.senha.value;
+        let erro = '';
+        if (s.length < 8 || !/\d/.test(s) || !/\p{L}/u.test(s)) erro = 'A senha precisa ter ao menos 8 caracteres, com letras e números.';
+        else if (s !== form.confirmar_senha.value) erro = 'A senha e a confirmação não coincidem.';
+        if (erro) {
+          e.preventDefault();
+          xtecMensagem('erro', erro);
+          return;
+        }
+        const b = document.getElementById('btn-criar');
+        b.disabled = true;
+        b.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Criando conta…';
+      });
+    })();
+  </script>
+</body>
+
+</html>

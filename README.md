@@ -1,8 +1,8 @@
 ﻿# 🍽️ XTEC · Sistema de Gestão e Automação Comercial para Restaurantes
 
 ![Status](https://img.shields.io/badge/Status-TCC%20final-brightgreen)
-![PHP](https://img.shields.io/badge/PHP-8.1%2B-777bb4)
-![MySQL](https://img.shields.io/badge/MySQL%20%2F%20MariaDB-procedures-00758f)
+![Node](https://img.shields.io/badge/Node.js-20%2B-339933)
+![Postgres](https://img.shields.io/badge/PostgreSQL-Neon-336791)
 ![Licença](https://img.shields.io/badge/Licença-MIT-blue)
 
 > Plataforma web que substitui comandas de papel e planilhas por um fluxo digital único: do pedido no salão ou no balcão até a cozinha, o caixa, o estoque e o resultado financeiro do mês.
@@ -13,7 +13,7 @@
 
 O XTEC centraliza a operação de um restaurante em um painel que se atualiza enquanto o salão funciona. Cada venda dá baixa automática nos insumos da ficha técnica, cada compra alimenta o estoque e as contas a pagar, e tudo aparece no fluxo de caixa e nos relatórios gerenciais.
 
-Toda a regra de negócio fica no banco, em **functions, views e stored procedures**. O PHP valida o formato da entrada, confere a permissão do usuário e chama `CALL sp_...()` com *prepared statements*.
+Toda a regra de negócio fica no banco, em **funções, views e procedures PL/pgSQL**. O Node valida o formato da entrada, confere a permissão do usuário e chama as funções com parâmetros.
 
 ---
 
@@ -80,50 +80,31 @@ Toda a regra de negócio fica no banco, em **functions, views e stored procedure
 ## 🛠️ Tecnologias
 
 - **Front-end:** HTML5, CSS3 (design system próprio, sem framework), JavaScript puro, Chart.js 4, Font Awesome 6.
-- **Back-end:** PHP 8.1+ (mysqli), Composer com Dompdf, PhpSpreadsheet e PhpWord.
-- **Banco:** MySQL 8 / MariaDB 10.6+ com functions, views e stored procedures.
-- **Ambiente:** WampServer (Apache + PHP + MariaDB).
+- **Back-end:** Node.js 20+ (funções serverless na Vercel), páginas geradas no servidor, `pg`, `bcryptjs`, ExcelJS, docx e pdf-lib.
+- **Banco:** PostgreSQL (Neon) com funções PL/pgSQL, views e dados de demonstração.
+- **Hospedagem:** Vercel + Neon.
 
 ---
 
-## 🌐 Vitrine online
+## 🌐 Online
 
-A landing page, o login e o cadastro também estão publicados no **Vercel** como vitrine. O painel completo usa PHP e MySQL, que o Vercel não executa; por isso ele roda no computador com o WampServer (passo a passo abaixo). A vitrine é montada por `scripts/vercel-vitrine.sh`, que publica só as páginas públicas, sem nenhum arquivo PHP.
+O sistema completo roda na Vercel, sem PHP e sem instalar nada: **https://xtec-restaurantes.vercel.app**. Entre com uma das contas de demonstração abaixo.
 
----
+## 💻 Como executar localmente
 
-## 💻 Como executar
+Pré-requisito: Node.js 20 ou superior.
 
-### Pré-requisitos
-- WampServer (ou XAMPP) com PHP 8.1+ e MySQL/MariaDB.
-- Git.
+```bash
+git clone https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes.git
+cd TCC_2026_Sistema_Restaurantes
+git checkout tcc_final
+npm install
+npm run banco:instalar   # cria o banco local (Postgres embutido em .dados-locais/)
+npm run banco:demo       # carrega 60 dias de vendas, pedidos, mesas e compras
+npm run dev              # http://localhost:3000
+```
 
-### Passo a passo
-1. **Clone o repositório** dentro da pasta `www` do WampServer:
-   ```bash
-   git clone https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes.git
-   ```
-2. **Ligue o WampServer** (ícone verde).
-3. **Instale o banco** abrindo no navegador:
-   `http://localhost/TCC_2026_Sistema_Restaurantes/instalar.php`
-
-   O instalador confere o ambiente, cria o banco `tcc` com todas as tabelas e procedures e, se você quiser, carrega os **dados de demonstração** (60 dias de vendas, pedidos em andamento, mesas ocupadas, compras e despesas). Depois ele se trava; para reinstalar, apague `backend/config/instalado.lock`.
-4. **Acesse o sistema:** `http://localhost/TCC_2026_Sistema_Restaurantes/`
-
-> O banco usa por padrão o MariaDB do WampServer na **porta 3307**, usuário `root` sem senha. Para mudar, crie `backend/config/config.local.php`:
-> ```php
-> <?php return ['db_porta' => 3306, 'db_senha' => 'minha-senha'];
-> ```
-
-### Instalação manual (sem o instalador)
-Execute os scripts de `database/` nesta ordem, por exemplo no phpMyAdmin:
-1. `bancofeitonamoraltmjamovcs.sql`
-2. `migracao_dashboard.sql`
-3. `migracao_crud.sql`
-4. `migracao_modulos.sql`
-5. `procedures_crud.sql`
-6. `procedures_modulos.sql`
-7. `dados_demonstracao.sql` *(opcional)*
+Para usar um Postgres próprio (Neon, Supabase etc.), defina `DATABASE_URL` antes dos comandos. Em produção defina também `SESSION_SECRET` (texto aleatório longo).
 
 ### Contas de demonstração
 | E-mail | Perfil | Senha |
@@ -139,35 +120,22 @@ Execute os scripts de `database/` nesta ordem, por exemplo no phpMyAdmin:
 ## 🗂️ Estrutura de pastas
 
 ```text
-instalar.php            instalador do banco (só funciona em localhost)
-backend/
-  api/                  JSON do painel: notificações e busca global
-  auth/                 login, logout e cadastro com convite
-  config/               config.php (porta, fuso, sessão) e conexão
-  lib/                  bd.php (procedures), web.php (CSRF, filtros, formatação), sessao.php (sessão, permissões, auditoria)
-  modulos/              regras compartilhadas entre telas (categorias)
-  relatorios/           exportação em PDF, Excel, Word e CSV
-database/               scripts SQL (estrutura, migrações, procedures e demonstração)
-frontend/
-  html/                 páginas públicas (site, login, cadastro)
-  painel/               telas do sistema em PHP e _partials/ (cabeçalho, menu, rodapé)
-  css/                  painel/app.css (design system) e publico/
-  js/                   painel/app.js (comportamento comum), painel/pdv.js e publico/
-  assets/               imagens e ícones
-vendor/                 dependências do Composer
+api/                 funções da Vercel (entrada das rotas dinâmicas)
+servidor/            app.js (rotas), sessao.js, bd.js, web.js, layout.js, previsao.js, relatorios.js
+  paginas/           uma tela do painel por arquivo
+database/postgres/   esquema, views, funções (regras de negócio) e dados de demonstração
+public/frontend/     site, login, cadastro, CSS e JavaScript do painel
+scripts/             instalação do banco e testes das funções
+servidor.js          servidor local
 ```
 
----
+## 🧭 Arquitetura
 
-## 🧭 Arquitetura em uma frase por camada
-
-- **Banco:** cada operação é uma procedure (`sp_pedido_criar`, `sp_compra_finalizar`, `sp_mesa_fechar_conta`…) que valida a regra e devolve uma mensagem clara com `SIGNAL SQLSTATE '45000'` quando algo não pode ser feito.
-- **PHP:** `tratar_post()` confere o CSRF, executa a ação, grava o aviso, registra a auditoria e redireciona; `ler()` busca os dados da tela.
-- **Telas:** HTML gerado no servidor; formulários abrem em gavetas laterais e confirmações em janelas modais, sem depender de JavaScript.
-
----
+- **Banco:** cada operação é uma função (`sp_pedido_criar`, `sp_compra_finalizar`, `sp_mesa_fechar_conta`…) que valida a regra e devolve mensagem clara com `RAISE EXCEPTION`.
+- **Servidor:** a página confere permissão e CSRF, chama `SELECT * FROM sp_...()`, grava a auditoria e redireciona (POST → redirecionar → GET).
+- **Sessão:** cookie assinado, `HttpOnly` e `SameSite`, expira por inatividade.
 
 ## 📌 Escopo
 
-- **Incluso:** PDV, pedidos, mesas, cozinha, cardápio com ficha técnica, estoque, compras, fornecedores, clientes, fluxo de caixa, relatórios, auditoria e controle de acesso por perfil.
+- **Incluso:** PDV, pedidos, mesas, cozinha, cardápio com ficha técnica, estoque, compras, fornecedores, clientes, fluxo de caixa, relatórios, previsões, auditoria e controle de acesso por perfil.
 - **Fora de escopo:** emissão fiscal (NFC-e/SAT), folha de pagamento e aplicativo nativo de delivery.

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XTEC · Gestão para restaurantes, do pedido ao caixa</title>
+  <meta name="description" content="PDV, mesas, cozinha, estoque com baixa automática, compras, fluxo de caixa e relatórios em um único sistema para restaurantes.">
+  <meta name="theme-color" content="#16191e">
+  <meta property="og:title" content="XTEC · Gestão para restaurantes">
+  <meta property="og:description" content="Do pedido ao caixa, o restaurante inteiro em um só lugar.">
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/publico/index.css?v=2.1.0">
+</head>
+
+<body>
+  <a class="pular" href="#conteudo">Ir para o conteúdo</a>
+
+  <!-- ===================== TOPO ===================== -->
+  <header class="topo" id="topo">
+    <div class="topo-dentro">
+      <a class="marca" href="#inicio" aria-label="XTEC, início">
+        <span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span>
+        <strong>XTEC</strong>
+      </a>
+      <nav class="menu" id="menu" aria-label="Seções da página">
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#produto">O sistema</a>
+        <a href="#modulos">Módulos</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#demonstracao" class="so-celular">Demonstração</a>
+        <a href="login.html" class="so-celular">Entrar</a>
+      </nav>
+      <div class="topo-acoes">
+        <a class="botao botao-fantasma" href="login.html">Entrar</a>
+        <a class="botao botao-brasa" href="#demonstracao">Ver demonstração</a>
+        <button type="button" class="menu-botao" id="menu-botao" aria-controls="menu" aria-expanded="false" aria-label="Abrir menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="progresso-pagina" id="progresso-pagina" aria-hidden="true"></div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ===================== HERÓI ===================== -->
+    <section class="heroi" id="inicio">
+      <div class="heroi-dentro">
+        <div class="heroi-texto">
+          <p class="heroi-selo"><span class="pulso" aria-hidden="true"></span> Sistema de gestão para restaurantes</p>
+          <h1>Do pedido ao caixa, o restaurante inteiro em um só lugar.</h1>
+          <p class="heroi-desc">O XTEC registra a venda no PDV, leva a comanda para a cozinha, dá baixa nos insumos e fecha o caixa do dia. Sem planilha, sem papel perdido.</p>
+          <div class="heroi-acoes">
+            <a class="botao botao-brasa botao-grande" href="#demonstracao"><i class="fa-solid fa-play" aria-hidden="true"></i> Testar a demonstração</a>
+            <a class="botao botao-contorno botao-grande" href="#como-funciona">Como funciona</a>
+          </div>
+          <ul class="heroi-provas">
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Baixa automática de estoque</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Cozinha em tempo real</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> Relatórios em PDF e Excel</li>
+          </ul>
+        </div>
+
+        <!-- Cena: a comanda saindo da impressora -->
+        <div class="cena" aria-label="Ilustração: uma comanda sendo impressa e o painel atualizando" role="img">
+          <div class="impressora" aria-hidden="true">
+            <div class="impressora-corpo">
+              <span class="impressora-luz"></span>
+              <span class="impressora-fenda"></span>
+            </div>
+            <div class="comanda-palco">
+              <div class="comanda-impressa">
+                <div class="ci-topo">
+                  <strong>#1043</strong>
+                  <span>Mesa 7 · <span data-relogio>19:42</span></span>
+                </div>
+                <ul class="ci-itens">
+                  <li style="--i:1"><b>2x</b> X-Burguer Duplo <em>76,00</em></li>
+                  <li style="--i:2"><b>1x</b> Batata Frita GG <em>22,00</em></li>
+                  <li style="--i:3" class="ci-obs">↳ sem cebola</li>
+                  <li style="--i:4"><b>2x</b> Guaraná Lata <em>11,00</em></li>
+                  <li style="--i:5"><b>1x</b> Petit Gateau <em>18,00</em></li>
+                </ul>
+                <div class="ci-total"><span>Total</span><span>R$ 127,00</span></div>
+                <div class="ci-pago">Pago · Pix</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flutuante f-cozinha" aria-hidden="true">
+            <span class="f-icone brasa"><i class="fa-solid fa-fire-burner"></i></span>
+            <span><strong>Cozinha</strong><small>#1043 em preparo · 4:12</small></span>
+          </div>
+          <div class="flutuante f-estoque" aria-hidden="true">
+            <span class="f-icone mostarda"><i class="fa-solid fa-box-open"></i></span>
+            <span><strong>Baixa automática</strong><small>−2 pães · −4 carnes · −2 caixas</small></span>
+          </div>
+          <div class="flutuante f-kpi" aria-hidden="true">
+            <small>Faturamento hoje</small>
+            <strong>R$ <span data-contar="2384" data-casas="0">2.384</span></strong>
+            <span class="f-sobe"><i class="fa-solid fa-arrow-up"></i> 12% vs. ontem</span>
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none"><polyline points="0,28 18,24 34,26 52,16 70,19 88,9 104,12 120,4" /></svg>
+          </div>
+        </div>
+      </div>
+      <a class="rolar" href="#como-funciona" aria-label="Ir para Como funciona"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+    </section>
+
+    <!-- ===================== FAIXA DE MÓDULOS ===================== -->
+    <div class="faixa" aria-label="Módulos do sistema">
+      <div class="faixa-trilho">
+        <ul>
+          <li><i class="fa-solid fa-cash-register"></i> PDV</li>
+          <li><i class="fa-solid fa-receipt"></i> Pedidos</li>
+          <li><i class="fa-solid fa-chair"></i> Mesas</li>
+          <li><i class="fa-solid fa-fire-burner"></i> Cozinha</li>
+          <li><i class="fa-solid fa-utensils"></i> Cardápio e ficha técnica</li>
+          <li><i class="fa-solid fa-boxes-stacked"></i> Estoque</li>
+          <li><i class="fa-solid fa-cart-flatbed"></i> Compras</li>
+          <li><i class="fa-solid fa-truck-field"></i> Fornecedores</li>
+          <li><i class="fa-solid fa-wallet"></i> Fluxo de caixa</li>
+          <li><i class="fa-solid fa-chart-pie"></i> Relatórios</li>
+          <li><i class="fa-solid fa-clock-rotate-left"></i> Auditoria</li>
+        </ul>
+        <ul aria-hidden="true">
+          <li><i class="fa-solid fa-cash-register"></i> PDV</li>
+          <li><i class="fa-solid fa-receipt"></i> Pedidos</li>
+          <li><i class="fa-solid fa-chair"></i> Mesas</li>
+          <li><i class="fa-solid fa-fire-burner"></i> Cozinha</li>
+          <li><i class="fa-solid fa-utensils"></i> Cardápio e ficha técnica</li>
+          <li><i class="fa-solid fa-boxes-stacked"></i> Estoque</li>
+          <li><i class="fa-solid fa-cart-flatbed"></i> Compras</li>
+          <li><i class="fa-solid fa-truck-field"></i> Fornecedores</li>
+          <li><i class="fa-solid fa-wallet"></i> Fluxo de caixa</li>
+          <li><i class="fa-solid fa-chart-pie"></i> Relatórios</li>
+          <li><i class="fa-solid fa-clock-rotate-left"></i> Auditoria</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===================== COMO FUNCIONA ===================== -->
+    <section class="secao clara" id="como-funciona">
+      <div class="secao-dentro">
+        <header class="secao-cabeca revelar">
+          <h2>O caminho de um pedido</h2>
+          <p>Cada etapa alimenta a próxima. O atendente não digita nada duas vezes, e o dono vê o resultado no mesmo dia.</p>
+        </header>
+
+        <ol class="caminho" id="caminho">
+          <li class="passo revelar">
+            <span class="passo-numero">1</span>
+            <div class="passo-icone"><i class="fa-solid fa-cash-register" aria-hidden="true"></i></div>
+            <h3>Venda no PDV ou na mesa</h3>
+            <p>A comanda é montada com toques na tela. Desconto, troco e forma de pagamento ficam na mesma tela.</p>
+          </li>
+          <li class="passo revelar">
+            <span class="passo-numero">2</span>
+            <div class="passo-icone"><i class="fa-solid fa-fire-burner" aria-hidden="true"></i></div>
+            <h3>Cozinha em tempo real</h3>
+            <p>O pedido aparece na tela da cozinha com cronômetro. Passou do tempo de preparo, a comanda fica vermelha.</p>
+          </li>
+          <li class="passo revelar">
+            <span class="passo-numero">3</span>
+            <div class="passo-icone"><i class="fa-solid fa-bell-concierge" aria-hidden="true"></i></div>
+            <h3>Servido ou entregue</h3>
+            <p>Pronto para a mesa, o balcão ou o delivery. O mapa do salão mostra quanto cada mesa já consumiu.</p>
+          </li>
+          <li class="passo revelar">
+            <span class="passo-numero">4</span>
+            <div class="passo-icone"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></div>
+            <h3>Estoque se ajusta sozinho</h3>
+            <p>Na entrega, a ficha técnica dá baixa no pão, na carne, no queijo e na embalagem. Cancelou, o estoque volta.</p>
+          </li>
+          <li class="passo revelar">
+            <span class="passo-numero">5</span>
+            <div class="passo-icone"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+            <h3>Caixa e relatórios</h3>
+            <p>O valor entra no fluxo de caixa e nos relatórios: margem por prato, ticket médio e horários de pico.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===================== PRÉVIA DO SISTEMA ===================== -->
+    <section class="secao escura" id="produto">
+      <div class="secao-dentro">
+        <header class="secao-cabeca revelar">
+          <h2>Uma tela para cada pessoa do restaurante</h2>
+          <p>O gerente acompanha os números, o caixa vende, a cozinha prepara. Cada perfil entra direto no que precisa.</p>
+        </header>
+
+        <div class="previa revelar" id="previa">
+          <div class="previa-abas" role="tablist" aria-label="Telas do sistema">
+            <button type="button" role="tab" id="aba-gerente" aria-controls="tela-gerente" aria-selected="true" class="ativa"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Gerente</button>
+            <button type="button" role="tab" id="aba-cozinha" aria-controls="tela-cozinha" aria-selected="false" tabindex="-1"><i class="fa-solid fa-fire-burner" aria-hidden="true"></i> Cozinha</button>
+            <button type="button" role="tab" id="aba-salao" aria-controls="tela-salao" aria-selected="false" tabindex="-1"><i class="fa-solid fa-chair" aria-hidden="true"></i> Salão</button>
+            <span class="previa-barra" aria-hidden="true"><span id="previa-tempo"></span></span>
+          </div>
+
+          <div class="janela">
+            <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>xtec · painel</span></div>
+            <div class="janela-corpo">
+              <aside class="j-menu" aria-hidden="true">
+                <span class="j-marca"><i class="fa-solid fa-utensils"></i></span>
+                <i class="fa-solid fa-chart-line ativo"></i><i class="fa-solid fa-cash-register"></i><i class="fa-solid fa-receipt"></i>
+                <i class="fa-solid fa-chair"></i><i class="fa-solid fa-fire-burner"></i><i class="fa-solid fa-boxes-stacked"></i><i class="fa-solid fa-chart-pie"></i>
+              </aside>
+
+              <!-- Tela 1: visão geral -->
+              <div class="j-tela ativa" id="tela-gerente" role="tabpanel" aria-labelledby="aba-gerente">
+                <div class="j-titulo"><strong>Visão geral</strong><small>Boa noite, Carlos. Este é o movimento de hoje.</small></div>
+                <div class="j-kpis">
+                  <div class="j-kpi"><small>Faturamento hoje</small><strong>R$ <span data-contar="2384.5" data-casas="2">2.384,50</span></strong><span class="sobe">↑ 12%</span></div>
+                  <div class="j-kpi"><small>Pedidos</small><strong><span data-contar="58">58</span></strong><span class="sobe">↑ 8%</span></div>
+                  <div class="j-kpi"><small>Ticket médio</small><strong>R$ <span data-contar="41.11" data-casas="2">41,11</span></strong><span class="desce">↓ 2%</span></div>
+                  <div class="j-kpi"><small>Mesas ocupadas</small><strong><span data-contar="7">7</span>/12</strong><span class="barra-mini"><span style="--n:58%"></span></span></div>
+                </div>
+                <div class="j-grade">
+                  <div class="j-cartao j-grafico">
+                    <small>Vendas por hora</small>
+                    <svg viewBox="0 0 300 110" preserveAspectRatio="none">
+                      <path class="g-area" d="M0,100 C20,96 35,90 50,92 C70,95 80,70 100,64 C120,58 130,72 150,60 C170,48 180,22 200,20 C220,18 230,40 250,34 C270,28 285,14 300,10 L300,110 L0,110 Z" />
+                      <path class="g-linha" pathLength="1" d="M0,100 C20,96 35,90 50,92 C70,95 80,70 100,64 C120,58 130,72 150,60 C170,48 180,22 200,20 C220,18 230,40 250,34 C270,28 285,14 300,10" />
+                      <path class="g-passada" d="M0,104 C25,100 40,98 60,96 C85,93 95,84 120,80 C145,76 160,62 185,56 C210,50 225,58 250,52 C270,47 285,40 300,36" />
+                    </svg>
+                  </div>
+                  <div class="j-cartao">
+                    <small>Mais vendidos</small>
+                    <ol class="j-ranking">
+                      <li><span>X-Burguer Clássico</span><b style="--n:100%"></b></li>
+                      <li><span>Combo XTEC</span><b style="--n:82%"></b></li>
+                      <li><span>Coca-Cola Lata</span><b style="--n:64%"></b></li>
+                      <li><span>Batata Frita GG</span><b style="--n:51%"></b></li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tela 2: cozinha -->
+              <div class="j-tela" id="tela-cozinha" role="tabpanel" aria-labelledby="aba-cozinha" hidden>
+                <div class="j-titulo"><strong>Cozinha</strong><small>Fila de preparo por ordem de chegada</small></div>
+                <div class="j-kds">
+                  <div class="j-ticket atrasado"><b>#1038</b><span>23:14</span><p>2x Combo XTEC<br>1x Milk Shake</p><i>Pronto</i></div>
+                  <div class="j-ticket preparo"><b>#1041</b><span>11:02</span><p>1x X-Salada<br>1x Batata P<br><em>↳ sem tomate</em></p><i>Pronto</i></div>
+                  <div class="j-ticket novo"><b>#1043</b><span>01:20</span><p>2x X-Burguer Duplo<br>1x Batata GG</p><i>Iniciar</i></div>
+                </div>
+              </div>
+
+              <!-- Tela 3: salão -->
+              <div class="j-tela" id="tela-salao" role="tabpanel" aria-labelledby="aba-salao" hidden>
+                <div class="j-titulo"><strong>Mesas</strong><small>7 de 12 mesas ocupadas · 58% dos lugares</small></div>
+                <div class="j-mesas">
+                  <span class="m livre">1</span><span class="m ocupada">2<small>R$ 34</small></span><span class="m conta">3<small>R$ 178</small></span>
+                  <span class="m ocupada">4<small>R$ 104</small></span><span class="m livre">5</span><span class="m ocupada">6<small>R$ 61</small></span>
+                  <span class="m ocupada">7<small>R$ 127</small></span><span class="m livre">8</span><span class="m conta">9<small>R$ 46</small></span>
+                  <span class="m livre">10</span><span class="m ocupada">11<small>R$ 22</small></span><span class="m livre">12</span>
+                </div>
+                <div class="j-legenda"><span class="livre">Livre</span><span class="ocupada">Ocupada</span><span class="conta">Aguardando conta</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MÓDULOS ===================== -->
+    <section class="secao clara" id="modulos">
+      <div class="secao-dentro">
+        <header class="secao-cabeca revelar">
+          <h2>Tudo o que a operação pede, sem trocar de sistema</h2>
+          <p>Os módulos conversam entre si: a compra abastece o estoque, a venda consome o estoque, e os dois aparecem no caixa.</p>
+        </header>
+
+        <div class="bento">
+          <article class="b-cartao b-largo revelar">
+            <div class="b-icone"><i class="fa-solid fa-cash-register" aria-hidden="true"></i></div>
+            <h3>PDV com troco e comprovante</h3>
+            <p>Busca por nome ou código de barras, observações por item, venda direta ou envio à cozinha, e cupom para impressora térmica de 80 mm.</p>
+            <div class="b-mini-pdv" aria-hidden="true">
+              <span>X-Burguer <b>R$ 28</b></span><span>Combo <b>R$ 45</b></span><span>Coca lata <b>R$ 6</b></span><span class="ativo">Troco <b>R$ 21,00</b></span>
+            </div>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-chair" aria-hidden="true"></i></div>
+            <h3>Mapa de mesas</h3>
+            <p>Livre, ocupada ou aguardando conta. Divisão da conta e troca de mesa.</p>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-fire-burner" aria-hidden="true"></i></div>
+            <h3>Tela da cozinha</h3>
+            <p>Cronômetro por comanda, resumo do que produzir e aviso sonoro de pedido novo.</p>
+          </article>
+          <article class="b-cartao b-alto revelar">
+            <div class="b-icone"><i class="fa-solid fa-list-ul" aria-hidden="true"></i></div>
+            <h3>Ficha técnica e custo por prato</h3>
+            <p>Cada item do cardápio sabe quais insumos consome. O sistema calcula o custo, a margem e quantas unidades o estoque ainda rende.</p>
+            <ul class="b-ficha" aria-hidden="true">
+              <li><span>Pão brioche</span><b>1</b></li>
+              <li><span>Blend 150 g</span><b>2</b></li>
+              <li><span>Cheddar</span><b>2</b></li>
+              <li><span>Bacon</span><b>2</b></li>
+              <li class="b-ficha-total"><span>Margem</span><b>58%</b></li>
+            </ul>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-cart-flatbed" aria-hidden="true"></i></div>
+            <h3>Compras parceladas</h3>
+            <p>Entrada no estoque, custo atualizado e parcelas direto no fluxo de caixa.</p>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i></div>
+            <h3>Validade e estoque mínimo</h3>
+            <p>Alertas no sino de notificações antes de o insumo faltar ou vencer.</p>
+          </article>
+          <article class="b-cartao b-largo revelar">
+            <div class="b-icone"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+            <h3>Relatórios que respondem perguntas</h3>
+            <p>Quanto sobrou no mês? Qual prato dá mais margem? Que horas o salão lota? DRE simplificada, rankings e gráficos, com exportação em PDF, Excel, Word e CSV.</p>
+            <div class="b-barras" aria-hidden="true"><span style="--h:38%"></span><span style="--h:52%"></span><span style="--h:44%"></span><span style="--h:70%"></span><span style="--h:61%"></span><span style="--h:88%"></span><span style="--h:96%"></span></div>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-keyboard" aria-hidden="true"></i></div>
+            <h3>Busca com Ctrl + K</h3>
+            <p>Clientes, produtos, pedidos e telas a uma tecla de distância.</p>
+          </article>
+          <article class="b-cartao revelar">
+            <div class="b-icone"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i></div>
+            <h3>Tema claro e escuro</h3>
+            <p>Confortável no balcão de dia e na cozinha à noite. Funciona no celular.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NÚMEROS ===================== -->
+    <section class="numeros escura" aria-label="O projeto em números">
+      <div class="secao-dentro numeros-grade">
+        <div class="numero revelar"><strong><span data-contar="16">16</span></strong><span>telas no painel, do PDV à auditoria</span></div>
+        <div class="numero revelar"><strong><span data-contar="137">137</span></strong><span>procedures e funções com as regras no banco</span></div>
+        <div class="numero revelar"><strong><span data-contar="5">5</span></strong><span>perfis de acesso: admin, gerente, caixa, cozinha e entrega</span></div>
+        <div class="numero revelar"><strong><span data-contar="4">4</span></strong><span>formatos de exportação: PDF, Excel, Word e CSV</span></div>
+      </div>
+    </section>
+
+    <!-- ===================== SEGURANÇA ===================== -->
+    <section class="secao clara" id="seguranca">
+      <div class="secao-dentro seguranca">
+        <div class="seguranca-texto revelar">
+          <h2>Cada ação fica registrada. Cada pessoa vê só o que precisa.</h2>
+          <p>Segurança aqui não é promessa de rodapé. São regras que o sistema aplica em cada tela.</p>
+          <ul class="seguranca-lista">
+            <li><i class="fa-solid fa-key" aria-hidden="true"></i><span><strong>Senhas com bcrypt</strong>Nunca guardadas em texto puro.</span></li>
+            <li><i class="fa-solid fa-user-lock" aria-hidden="true"></i><span><strong>Bloqueio de tentativas</strong>Cinco senhas erradas travam o acesso por 15 minutos.</span></li>
+            <li><i class="fa-solid fa-id-badge" aria-hidden="true"></i><span><strong>Permissões por cargo</strong>O caixa não abre o financeiro; a cozinha não mexe nas vendas.</span></li>
+            <li><i class="fa-solid fa-ticket" aria-hidden="true"></i><span><strong>Convites com validade</strong>Só a gerência cria contas novas, com código que expira.</span></li>
+          </ul>
+        </div>
+        <div class="auditoria revelar" aria-label="Exemplo do registro de atividades" role="img">
+          <div class="auditoria-topo"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Atividades <span>ao vivo</span></div>
+          <ul class="auditoria-lista" id="auditoria-lista" aria-hidden="true">
+            <li><time>19:42</time><b>JP</b><span>Venda #1043 concluída no PDV</span></li>
+            <li><time>19:40</time><b>AS</b><span>Pedido #1041 pronto para servir</span></li>
+            <li><time>19:31</time><b>CM</b><span>Compra #47 registrada · estoque atualizado</span></li>
+            <li><time>19:12</time><b>CM</b><span>Convite criado para Cozinheiro</span></li>
+            <li><time>18:58</time><b>MO</b><span>Conta da mesa 3 fechada · R$ 178,50</span></li>
+            <li><time>18:30</time><b>AD</b><span>Entrou no sistema</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CAMPANHA ===================== -->
+    <section class="secao campanha" aria-labelledby="t-campanha">
+      <div class="secao-dentro campanha-dentro">
+        <header class="secao-cabeca revelar">
+          <h2 id="t-campanha">Campanha nas redes</h2>
+          <p>As peças que a equipe criou para apresentar o XTEC.</p>
+        </header>
+        <div class="posts revelar">
+          <figure class="post"><img src="../assets/img/anuncio-12.png" alt="Post: Comece a sua gestão particular — seu lucro é aqui" loading="lazy" width="500" height="625"></figure>
+          <figure class="post"><img src="../assets/img/anuncio-22.png" alt="Post: Feito para facilitar o seu trabalho" loading="lazy" width="500" height="500"></figure>
+          <figure class="post"><img src="../assets/img/anuncio-33.png" alt="Post: Segurança digital é a base do seu crescimento" loading="lazy" width="500" height="500"></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DEMONSTRAÇÃO ===================== -->
+    <section class="cta escura" id="demonstracao">
+      <div class="secao-dentro cta-dentro">
+        <div class="cta-texto revelar">
+          <h2>Abra o painel e veja um restaurante funcionando.</h2>
+          <p>A demonstração vem com 60 dias de vendas, pedidos na cozinha agora e mesas ocupadas. Entre com a conta abaixo e explore à vontade.</p>
+          <div class="heroi-acoes">
+            <a class="botao botao-brasa botao-grande" href="login.html"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Entrar no sistema</a>
+            <a class="botao botao-contorno botao-grande" href="cadastro.html">Tenho um convite</a>
+          </div>
+        </div>
+        <div class="cupom-acesso revelar" aria-label="Contas de demonstração">
+          <div class="ca-topo"><strong>Acesso demo</strong><span>dados de demonstração</span></div>
+          <dl>
+            <div><dt>Administrador</dt><dd><code>admin@tcc.com</code><code>Admin@2026</code></dd></div>
+            <div><dt>Gerente</dt><dd><code>func3@tcc.com</code><code>Equipe@2026</code></dd></div>
+            <div><dt>Caixa</dt><dd><code>func1@tcc.com</code><code>Equipe@2026</code></dd></div>
+            <div><dt>Cozinha</dt><dd><code>func4@tcc.com</code><code>Equipe@2026</code></dd></div>
+          </dl>
+          <p class="ca-rodape">Ambiente de demonstração: os dados podem ser restaurados a qualquer momento.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="rodape-fim">
+    <div class="secao-dentro rodape-grade">
+      <div class="rodape-marca">
+        <a class="marca" href="#inicio"><span class="marca-icone" aria-hidden="true"><i class="fa-solid fa-utensils"></i></span><strong>XTEC</strong></a>
+        <p>Sistema de Gestão e Automação Comercial para restaurantes. Trabalho de Conclusão de Curso, 2026.</p>
+      </div>
+      <nav class="rodape-coluna" aria-label="Produto">
+        <h3>Produto</h3>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#modulos">Módulos</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="login.html">Entrar</a>
+      </nav>
+      <div class="rodape-coluna">
+        <h3>Documentos</h3>
+        <button type="button" class="rodape-botoes" data-modal="termos">Termos de uso</button>
+        <button type="button" class="rodape-botoes" data-modal="privacidade">Política de privacidade</button>
+        <button type="button" class="rodape-botoes" data-modal="diretrizes">Diretrizes de operação</button>
+        <button type="button" class="rodape-botoes" data-modal="seguranca">Segurança e LGPD</button>
+        <button type="button" class="rodape-botoes" data-modal="suporte">Suporte</button>
+      </div>
+    </div>
+    <div class="secao-dentro rodape-base">
+      <p>&copy; 2026 XTEC. Todos os direitos reservados.</p>
+      <a href="#inicio" class="voltar-topo">Voltar ao topo <i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+    </div>
+  </footer>
+
+  <!-- Janela dos documentos do rodapé (conteúdo em footer.js) -->
+  <div class="modal-overlay" id="modal-overlay" aria-hidden="true">
+    <section class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" tabindex="-1">
+      <button type="button" class="modal-fechar" aria-label="Fechar janela"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div class="modal-icone"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
+      <h2 id="modal-titulo">Título</h2>
+      <div class="modal-descricao" id="modal-descricao"></div>
+      <button type="button" class="modal-confirmar">Entendi</button>
+    </section>
+  </div>
+
+  <script src="../js/publico/landing.js?v=2.1.0" defer></script>
+  <script src="../js/publico/footer.js" defer></script>
+</body>
+
+</html>

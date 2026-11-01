@@ -16,3 +16,9 @@ vendor/dompdf/dompdf/lib/fonts/*.ufm.json
 
 # Pasta gerada pelo build da vitrine (Vercel)
 vitrine/
+
+# Dependências do Node
+node_modules/
+.env*
+.vercel/
+.dados-locais/
