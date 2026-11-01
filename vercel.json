@@ -7,8 +7,10 @@
   "functions": {
     "api/*.js": { "maxDuration": 30, "includeFiles": "servidor/**" }
   },
+  "redirects": [
+    { "source": "/", "destination": "/frontend/html/index.html", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/", "destination": "/frontend/html/index.html" },
     { "source": "/painel/:pagina*", "destination": "/api/index" },
     { "source": "/auth/:acao*", "destination": "/api/index" },
     { "source": "/relatorios/:formato*", "destination": "/api/index" }

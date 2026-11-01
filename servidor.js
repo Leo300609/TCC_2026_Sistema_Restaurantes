@@ -19,7 +19,8 @@ const TIPOS = {
 
 http.createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
-  const rel = pathname === '/' ? '/frontend/html/index.html' : pathname;
+  if (pathname === '/') { res.statusCode = 302; res.setHeader('Location', '/frontend/html/index.html'); res.end(); return; }
+  const rel = pathname;
   if (rel.startsWith('/frontend/')) {
     const arquivo = path.join(__dirname, 'public', path.normalize(rel));
     if (arquivo.startsWith(path.join(__dirname, 'public', 'frontend')) && fs.existsSync(arquivo) && fs.statSync(arquivo).isFile()) {
