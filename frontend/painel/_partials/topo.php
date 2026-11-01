@@ -57,6 +57,10 @@ $corAvatar = static fn(string $nome): string => 'cor-' . (abs(crc32($nome)) % 5 
       if (t !== 'claro' && t !== 'escuro') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
       d.setAttribute('data-tema', t);
       if (m === 'recolhido') d.classList.add('menu-recolhido');
+      try {
+        if (sessionStorage.getItem('xtec-recarga') === location.pathname) d.classList.add('sem-entrada');
+        sessionStorage.removeItem('xtec-recarga');
+      } catch (e) {}
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">

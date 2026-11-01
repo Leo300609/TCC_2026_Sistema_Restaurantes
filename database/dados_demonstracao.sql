@@ -315,6 +315,60 @@ UPDATE VENDA_ITEM vi JOIN VENDA v ON v.ID = vi.VENDA_ID
 SET vi.OBSERVACAO = 'Sem cebola'
 WHERE v.ETAPA = 'NOVO' AND v.TIPO_PEDIDO = 'SALAO' AND vi.PRODUTO_ID IN (SELECT ID FROM PRODUTO WHERE NOME LIKE 'X-%');
 
+-- --------------------------------------------------------------------------
+-- 5b. Tendências para a tela de Previsões
+--     Açaí: quase não vendia e começou a crescer nas últimas semanas (emergente)
+--     Combo XTEC e X-Burguer Duplo: em alta | Misto Quente e Cerveja: em queda
+-- --------------------------------------------------------------------------
+DROP TEMPORARY TABLE IF EXISTS tmp_ajuste;
+CREATE TEMPORARY TABLE tmp_ajuste (VENDA_ID INT, PRODUTO_ID INT, PRIMARY KEY (VENDA_ID, PRODUTO_ID));
+
+-- retira itens só de pedidos com mais de um item (nenhum pedido fica vazio)
+INSERT IGNORE INTO tmp_ajuste
+SELECT vi.VENDA_ID, vi.PRODUTO_ID
+FROM VENDA_ITEM vi
+JOIN VENDA v ON v.ID = vi.VENDA_ID
+JOIN PRODUTO p ON p.ID = vi.PRODUTO_ID
+WHERE v.DATA_CADASTRO < CURDATE()
+  AND ((p.NOME = 'Açaí 500ml' AND v.DATA_CADASTRO < CURDATE() - INTERVAL 18 DAY AND RAND() < 0.85)
+    OR (p.NOME IN ('Misto Quente', 'Cerveja Heineken Long Neck') AND v.DATA_CADASTRO >= CURDATE() - INTERVAL 16 DAY AND RAND() < 0.75))
+  AND (SELECT COUNT(*) FROM VENDA_ITEM x WHERE x.VENDA_ID = vi.VENDA_ID) > 1;
+
+DELETE vi FROM VENDA_ITEM vi JOIN tmp_ajuste t ON t.VENDA_ID = vi.VENDA_ID AND t.PRODUTO_ID = vi.PRODUTO_ID;
+DROP TEMPORARY TABLE tmp_ajuste;
+
+-- acrescenta itens com chance crescente quanto mais recente o pedido
+DROP TEMPORARY TABLE IF EXISTS tmp_tendencia;
+CREATE TEMPORARY TABLE tmp_tendencia (nome VARCHAR(200), dias INT, base DOUBLE, rampa DOUBLE);
+INSERT INTO tmp_tendencia VALUES
+('Açaí 500ml', 14, 0.04, 0.022),
+('Combo XTEC Especial', 24, 0.02, 0.008),
+('X-Burguer Duplo', 24, 0.02, 0.006);
+
+INSERT INTO VENDA_ITEM (VENDA_ID, PRODUTO_ID, QUANTIDADE, PRECO_UNITARIO, VALOR, DESCONTO, TOTAL, DATA_CADASTRO, STATUS)
+SELECT v.ID, p.ID, 1, p.PRECO_UNITARIO, p.PRECO_UNITARIO, 0, p.PRECO_UNITARIO, v.DATA_CADASTRO,
+       CASE v.STATUS WHEN 'FINALIZADA' THEN 'FINALIZADA' WHEN 'CANCELADA' THEN 'CANCELADA' ELSE 'EM_ABERTO' END
+FROM VENDA v
+JOIN tmp_tendencia t
+JOIN PRODUTO p ON p.NOME = t.nome
+WHERE v.DATA_CADASTRO >= CURDATE() - INTERVAL t.dias DAY AND v.DATA_CADASTRO < CURDATE()
+  AND RAND() < t.base + DATEDIFF(v.DATA_CADASTRO, CURDATE() - INTERVAL t.dias DAY) * t.rampa
+ON DUPLICATE KEY UPDATE VENDA_ITEM.QUANTIDADE = VENDA_ITEM.QUANTIDADE + 1,
+    VENDA_ITEM.VALOR = VENDA_ITEM.QUANTIDADE * VENDA_ITEM.PRECO_UNITARIO,
+    VENDA_ITEM.TOTAL = VENDA_ITEM.QUANTIDADE * VENDA_ITEM.PRECO_UNITARIO;
+DROP TEMPORARY TABLE tmp_tendencia;
+
+-- totais dos pedidos e das contas a receber voltam a bater com os itens
+UPDATE VENDA v
+JOIN (SELECT VENDA_ID, SUM(TOTAL) AS soma FROM VENDA_ITEM GROUP BY VENDA_ID) t ON t.VENDA_ID = v.ID
+SET v.VALOR = t.soma,
+    v.DESCONTO = LEAST(v.DESCONTO, t.soma),
+    v.TOTAL = t.soma - v.DESCONTO,
+    v.VALOR_RECEBIDO = IF(v.VALOR_RECEBIDO IS NOT NULL AND v.VALOR_RECEBIDO < t.soma - v.DESCONTO,
+                          CEIL((t.soma - v.DESCONTO) / 10) * 10, v.VALOR_RECEBIDO);
+UPDATE CONTA_RECEBER cr JOIN VENDA v ON v.ID = cr.VENDA_ID
+SET cr.VALOR = v.VALOR, cr.DESCONTO = v.DESCONTO, cr.TOTAL = v.TOTAL;
+
 DROP PROCEDURE IF EXISTS xtec_demo_sortear;
 DROP PROCEDURE IF EXISTS xtec_demo_pedido;
 DROP PROCEDURE IF EXISTS xtec_demo_historico;

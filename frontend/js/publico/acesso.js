@@ -40,3 +40,24 @@
     });
   }
 })();
+
+/* Vitrine online (Vercel): o painel precisa de PHP e MySQL, então os
+   formulários explicam como instalar em vez de enviar. */
+(() => {
+  if (!window.XTEC_VITRINE) return;
+  const guia = 'https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes/tree/tcc_final#-como-executar';
+  const caixa = document.getElementById('mensagem');
+  if (!caixa) return;
+  const mostrar = () => {
+    caixa.className = 'mensagem aviso';
+    caixa.innerHTML = '<i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Esta é a vitrine online do XTEC. O painel usa PHP e MySQL e roda no seu computador com o WampServer. <a href="' + guia + '" target="_blank" rel="noopener" style="font-weight:700;color:inherit">Ver como instalar</a></span>';
+    caixa.hidden = false;
+  };
+  mostrar();
+  document.querySelectorAll('form').forEach((form) => form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    caixa.hidden = true;
+    requestAnimationFrame(mostrar);
+  }, true));
+})();

@@ -343,8 +343,55 @@
       const ocupado = document.hidden || sobreposicaoAberta() || (paleta && !paleta.hidden)
         || document.querySelector('.suspenso-painel:not([hidden])')
         || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
-      if (!ocupado) window.location.reload();
+      if (!ocupado) {
+        // recarga automática não repete as animações de entrada
+        try { sessionStorage.setItem('xtec-recarga', location.pathname); } catch (e) { /* ignora */ }
+        window.location.reload();
+      }
     }, segundos * 1000);
+  }
+
+  /* ---------- Movimento: cascata, contadores e gráficos ---------- */
+  const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ordem de entrada dos itens de grades e listas (o CSS usa --ordem no atraso)
+  document.querySelectorAll('.grid-cards, .dashboard-secoes, .quadro, .mesas-grid, .kds, .pdv-produtos, .tendencias-lista, .itens-cardapio')
+    .forEach((grade) => [...grade.children].forEach((item, i) => item.style.setProperty('--ordem', Math.min(i, 12))));
+
+  // indicadores contam do zero até o valor, mantendo o formato brasileiro
+  function contarTexto(el, duracao = 900) {
+    const no = [...el.childNodes].find((n) => n.nodeType === 3 && /\d/.test(n.textContent));
+    if (!no) return;
+    const original = no.textContent;
+    // só valores numéricos (R$ 1.234,56 · ≈ 149 · 7 · 12%); textos como "Açaí 500ml" ficam como estão
+    if (!/^[\d.,]+$/.test(original.replace(/R\$|≈|%|\s/g, ''))) return;
+    const achado = original.match(/\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?/);
+    if (!achado) return;
+    const casas = (achado[0].split(',')[1] || '').length;
+    const alvo = Number(achado[0].replace(/\./g, '').replace(',', '.'));
+    if (!alvo) return;
+    const formatar = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+    const antes = original.slice(0, achado.index);
+    const depois = original.slice(achado.index + achado[0].length);
+    const inicio = performance.now();
+    no.textContent = antes + formatar(0) + depois;
+    const passo = (agora) => {
+      const t = Math.min(1, (agora - inicio) / duracao);
+      no.textContent = antes + formatar(alvo * (1 - Math.pow(1 - t, 3))) + depois;
+      if (t < 1) requestAnimationFrame(passo);
+      else no.textContent = original;
+    };
+    requestAnimationFrame(passo);
+  }
+  if (!calmo && !raiz.classList.contains('sem-entrada')) {
+    document.querySelectorAll('.card-valor, .etapas-faixa strong, .mesas-resumo strong').forEach((el, i) => {
+      setTimeout(() => contarTexto(el), 120 + Math.min(i, 8) * 45);
+    });
+  }
+
+  // animação padrão dos gráficos (Chart.js carrega antes deste arquivo)
+  if (window.Chart) {
+    Chart.defaults.animation = calmo ? false : { duration: 900, easing: 'easeOutQuart' };
   }
 
   /* ---------- Envio único: evita clique duplo em botões de formulário ---------- */

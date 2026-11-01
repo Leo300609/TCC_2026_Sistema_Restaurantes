@@ -3231,6 +3231,44 @@ body:has(.form-card, .confirmar-card) .veu-bloqueio {
   cursor: not-allowed;
 }
 
+.pdv-barra-movel {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .pdv-barra-movel:not([hidden]) {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--brasa);
+    color: #fff;
+    font-size: 14.5px;
+    text-decoration: none;
+    box-shadow: var(--sombra-3);
+    animation: barra-subir 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  :root[data-tema="escuro"] .pdv-barra-movel:not([hidden]) {
+    color: #1a0b0b;
+  }
+
+  .pdv {
+    padding-bottom: 76px;
+  }
+}
+
+@keyframes barra-subir {
+  from { transform: translateY(120%); }
+}
+
 .pdv-carrinho {
   position: sticky;
   top: calc(var(--topo-h) + 16px);
@@ -3637,6 +3675,143 @@ body:has(.form-card, .confirmar-card) .veu-bloqueio {
 
 .dre .menos {
   color: var(--brasa-texto);
+}
+
+/* Previsões */
+.tendencias-lista {
+  list-style: none;
+  padding: 0 20px 18px;
+}
+
+.tendencia-item {
+  padding: 14px 0;
+  border-top: 1px solid var(--fio);
+}
+
+.tendencia-item:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.tendencia-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tendencia-item .sparkline {
+  height: 38px;
+  margin: 8px 0 6px;
+}
+
+.tendencia-numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tendencia-numeros small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--tinta-3);
+}
+
+.tendencia-numeros strong {
+  font-size: 14px;
+}
+
+.previsao-dias li {
+  gap: 16px;
+}
+
+.faixa-previsao {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--chapa-2);
+  box-shadow: inset 0 0 0 1px var(--fio);
+}
+
+.faixa-intervalo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--azul-fundo);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--azul) 45%, transparent);
+}
+
+.faixa-ponto {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--chapa);
+  border-radius: 50%;
+  background: var(--azul);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -50%);
+}
+
+.mapa-calor {
+  display: grid;
+  grid-template-columns: 34px repeat(var(--colunas), minmax(0, 1fr));
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--tinta-3);
+}
+
+.mc-hora {
+  text-align: center;
+}
+
+.mc-dia {
+  align-self: center;
+  font-weight: 600;
+  color: var(--tinta-2);
+}
+
+.mc-celula {
+  aspect-ratio: 1.3;
+  min-height: 18px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--brasa) calc(var(--i) * 92%), var(--chapa-2));
+  box-shadow: inset 0 0 0 1px var(--fio);
+  transition: transform 0.15s;
+}
+
+.mc-celula:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--tinta);
+}
+
+.metodo summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.metodo summary::-webkit-details-marker {
+  display: none;
+}
+
+.metodo summary > i {
+  color: var(--tinta-3);
+  transition: transform 0.25s;
+}
+
+.metodo[open] summary > i {
+  transform: rotate(180deg);
+}
+
+.metodo-texto p {
+  max-width: 90ch;
+  color: var(--tinta-2);
+}
+
+.metodo-texto p + p {
+  margin-top: 10px;
 }
 
 /* Compras */
@@ -4068,11 +4243,88 @@ body:has(.form-card, .confirmar-card) .veu-bloqueio {
 }
 
 @media (max-width: 560px) {
-  .grid-cards,
-  .grid-cards.cinco,
-  .grid-cards.tres,
   .dashboard-secoes.tres {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* indicadores em duas colunas compactas */
+  .grid-cards,
+  .grid-cards.cinco,
+  .grid-cards.tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .card-metrica {
+    padding: 13px 14px;
+    gap: 4px;
+  }
+
+  .card-titulo {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .card-icone {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .grid-cards .card-valor,
+  .grid-cards.cinco .card-valor {
+    font-size: 19px;
+  }
+
+  .card-detalhe {
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .grid-cards > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .painel-header {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+  }
+
+  .painel-corpo,
+  .tendencias-lista,
+  .ranking {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .tendencia-numeros strong {
+    font-size: 13px;
+  }
+
+  .mapa-calor {
+    grid-template-columns: 28px repeat(var(--colunas), minmax(0, 1fr));
+    gap: 3px;
+    font-size: 10px;
+  }
+
+  /* PDV: catálogo em duas colunas para tocar rápido */
+  .pdv-produtos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .pdv-produto {
+    min-height: 92px;
+    padding: 11px 12px;
+  }
+
+  .pdv-produto strong {
+    font-size: 13.5px;
+  }
+
+  .pdv-produto .preco {
+    font-size: 15.5px;
   }
 
   .etapas-faixa {
@@ -4144,4 +4396,208 @@ body:has(.form-card, .confirmar-card) .veu-bloqueio {
     break-inside: avoid;
     border-color: #ccc;
   }
+}
+
+/* ==========================================================================
+   10. MOVIMENTO
+   Um único momento de entrada por página (blocos em cascata), transição
+   suave entre telas e respostas curtas às ações. Tudo some com
+   "reduzir movimento" (regra no fim do arquivo vale para estes trechos).
+   ========================================================================== */
+
+/* Transição entre páginas (View Transitions entre documentos) */
+@view-transition {
+  navigation: auto;
+}
+
+.sidebar { view-transition-name: menu-lateral; }
+.topbar { view-transition-name: barra-topo; }
+.topo-movel { view-transition-name: topo-movel; }
+
+::view-transition-old(root) {
+  animation: 160ms ease-in both vt-sair;
+}
+
+::view-transition-new(root) {
+  animation: 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both vt-entrar;
+}
+
+::view-transition-group(menu-lateral),
+::view-transition-group(barra-topo),
+::view-transition-group(topo-movel) {
+  animation-duration: 0s;
+}
+
+@keyframes vt-sair { to { opacity: 0; } }
+@keyframes vt-entrar { from { opacity: 0; transform: translateY(8px); } }
+
+/* Entrada dos blocos da página, em cascata */
+.conteudo > :not(.topbar):not(.toasts):not(.form-card):not(.confirmar-card):not(script) {
+  animation: bloco-entrar 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.conteudo > :nth-child(3) { animation-delay: 0.03s; }
+.conteudo > :nth-child(4) { animation-delay: 0.08s; }
+.conteudo > :nth-child(5) { animation-delay: 0.13s; }
+.conteudo > :nth-child(6) { animation-delay: 0.18s; }
+.conteudo > :nth-child(7) { animation-delay: 0.23s; }
+.conteudo > :nth-child(n+8) { animation-delay: 0.28s; }
+
+/* Itens de grades e listas entram um após o outro */
+.grid-cards > *,
+.dashboard-secoes > *,
+.quadro > .coluna,
+.mesas-grid > .mesa,
+.kds > .comanda,
+.pdv-produtos > .pdv-produto,
+.tendencias-lista > li,
+.itens-cardapio > li {
+  animation: bloco-entrar 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--ordem, 0) * 45ms + 0.08s);
+}
+
+@keyframes bloco-entrar {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Barras de progresso enchem ao abrir a tela */
+.progresso span,
+.nivel-barra span {
+  animation: barra-encher 0.9s 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes barra-encher { from { width: 0; } }
+
+/* Minigráficos se desenham */
+.sparkline polyline {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: linha-desenhar 1.1s 0.3s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
+
+.sparkline polygon {
+  animation: aparecer 0.8s 0.7s both;
+}
+
+@keyframes linha-desenhar { to { stroke-dashoffset: 0; } }
+
+/* Contador do menu "salta" quando chega */
+.nav-contador {
+  animation: contador-pular 0.5s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes contador-pular { from { transform: scale(0.4); opacity: 0; } }
+
+/* Respostas às ações */
+.btn,
+.filtro,
+.topo-icone,
+.usuario-botao,
+.pdv-produto,
+.mesa {
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.2s, transform 0.12s;
+}
+
+.btn:active,
+.filtro:active,
+.topo-icone:active,
+.usuario-botao:active {
+  transform: scale(0.97);
+}
+
+.card-metrica,
+a.card-metrica {
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+a.card-metrica:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-2);
+}
+
+.mesa:hover {
+  transform: translateY(-2px);
+}
+
+.nav-item i {
+  transition: color 0.15s, transform 0.2s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.nav-item:hover i {
+  transform: translateX(2px);
+}
+
+.painel-card {
+  transition: border-color 0.2s, box-shadow 0.25s;
+}
+
+/* Barra de tempo dos avisos que somem sozinhos */
+.toasts .aviso-ok {
+  position: relative;
+  overflow: hidden;
+}
+
+.toasts .aviso-ok::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: currentColor;
+  opacity: 0.35;
+  transform-origin: left;
+  animation: tempo-aviso 5s linear forwards;
+}
+
+.toasts .aviso-ok:hover::after {
+  animation-play-state: paused;
+}
+
+@keyframes tempo-aviso { to { transform: scaleX(0); } }
+
+/* Linha recém-adicionada em tabelas e listas (ex.: depois de salvar) */
+@keyframes destacar-linha {
+  from { background: var(--mostarda-fundo); }
+}
+
+.recem-salvo {
+  animation: destacar-linha 2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+
+  .conteudo > *,
+  .grid-cards > *,
+  .dashboard-secoes > *,
+  .quadro > .coluna,
+  .mesas-grid > .mesa,
+  .kds > .comanda,
+  .pdv-produtos > .pdv-produto,
+  .tendencias-lista > li,
+  .itens-cardapio > li,
+  .progresso span,
+  .nivel-barra span,
+  .sparkline polyline,
+  .sparkline polygon,
+  .nav-contador {
+    animation: none !important;
+  }
+
+  .sparkline polyline { stroke-dashoffset: 0; }
+}
+
+/* recarga automática (pedidos, mesas, cozinha): sem animação de entrada */
+.sem-entrada .conteudo > *,
+.sem-entrada .grid-cards > *,
+.sem-entrada .dashboard-secoes > *,
+.sem-entrada .quadro > .coluna,
+.sem-entrada .mesas-grid > .mesa,
+.sem-entrada .kds > .comanda,
+.sem-entrada .progresso span,
+.sem-entrada .nivel-barra span,
+.sem-entrada .nav-contador {
+  animation: none !important;
 }

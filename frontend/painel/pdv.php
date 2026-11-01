@@ -114,7 +114,12 @@ include __DIR__ . '/_partials/topo.php';
             <p class="vazio" id="pdv-nada" hidden>Nenhum item encontrado.</p>
           </div>
 
-          <aside class="pdv-carrinho" aria-label="Comanda atual">
+          <a href="#comanda-atual" class="pdv-barra-movel" id="pdv-barra" hidden>
+            <span><i class="fa-solid fa-receipt" aria-hidden="true"></i> <strong id="pdv-barra-itens">0 itens</strong></span>
+            <span>Ver comanda · <strong id="pdv-barra-total">R$ 0,00</strong> <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></span>
+          </a>
+
+          <aside class="pdv-carrinho" id="comanda-atual" aria-label="Comanda atual">
             <fieldset class="segmentado segmentado-3">
               <legend class="sr-only">Tipo do pedido</legend>
               <label><input type="radio" name="tipo_pedido" value="BALCAO"<?= $mesaInicial === '' ? ' checked' : '' ?>><span><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Balcão</span></label>
@@ -150,7 +155,7 @@ include __DIR__ . '/_partials/topo.php';
               </div>
 
               <ul class="carrinho-itens" id="carrinho" aria-live="polite">
-                <li class="carrinho-vazio">Toque nos itens ao lado para montar a comanda.</li>
+                <li class="carrinho-vazio">Toque nos itens para montar a comanda.</li>
               </ul>
               <div id="carrinho-campos"></div>
 

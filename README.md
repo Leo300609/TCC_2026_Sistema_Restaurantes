@@ -42,6 +42,7 @@ Toda a regra de negócio fica no banco, em **functions, views e stored procedure
 |---|---|
 | **Fluxo de caixa** | Entradas (vendas), saídas (compras) e lançamentos manuais, com situação pendente, paga, atrasada ou cancelada. |
 | **Relatórios** | Período livre, comparação com o período anterior, DRE simplificada (receita, custo dos insumos, lucro bruto, despesas e resultado), gráficos por dia, hora, dia da semana e forma de pagamento, rankings de produtos, categorias, canais, equipe e clientes. Exporta em **PDF, Excel, Word e CSV**. |
+| **Previsões** | Produtos **em alta**, **entrando em tendência** e **perdendo força** (comparação de períodos e regressão linear), faturamento e pedidos previstos para os próximos 7 dias com faixa de confiança, mapa de calor dos horários de pico e **reposição prevista** dos insumos (quando acabam e quanto comprar). |
 | **Empresa e equipe** | Dados do estabelecimento, horário de funcionamento, equipe com presença online e **convites com validade** para novos funcionários. |
 | **Atividades (auditoria)** | Registro de toda ação concluída: quem fez, o quê, quando e de qual IP, com filtros. |
 | **Configurações** | Conta e senha, notificações, operação (delivery, tempo de preparo, formas de pagamento) e aparência (tema claro, escuro ou do sistema). |
@@ -82,6 +83,12 @@ Toda a regra de negócio fica no banco, em **functions, views e stored procedure
 - **Back-end:** PHP 8.1+ (mysqli), Composer com Dompdf, PhpSpreadsheet e PhpWord.
 - **Banco:** MySQL 8 / MariaDB 10.6+ com functions, views e stored procedures.
 - **Ambiente:** WampServer (Apache + PHP + MariaDB).
+
+---
+
+## 🌐 Vitrine online
+
+A landing page, o login e o cadastro também estão publicados no **Vercel** como vitrine. O painel completo usa PHP e MySQL, que o Vercel não executa; por isso ele roda no computador com o WampServer (passo a passo abaixo). A vitrine é montada por `scripts/vercel-vitrine.sh`, que publica só as páginas públicas, sem nenhum arquivo PHP.
 
 ---
 

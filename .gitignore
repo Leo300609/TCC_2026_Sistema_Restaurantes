@@ -13,3 +13,6 @@ desktop.ini
 
 # Cache de fontes gerado pelo Dompdf na primeira exportação
 vendor/dompdf/dompdf/lib/fonts/*.ufm.json
+
+# Pasta gerada pelo build da vitrine (Vercel)
+vitrine/

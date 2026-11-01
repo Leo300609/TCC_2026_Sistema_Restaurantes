@@ -1514,4 +1514,118 @@ BEGIN
     SELECT v_usuario AS id, v_cargo AS cargo;
 END//
 
+-- ==========================================================================
+-- 13. PREVISÕES E TENDÊNCIAS
+--     O banco entrega as somas; o cálculo (regressão linear, sazonalidade
+--     por dia da semana e intervalo de confiança) fica em backend/lib/previsao.php.
+--     Todas as janelas terminam ontem: o dia de hoje ainda está incompleto.
+-- ==========================================================================
+
+-- Para cada item do cardápio, vendas nas duas metades da janela (2 x p_janela
+-- dias) e as somas da regressão linear (x = dia, 0 = mais antigo; y = unidades).
+DROP PROCEDURE IF EXISTS sp_prev_produtos//
+CREATE PROCEDURE sp_prev_produtos(IN p_janela INT)
+BEGIN
+    WITH RECURSIVE dias AS (
+        SELECT 0 AS n
+        UNION ALL
+        SELECT n + 1 FROM dias WHERE n < p_janela * 2 - 1
+    ),
+    calendario AS (
+        SELECT DATE_SUB(CURDATE(), INTERVAL n + 1 DAY) AS dia, p_janela * 2 - 1 - n AS x FROM dias
+    ),
+    vendido AS (
+        SELECT vi.PRODUTO_ID AS pid, DATE(v.DATA_CADASTRO) AS dia, SUM(vi.QUANTIDADE) AS q, SUM(vi.TOTAL) AS r
+        FROM VENDA_ITEM vi
+        JOIN VENDA v ON v.ID = vi.VENDA_ID
+        WHERE v.STATUS = 'FINALIZADA'
+          AND v.DATA_CADASTRO >= CURDATE() - INTERVAL p_janela * 2 DAY AND v.DATA_CADASTRO < CURDATE()
+        GROUP BY vi.PRODUTO_ID, DATE(v.DATA_CADASTRO)
+    ),
+    base AS (
+        SELECT p.ID AS pid, p.NOME AS nome, c.NOME AS categoria, p.PRECO_UNITARIO AS preco,
+               cal.x, COALESCE(vd.q, 0) AS q, COALESCE(vd.r, 0) AS r
+        FROM PRODUTO p
+        JOIN PRODUTO_CATEGORIA c ON c.ID = p.CATEGORIA_ID
+        CROSS JOIN calendario cal
+        LEFT JOIN vendido vd ON vd.pid = p.ID AND vd.dia = cal.dia
+        WHERE c.TIPO = 'CARDAPIO' AND p.STATUS = 'ATIVO'
+    )
+    SELECT pid AS id, nome, categoria, preco,
+           SUM(CASE WHEN x >= p_janela THEN q ELSE 0 END) AS atual,
+           SUM(CASE WHEN x < p_janela THEN q ELSE 0 END) AS anterior,
+           SUM(CASE WHEN x >= p_janela THEN r ELSE 0 END) AS receita,
+           COUNT(*) AS n, SUM(x) AS sx, SUM(q) AS sy, SUM(x * q) AS sxy, SUM(x * x) AS sxx
+    FROM base
+    GROUP BY pid, nome, categoria, preco
+    ORDER BY atual DESC;
+END//
+
+-- Unidades vendidas por produto e por dia (para os minigráficos).
+DROP PROCEDURE IF EXISTS sp_prev_serie_produtos//
+CREATE PROCEDURE sp_prev_serie_produtos(IN p_dias INT)
+BEGIN
+    SELECT vi.PRODUTO_ID AS id, DATE(v.DATA_CADASTRO) AS dia, SUM(vi.QUANTIDADE) AS quantidade
+    FROM VENDA_ITEM vi
+    JOIN VENDA v ON v.ID = vi.VENDA_ID
+    WHERE v.STATUS = 'FINALIZADA'
+      AND v.DATA_CADASTRO >= CURDATE() - INTERVAL p_dias DAY AND v.DATA_CADASTRO < CURDATE()
+    GROUP BY vi.PRODUTO_ID, DATE(v.DATA_CADASTRO);
+END//
+
+-- Pedidos e faturamento de cada dia completo (base da previsão de faturamento).
+DROP PROCEDURE IF EXISTS sp_prev_faturamento//
+CREATE PROCEDURE sp_prev_faturamento(IN p_dias INT)
+BEGIN
+    SELECT DATE(DATA_CADASTRO) AS dia, COUNT(*) AS pedidos, SUM(TOTAL) AS faturamento
+    FROM VENDA
+    WHERE STATUS = 'FINALIZADA'
+      AND DATA_CADASTRO >= CURDATE() - INTERVAL p_dias DAY AND DATA_CADASTRO < CURDATE()
+    GROUP BY DATE(DATA_CADASTRO)
+    ORDER BY dia;
+END//
+
+-- Consumo diário médio de cada insumo (pela ficha técnica) e dos itens de
+-- revenda (pelas próprias vendas), com o estoque atual.
+DROP PROCEDURE IF EXISTS sp_prev_insumos//
+CREATE PROCEDURE sp_prev_insumos(IN p_dias INT)
+BEGIN
+    SELECT i.ID AS id, i.NOME AS nome, i.UNIDADE_MEDIDA AS unidade, i.ESTOQUE AS estoque,
+           i.ESTOQUE_MINIMO AS minimo, i.PRECO_UNITARIO AS custo, c.NOME AS categoria,
+           COALESCE(cons.total, 0) / p_dias AS consumo_dia
+    FROM PRODUTO i
+    JOIN PRODUTO_CATEGORIA c ON c.ID = i.CATEGORIA_ID
+    LEFT JOIN (
+        SELECT f.INSUMO_ID AS pid, SUM(vi.QUANTIDADE * f.QUANTIDADE) AS total
+        FROM VENDA_ITEM vi
+        JOIN VENDA v ON v.ID = vi.VENDA_ID
+        JOIN FICHA_TECNICA f ON f.PRODUTO_ID = vi.PRODUTO_ID
+        WHERE v.STATUS = 'FINALIZADA' AND v.DATA_CADASTRO >= CURDATE() - INTERVAL p_dias DAY AND v.DATA_CADASTRO < CURDATE()
+        GROUP BY f.INSUMO_ID
+    ) cons ON cons.pid = i.ID
+    WHERE i.STATUS = 'ATIVO' AND c.TIPO = 'INSUMO'
+    UNION ALL
+    SELECT p.ID, p.NOME, p.UNIDADE_MEDIDA, p.ESTOQUE, p.ESTOQUE_MINIMO,
+           COALESCE((SELECT MIN(PRECO_FORNECEDOR) FROM FORNECEDOR_PRODUTO fp WHERE fp.PRODUTO_ID = p.ID), 0),
+           c.NOME,
+           COALESCE((SELECT SUM(vi.QUANTIDADE) FROM VENDA_ITEM vi JOIN VENDA v ON v.ID = vi.VENDA_ID
+                     WHERE vi.PRODUTO_ID = p.ID AND v.STATUS = 'FINALIZADA'
+                       AND v.DATA_CADASTRO >= CURDATE() - INTERVAL p_dias DAY AND v.DATA_CADASTRO < CURDATE()), 0) / p_dias
+    FROM PRODUTO p
+    JOIN PRODUTO_CATEGORIA c ON c.ID = p.CATEGORIA_ID
+    WHERE p.STATUS = 'ATIVO' AND c.TIPO = 'CARDAPIO' AND p.CONTROLA_ESTOQUE = 1
+      AND NOT EXISTS (SELECT 1 FROM FICHA_TECNICA f WHERE f.PRODUTO_ID = p.ID);
+END//
+
+-- Média de pedidos por dia da semana e hora (1 = domingo ... 7 = sábado).
+DROP PROCEDURE IF EXISTS sp_prev_mapa_calor//
+CREATE PROCEDURE sp_prev_mapa_calor(IN p_semanas INT)
+BEGIN
+    SELECT DAYOFWEEK(DATA_CADASTRO) AS dia, HOUR(DATA_CADASTRO) AS hora, COUNT(*) / p_semanas AS media
+    FROM VENDA
+    WHERE STATUS = 'FINALIZADA'
+      AND DATA_CADASTRO >= CURDATE() - INTERVAL p_semanas * 7 DAY AND DATA_CADASTRO < CURDATE()
+    GROUP BY DAYOFWEEK(DATA_CADASTRO), HOUR(DATA_CADASTRO);
+END//
+
 DELIMITER ;

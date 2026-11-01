@@ -41,7 +41,7 @@
 
   function desenhar() {
     if (!carrinho.length) {
-      lista.innerHTML = '<li class="carrinho-vazio">Toque nos itens ao lado para montar a comanda.</li>';
+      lista.innerHTML = '<li class="carrinho-vazio">Toque nos itens para montar a comanda.</li>';
     } else {
       lista.innerHTML = carrinho.map((i, n) => `
         <li class="carrinho-item" data-n="${n}">
@@ -97,6 +97,14 @@
     linhaTroco.style.color = valorRecebido && valorRecebido < total ? '#b0261e' : '';
 
     const vazio = carrinho.length === 0;
+    // barra fixa do celular/tablet: quantidade e total, leva até a comanda
+    const barra = document.getElementById('pdv-barra');
+    if (barra) {
+      const unidades = carrinho.reduce((s, i) => s + i.qtd, 0);
+      barra.hidden = vazio;
+      document.getElementById('pdv-barra-itens').textContent = `${unidades} ${unidades === 1 ? 'item' : 'itens'}`;
+      document.getElementById('pdv-barra-total').textContent = moeda(total);
+    }
     btnCozinha.disabled = vazio;
     btnCobrar.disabled = vazio || (dinheiro && valorRecebido > 0 && valorRecebido < total);
     btnCobrar.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> Cobrar ${vazio ? 'agora' : moeda(total)}`;

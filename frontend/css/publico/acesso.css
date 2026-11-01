@@ -496,3 +496,65 @@ button, input { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Entrada: marca, comanda e formulário em sequência */
+.marca-lado > *,
+.cartao > * {
+  animation: acesso-subir 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.marca-lado > :nth-child(2) { animation-delay: 0.1s; }
+.marca-lado > :nth-child(3) { animation-delay: 0.2s; }
+.cartao > :nth-child(1) { animation-delay: 0.12s; }
+.cartao > :nth-child(2) { animation-delay: 0.18s; }
+.cartao > :nth-child(3) { animation-delay: 0.24s; }
+.cartao > :nth-child(4) { animation-delay: 0.3s; }
+.cartao > :nth-child(n+5) { animation-delay: 0.36s; }
+
+.ticket {
+  animation: acesso-ticket 0.9s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+.mensagem:not([hidden]) {
+  animation: acesso-sacudir 0.45s 0.4s;
+}
+
+.mensagem.ok:not([hidden]) {
+  animation: acesso-subir 0.4s 0.3s both;
+}
+
+.botao {
+  transition: background 0.15s, transform 0.12s;
+}
+
+.botao:active {
+  transform: scale(0.98);
+}
+
+.entrada input {
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+@keyframes acesso-subir {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes acesso-ticket {
+  from { opacity: 0; transform: translateY(40px) rotate(4deg); }
+  to { opacity: 1; transform: rotate(-2.5deg); }
+}
+
+@keyframes acesso-sacudir {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marca-lado > *,
+  .cartao > *,
+  .ticket,
+  .mensagem:not([hidden]) {
+    animation: none !important;
+  }
+}

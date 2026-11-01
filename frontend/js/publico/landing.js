@@ -219,3 +219,13 @@
     }, 3200);
   }
 })();
+
+/* Vitrine online (Vercel): o cupom de acesso explica onde o painel roda */
+(() => {
+  if (!window.XTEC_VITRINE) return;
+  const rodape = document.querySelector('.ca-rodape');
+  if (rodape) {
+    rodape.innerHTML = 'O painel usa PHP e MySQL: instale com o WampServer seguindo o '
+      + '<a href="https://github.com/Leo300609/TCC_2026_Sistema_Restaurantes/tree/tcc_final#-como-executar" target="_blank" rel="noopener" style="color:inherit;font-weight:700">passo a passo no GitHub</a>.';
+  }
+})();

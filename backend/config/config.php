@@ -21,7 +21,7 @@ function config(string $chave): mixed
     if ($cfg === null) {
         $cfg = [
             'app_nome' => 'XTEC',
-            'app_versao' => '2.0.0',
+            'app_versao' => '2.1.2',
             'db_host' => '127.0.0.1',
             'db_porta' => 3307,
             'db_nome' => 'tcc',

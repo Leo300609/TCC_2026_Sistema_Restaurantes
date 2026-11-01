@@ -26,6 +26,7 @@ $gruposMenu = [
   'Financeiro' => [
     ['fluxo_de_caixa', 'fluxo_de_caixa.php', 'fa-wallet', 'Fluxo de caixa', $perm['financeiro'], 0],
     ['relatorios', 'relatorios.php', 'fa-chart-pie', 'Relatórios', $perm['relatorios'], 0],
+    ['previsoes', 'previsoes.php', 'fa-wand-magic-sparkles', 'Previsões', $perm['relatorios'], 0],
   ],
   'Administração' => [
     ['empresa', 'empresa.php', 'fa-store', 'Empresa e equipe', true, 0],

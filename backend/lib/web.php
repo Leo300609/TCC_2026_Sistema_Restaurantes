@@ -117,7 +117,7 @@ function sparkline(array $valores, string $cor = 'var(--brasa)'): string
     $linha = implode(' ', $pontos);
     return '<svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">'
         . '<polygon points="0,30 ' . $linha . ' 100,30" fill="' . $cor . '" opacity="0.12"/>'
-        . '<polyline points="' . $linha . '" fill="none" stroke="' . $cor . '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>'
+        . '<polyline pathLength="1" points="' . $linha . '" fill="none" stroke="' . $cor . '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>'
         . '</svg>';
 }
 
