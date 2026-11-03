@@ -4566,28 +4566,6 @@ a.card-metrica:hover {
   animation: destacar-linha 2s ease-out;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
-
-  .conteudo > *,
-  .grid-cards > *,
-  .dashboard-secoes > *,
-  .quadro > .coluna,
-  .mesas-grid > .mesa,
-  .kds > .comanda,
-  .pdv-produtos > .pdv-produto,
-  .tendencias-lista > li,
-  .itens-cardapio > li,
-  .progresso span,
-  .nivel-barra span,
-  .sparkline polyline,
-  .sparkline polygon,
-  .nav-contador {
-    animation: none !important;
-  }
-
-  .sparkline polyline { stroke-dashoffset: 0; }
-}
 
 /* recarga automática (pedidos, mesas, cozinha): sem animação de entrada */
 .sem-entrada .conteudo > *,
