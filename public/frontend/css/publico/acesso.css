@@ -550,11 +550,3 @@ button, input { font: inherit; color: inherit; }
   40%, 80% { transform: translateX(6px); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .marca-lado > *,
-  .cartao > *,
-  .ticket,
-  .mensagem:not([hidden]) {
-    animation: none !important;
-  }
-}
